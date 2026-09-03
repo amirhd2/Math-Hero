@@ -28,6 +28,7 @@ import { MistakesScreen } from './screens/MistakesScreen';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { AchievementsScreen } from './screens/AchievementsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -325,6 +326,8 @@ export default function App() {
           </button>
         </nav>
       )}
+      {/* Offline Status Toast */}
+      <OfflineIndicator />
     </div>
   );
 }
