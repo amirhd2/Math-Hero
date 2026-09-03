@@ -1,6 +1,7 @@
 /**
  * Top Navbar & Header component for Math Hero.
  * Displays profile summary (XP, level, streak, coins), PWA install trigger, theme toggle, and navigation triggers.
+ * Includes safe area inset support for iOS / iPad status bar.
  */
 
 import React from 'react';
@@ -27,7 +28,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const isQuizActive = currentScreen === 'quiz_active';
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <header 
+      className="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 transition-colors"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-2">
         {/* Brand / Logo */}
         <div 
@@ -65,9 +69,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Right Actions: PWA Install Button, Theme Toggle & Profile */}
+        {/* Right Actions: PWA Install Button (Chromium only), Theme Toggle & Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* PWA Install Button */}
           {!isQuizActive && <PWAInstallButton />}
 
           <button

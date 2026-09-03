@@ -89,15 +89,26 @@ export function useQuizEngine({
 
   // Keep input focused automatically on initial mount and question transitions
   const focusInput = useCallback(() => {
-    if (inputRef.current) {
-      inputRef.current.focus({ preventScroll: true });
-      requestAnimationFrame(() => {
-        inputRef.current?.focus({ preventScroll: true });
-      });
-      setTimeout(() => {
-        inputRef.current?.focus({ preventScroll: true });
-      }, 60);
-    }
+    const trigger = () => {
+      const el = inputRef.current || (document.getElementById('math-quiz-numeric-input') as HTMLInputElement | null);
+      if (el) {
+        el.focus({ preventScroll: true });
+      }
+    };
+
+    trigger();
+    requestAnimationFrame(trigger);
+    const t1 = setTimeout(trigger, 30);
+    const t2 = setTimeout(trigger, 100);
+    const t3 = setTimeout(trigger, 250);
+    const t4 = setTimeout(trigger, 400);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
   }, []);
 
   useEffect(() => {

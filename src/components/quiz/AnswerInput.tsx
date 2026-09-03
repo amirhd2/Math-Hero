@@ -1,13 +1,14 @@
 /**
  * AnswerInput Component for Math Hero Quiz.
  * Designed specifically for young learners:
- * - Stable numeric input mode (keeps mobile keyboard open smoothly).
+ * - Stable numeric input mode with auto-popup keyboard.
+ * - Stays active and focused across card transitions without dismissing keyboard.
  * - Accepts both Persian and English digits, normalizes automatically.
  * - Anti-bounce / submission lock preventing duplicate submissions.
  * - RTL compatible.
  */
 
-import React, { ChangeEvent, KeyboardEvent } from 'react';
+import React, { ChangeEvent, KeyboardEvent, useEffect } from 'react';
 import { toPersianDigits } from '../../utils/persian';
 
 interface AnswerInputProps {
@@ -41,6 +42,28 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
 }) => {
   const isLocked = disabled || isSubmitting || isAdvancing;
   const isAnswerRevealed = revealedAnswer !== null;
+
+  // Auto-focus and keep mobile keyboard up on card appearance & transition
+  useEffect(() => {
+    if (!isAnswerRevealed) {
+      const focusKeyboard = () => {
+        if (inputRef.current) {
+          inputRef.current.focus({ preventScroll: true });
+        }
+      };
+
+      focusKeyboard();
+      const t1 = setTimeout(focusKeyboard, 30);
+      const t2 = setTimeout(focusKeyboard, 100);
+      const t3 = setTimeout(focusKeyboard, 250);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [inputRef, isAdvancing, isAnswerRevealed]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (isLocked || isAnswerRevealed) return;
@@ -76,9 +99,12 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
     : toPersianDigits(value);
 
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-2.5">
       {/* Primary Numeric Input Field */}
-      <div className="relative">
+      <div 
+        className="relative"
+        onClick={() => inputRef.current?.focus({ preventScroll: true })}
+      >
         <input
           ref={inputRef}
           id="math-quiz-numeric-input"
@@ -94,9 +120,9 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
           value={displayValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          disabled={isLocked || isAnswerRevealed}
+          readOnly={isAnswerRevealed}
           placeholder="پاسخ را بنویسید..."
-          className={`w-full text-center text-3xl sm:text-4xl md:text-5xl font-black py-3.5 px-6 rounded-2xl md:rounded-3xl border-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-inner outline-none transition-all placeholder:text-base sm:placeholder:text-lg placeholder:font-bold placeholder:text-slate-400 ${inputBorderClass}`}
+          className={`w-full text-center text-3xl sm:text-4xl md:text-5xl font-black py-3 px-6 rounded-2xl md:rounded-3xl border-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-inner outline-none transition-all placeholder:text-base sm:placeholder:text-lg placeholder:font-bold placeholder:text-slate-400 ${inputBorderClass}`}
           aria-label="پاسخ عددی"
         />
 
@@ -104,7 +130,11 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
         {!isLocked && !isAnswerRevealed && value.length > 0 && (
           <button
             type="button"
-            onClick={() => onChange('')}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange('');
+              inputRef.current?.focus({ preventScroll: true });
+            }}
             className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold hover:bg-slate-300 transition-colors"
             title="پاک کردن"
           >
@@ -126,9 +156,13 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
       ) : (
         <button
           type="button"
-          onClick={onSubmit}
+          onClick={() => {
+            if (!isLocked && value.trim() !== '') {
+              onSubmit();
+            }
+          }}
           disabled={isLocked || value.trim() === ''}
-          className={`w-full py-3.5 sm:py-4 text-white font-black rounded-2xl shadow-xl transition-all text-base sm:text-lg flex items-center justify-center gap-2 ${
+          className={`w-full py-3 sm:py-3.5 text-white font-black rounded-2xl shadow-xl transition-all text-base sm:text-lg flex items-center justify-center gap-2 ${
             isPractice
               ? 'bg-emerald-600 hover:bg-emerald-500 active:scale-98 shadow-emerald-600/20'
               : 'bg-indigo-600 hover:bg-indigo-500 active:scale-98 shadow-indigo-600/20'

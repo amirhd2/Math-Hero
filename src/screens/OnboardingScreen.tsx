@@ -69,7 +69,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50/70 via-slate-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 flex items-center justify-center p-4 sm:p-6 transition-colors">
+    <div className="min-h-screen bg-gradient-to-b from-indigo-50/70 via-slate-50 to-purple-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950/40 flex items-center justify-center p-4 sm:p-6 pt-safe pb-safe transition-colors">
       <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-10 space-y-8 relative overflow-hidden">
         {/* Decorative background glow */}
         <div className="absolute -top-24 -left-24 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />

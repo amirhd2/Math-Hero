@@ -303,7 +303,10 @@ export default function App() {
 
       {/* Floating Bottom Quick Nav for non-quiz screens */}
       {currentScreen !== 'quiz_active' && currentScreen !== 'onboarding' && currentScreen !== 'quiz_setup' && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-3 px-6 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-3xl shadow-lg">
+        <nav 
+          className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pt-2.5 px-6 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-3xl shadow-lg"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
+        >
           <button onClick={() => setCurrentScreen('home')} className={`flex flex-col items-center gap-1 ${currentScreen === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
             <span className="text-xl">🏠</span>
             <span className="text-[10px]">خانه</span>

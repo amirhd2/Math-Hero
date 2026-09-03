@@ -206,12 +206,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               سلام، {profile.name}!
             </h2>
 
-            <p className="text-indigo-100 text-sm sm:text-base max-w-lg leading-relaxed font-medium">
+            <p className="text-indigo-100 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium">
               امروز چالش‌های شگفت‌انگیز جدیدی در انتظارته. بریم با هم چندتا معمای جذاب حل کنیم؟
             </p>
 
             {/* Level & XP Progress Bar */}
-            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 max-w-md space-y-2">
+            <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 w-full max-w-md mx-auto md:mx-0 space-y-2">
               <div className="flex items-center justify-between text-xs font-extrabold">
                 <span className="flex items-center gap-1.5">
                   <span>👑</span>

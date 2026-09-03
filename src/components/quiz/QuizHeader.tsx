@@ -27,7 +27,7 @@ export const QuizHeader: React.FC<QuizHeaderProps> = ({
   const progressPercent = Math.min(100, Math.round((questionNumber / totalQuestions) * 100));
 
   return (
-    <div className="w-full space-y-2.5 mb-3 sm:mb-4 select-none">
+    <div className="w-full space-y-2 mb-1 sm:mb-1.5 select-none">
       {/* Top action row */}
       <div className="flex items-center justify-between gap-2">
         {/* Exit Button with clear warning indicator */}
@@ -68,7 +68,7 @@ export const QuizHeader: React.FC<QuizHeaderProps> = ({
       </div>
 
       {/* Lightweight Smooth Progress Bar */}
-      <div className="w-full bg-slate-200/80 dark:bg-slate-800 h-2 rounded-full overflow-hidden shadow-inner">
+      <div className="w-full bg-slate-200/80 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden shadow-inner">
         <div
           className={`h-full transition-all duration-300 ease-out rounded-full ${
             isPractice ? 'bg-emerald-500' : 'bg-indigo-600'
