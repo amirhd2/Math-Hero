@@ -1,0 +1,7 @@
+{
+  "name": "Math Hero",
+  "description": "پلتفرم آموزشی و بازی‌وارسازی ریاضی برای کودکان (Math Hero - Educational Math PWA for Children)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
