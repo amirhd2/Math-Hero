@@ -118,6 +118,13 @@ export interface QuizSession {
   xpEarned: number;
   startTime?: number;
   endTime?: number;
+  source?: 'normal' | 'smart-review' | 'mistakes-practice' | 'retry' | string;
+  smartReviewMetadata?: {
+    targetedSkills?: string[];
+    targetOperations?: OperationType[];
+    insightFa?: string;
+    preReviewAccuracy?: number;
+  };
 }
 
 export interface UserProfile {
@@ -183,6 +190,15 @@ export interface QuizResult {
   leveledUp?: boolean;
   unlockedAchievements?: Achievement[];
   mistakes?: MistakeRecord[];
+  source?: 'normal' | 'smart-review' | 'mistakes-practice' | 'retry' | string;
+  smartReviewMetadata?: {
+    targetedSkills?: string[];
+    targetOperations?: OperationType[];
+    insightFa?: string;
+    preReviewAccuracy?: number;
+    postReviewAccuracy?: number;
+    accuracyDelta?: number;
+  };
 }
 
 export interface MistakeRecord {

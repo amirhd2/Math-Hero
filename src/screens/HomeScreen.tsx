@@ -19,6 +19,10 @@ import {
 import { Character } from '../components/Character';
 import { formatNumber, toPersianDigits } from '../utils/persian';
 import { storage } from '../utils/storage';
+import { SmartReviewHomeCard } from '../components/smartReview/SmartReviewHomeCard';
+import { SmartReviewModal } from '../components/smartReview/SmartReviewModal';
+import { getSmartReviewState } from '../smartReview/smartReviewEngine';
+import { SmartReviewState } from '../smartReview/smartReviewTypes';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -28,6 +32,7 @@ interface HomeScreenProps {
   onStartPattern: (pattern: TestPattern) => void;
   onStartQuiz: (preset?: QuizPreset) => void;
   onNavigate: (screen: ScreenId) => void;
+  onStartSmartReview?: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -38,11 +43,28 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onStartPattern,
   onStartQuiz,
   onNavigate,
+  onStartSmartReview,
 }) => {
   const [unresolvedMistakesCount, setUnresolvedMistakesCount] = useState(0);
   const [todaySolved, setTodaySolved] = useState(0);
   const [todayXp, setTodayXp] = useState(0);
   const [nextAchievement, setNextAchievement] = useState<Achievement | null>(null);
+  const [isSmartReviewModalOpen, setIsSmartReviewModalOpen] = useState(false);
+  const [smartReviewState, setSmartReviewState] = useState<SmartReviewState | null>(null);
+
+  const handleOpenSmartReview = async () => {
+    const state = await getSmartReviewState();
+    setSmartReviewState(state);
+    setIsSmartReviewModalOpen(true);
+  };
+
+  const handleConfirmStartSmartReview = () => {
+    setIsSmartReviewModalOpen(false);
+    if (onStartSmartReview) {
+      onStartSmartReview();
+    }
+  };
+
   const [opMastery, setOpMastery] = useState<Record<string, { accuracy: number; stars: number }>>({
     addition: { accuracy: 80, stars: 3 },
     subtraction: { accuracy: 70, stars: 2 },
@@ -259,7 +281,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
-      {/* 2. Main Action / Quick Start Card (Daily Mission) */}
+      {/* 2. Smart Review Entry Point (Requirement 2 & 29) */}
+      <SmartReviewHomeCard
+        onStartSmartReview={handleOpenSmartReview}
+        onOpenQuickQuiz={() => onOpenSetup({ mode: 'practice', questionCount: 10 })}
+      />
+
+      {/* 3. Main Action / Quick Start Card (Daily Mission) */}
       <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-6 sm:p-8 text-slate-950 shadow-xl border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-2 text-center sm:text-right">
           <div className="inline-flex items-center gap-1.5 bg-slate-950/10 px-3 py-1 rounded-full text-xs font-black">
@@ -581,6 +609,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
         </div>
       </div>
+
+      {/* Smart Review Child-friendly Preview Modal */}
+      <SmartReviewModal
+        isOpen={isSmartReviewModalOpen}
+        state={smartReviewState}
+        onClose={() => setIsSmartReviewModalOpen(false)}
+        onStart={handleConfirmStartSmartReview}
+      />
     </div>
   );
 };

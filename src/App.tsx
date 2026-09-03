@@ -16,6 +16,7 @@ import {
 } from './types';
 import { storage, DEFAULT_PROFILE, DEFAULT_SETTINGS, DEFAULT_PRESETS, DEFAULT_TEST_PATTERNS } from './utils/storage';
 import { createQuizSession } from './utils/questionGenerator';
+import { createSmartReviewSession } from './smartReview/smartReviewEngine';
 import { Navbar } from './components/Navbar';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -172,6 +173,21 @@ export default function App() {
     setCurrentScreen('quiz_active');
   };
 
+  // Start Adaptive Smart Review Quiz
+  const handleStartSmartReview = async () => {
+    try {
+      const { session } = await createSmartReviewSession();
+      if (session) {
+        setActiveSession(session);
+        setCurrentScreen('quiz_active');
+      } else {
+        handleOpenQuizSetup({ mode: 'practice', questionCount: 10 });
+      }
+    } catch (err) {
+      console.error('Failed to start smart review session:', err);
+    }
+  };
+
   const handleFinishQuiz = (result: QuizResult) => {
     setLastResult(result);
     // Update profile XP & level
@@ -231,6 +247,7 @@ export default function App() {
             onStartPattern={handleStartPattern}
             onStartQuiz={handleStartQuiz}
             onNavigate={setCurrentScreen}
+            onStartSmartReview={handleStartSmartReview}
           />
         )}
         {currentScreen === 'quiz_setup' && (
@@ -280,7 +297,10 @@ export default function App() {
           />
         )}
         {currentScreen === 'mistakes' && (
-          <MistakesScreen onNavigate={setCurrentScreen} />
+          <MistakesScreen
+            onNavigate={setCurrentScreen}
+            onStartSession={handleStartSession}
+          />
         )}
         {currentScreen === 'progress' && (
           <ProgressScreen

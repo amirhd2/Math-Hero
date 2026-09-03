@@ -128,5 +128,16 @@ export function buildFinalQuizResult(
     presetId: session.config.id || 'custom',
     config: session.config,
     mistakes,
+    source: session.source || (session.config.id === 'smart-review' ? 'smart-review' : 'normal'),
+    smartReviewMetadata: session.smartReviewMetadata
+      ? {
+          ...session.smartReviewMetadata,
+          postReviewAccuracy: score,
+          accuracyDelta:
+            session.smartReviewMetadata.preReviewAccuracy !== undefined
+              ? score - session.smartReviewMetadata.preReviewAccuracy
+              : undefined,
+        }
+      : undefined,
   };
 }

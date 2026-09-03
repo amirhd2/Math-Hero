@@ -74,31 +74,68 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
 
   return (
     <div className="relative w-full max-w-xl mx-auto select-none">
-      {/* Background Stack Card 2 (furthest back) */}
+      {/* Background Stack Card 2 (furthest back - peeks out from bottom/left corners) */}
       {hasSecondNextCard && (
         <div
           aria-hidden="true"
-          className="absolute -bottom-2.5 left-4 right-4 h-20 bg-slate-200/60 dark:bg-slate-800/40 rounded-3xl -z-20 transform translate-y-2 scale-[0.92] opacity-40 blur-[0.5px] border border-slate-300/40 dark:border-slate-700/40 pointer-events-none transition-all duration-300"
-        />
+          className={`absolute inset-0 rounded-3xl -z-20 bg-slate-100/95 dark:bg-slate-800/90 border border-slate-300/70 dark:border-slate-700/70 shadow-md pointer-events-none transition-all duration-500 ease-out transform ${
+            isAdvancing
+              ? 'translate-y-1.5 translate-x-2 rotate-[1.8deg] scale-[0.98] opacity-90'
+              : 'translate-y-3.5 -translate-x-2 -rotate-[2.2deg] scale-[0.95] opacity-60'
+          }`}
+        >
+          {/* Subtle top border decorative accent */}
+          <div className="absolute top-3 left-6 right-6 h-1 bg-slate-200/60 dark:bg-slate-700/50 rounded-full opacity-40" />
+        </div>
       )}
 
-      {/* Background Stack Card 1 (immediately behind active card) */}
+      {/* Background Stack Card 1 (immediately behind active card - peeks out from right corner and scales up to front on advance) */}
       {hasNextCard && (
         <div
           aria-hidden="true"
-          className={`absolute -bottom-1 left-2 right-2 h-24 bg-white/70 dark:bg-slate-900/60 rounded-3xl -z-10 transform translate-y-1 scale-[0.96] opacity-75 shadow-md border border-slate-200/60 dark:border-slate-800/60 pointer-events-none transition-all duration-300 ${
-            isAdvancing ? 'scale-100 translate-y-0 opacity-100 duration-500' : ''
+          className={`absolute inset-0 rounded-3xl -z-10 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-lg pointer-events-none transition-all duration-500 ease-out transform ${
+            isAdvancing
+              ? 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-100 shadow-2xl z-0'
+              : 'translate-y-1.5 translate-x-2 rotate-[1.8deg] scale-[0.98] opacity-90'
           }`}
-        />
+        >
+          {/* Faint preview indicator inside the waiting card */}
+          <div className="p-6 opacity-30 flex items-center justify-between">
+            <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800" />
+            <div className="w-20 h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+          </div>
+        </div>
       )}
 
-      {/* Primary Active Quiz Card */}
+      {/* Top Calendar Binding Bar & Hanging Rings (حلقه و شیرازه تقویم دیواری/رومیزی) */}
+      <div 
+        aria-hidden="true" 
+        className="relative z-10 flex items-center justify-center gap-12 sm:gap-16 -mb-2.5 pointer-events-none"
+      >
+        {/* Left Calendar Ring */}
+        <div className="flex flex-col items-center">
+          <div className="w-3 sm:w-3.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-slate-400 via-slate-300 to-slate-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 shadow-md border border-slate-400/50 dark:border-slate-600/50" />
+        </div>
+        {/* Center subtle tear perforation indicator */}
+        <div className="h-0.5 w-16 sm:w-24 border-t-2 border-dashed border-slate-300/80 dark:border-slate-700/80 opacity-60" />
+        {/* Right Calendar Ring */}
+        <div className="flex flex-col items-center">
+          <div className="w-3 sm:w-3.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-slate-400 via-slate-300 to-slate-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 shadow-md border border-slate-400/50 dark:border-slate-600/50" />
+        </div>
+      </div>
+
+      {/* Primary Active Quiz Card (Calendar Leaf / برگه تقویم) */}
       <div
         onClick={handleCardClick}
         className={`relative w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 md:p-7 shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all duration-300 cursor-text ${feedbackRingClass} ${
-          isAdvancing ? 'animate-falling-leaf pointer-events-none' : 'scale-100 opacity-100'
+          isAdvancing ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
         }`}
       >
+        {/* Top Perforated Line Effect for Calendar Page */}
+        <div 
+          aria-hidden="true" 
+          className="absolute top-0 left-6 right-6 h-[1px] border-t border-dashed border-slate-200 dark:border-slate-800 opacity-70 pointer-events-none" 
+        />
         {/* Top Internal Header inside Card: Character on Corner & Practice Indicator */}
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800/80">
           {/* Corner Character Avatar + Speech Bubble */}

@@ -15,11 +15,13 @@ import { StickyReviewStack } from '../components/results/StickyReviewStack';
 import { ResultsActions } from '../components/results/ResultsActions';
 import { ConfettiCanvas } from '../components/results/ConfettiCanvas';
 import { sound } from '../utils/sound';
+import { formatNumber } from '../utils/persian';
 import {
   createPracticeMistakesSession,
   createRetryQuizSession,
 } from '../results/reviewSessionGenerator';
 import { DEFAULT_QUIZ_CONFIG } from '../utils/questionGenerator';
+import { calculateMeasurableImprovement } from '../smartReview/smartReviewPersistence';
 
 interface ResultsScreenProps {
   result: QuizResult;
@@ -92,6 +94,41 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
       {/* Top Hero Section: Character feedback and outcome badge */}
       <ResultsHero profile={profile} result={result} />
+
+      {/* Smart Review Specific Outcome Banner */}
+      {result.source === 'smart-review' && (
+        <div
+          id="smart-review-results-banner"
+          className="bg-gradient-to-r from-indigo-950 via-indigo-900 to-purple-950 text-white p-5 rounded-3xl border border-indigo-500/40 shadow-xl space-y-2.5"
+          dir="rtl"
+        >
+          <div className="flex items-center gap-2 text-xs font-black text-amber-300">
+            <span>⭐</span>
+            <span>آزمون مرور هوشمند و تطبیقی</span>
+          </div>
+          <h3 className="text-lg font-black text-white">
+            مهارت‌های انتخابی با موفقیت تمرین شدند!
+          </h3>
+          {result.smartReviewMetadata?.accuracyDelta !== undefined && result.smartReviewMetadata.accuracyDelta > 0 && (
+            <p className="text-xs sm:text-sm text-emerald-300 font-bold">
+              {calculateMeasurableImprovement(result, result.smartReviewMetadata.preReviewAccuracy) ||
+                `دقت شما در این مهارت‌ها +${formatNumber(result.smartReviewMetadata.accuracyDelta, 'persian')}٪ ارتقا یافت! 📈`}
+            </p>
+          )}
+          {result.smartReviewMetadata?.targetedSkills && result.smartReviewMetadata.targetedSkills.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {result.smartReviewMetadata.targetedSkills.map((s, idx) => (
+                <span
+                  key={idx}
+                  className="bg-white/15 px-3 py-1 rounded-xl text-xs font-bold text-indigo-100 border border-white/10"
+                >
+                  🎯 {s}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Main Content: Adaptive layout (single column mobile, 2-column tablet/desktop) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

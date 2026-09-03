@@ -28,32 +28,54 @@
   }
 }
 
-/* Falling Leaf Card Animation with Edge/Fold Illusion */
-@keyframes fallingLeafFold {
+/* ==========================================================================
+   Calendar Page Tear-Off & Smooth Downward Drop Animation
+   (انیمیشن کنده شدن برگه تقویم و فرود روان و یکنواخت به پایین صفحه)
+   Simulates a calendar page tearing off smoothly from the top binder,
+   tilting forward gracefully in 3D, gliding down cleanly to the bottom
+   without erratic lateral wobble, and fading out seamlessly.
+   ========================================================================== */
+@keyframes calendarTearOffAndDrop {
   0% {
-    transform: perspective(900px) translateY(0) rotateX(0deg) rotateZ(0deg) scale(1);
+    transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
+    transform-origin: top center;
     opacity: 1;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
   }
-  25% {
-    transform: perspective(900px) translateY(20px) rotateX(8deg) rotateZ(3deg) scale(0.98);
-    opacity: 0.95;
-    box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 10px 12px -6px rgba(0, 0, 0, 0.12);
+  20% {
+    /* Stage 1: The top edge peels off and gently arches forward */
+    transform: perspective(1200px) translateY(22px) rotateX(24deg) scale(0.99);
+    transform-origin: top center;
+    opacity: 0.98;
+    box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.16);
   }
-  60% {
-    transform: perspective(900px) translateY(80px) rotateX(18deg) rotateZ(-7deg) scale(0.92);
-    opacity: 0.7;
-    box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.1);
+  50% {
+    /* Stage 2: Glides straight down with natural forward pitch */
+    transform: perspective(1200px) translateY(125px) rotateX(46deg) scale(0.96);
+    transform-origin: center center;
+    opacity: 0.85;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12);
+  }
+  80% {
+    /* Stage 3: Smoothly accelerating towards bottom of screen while dissolving */
+    transform: perspective(1200px) translateY(290px) rotateX(62deg) scale(0.92);
+    transform-origin: center center;
+    opacity: 0.35;
   }
   100% {
-    transform: perspective(900px) translateY(180px) rotateX(25deg) rotateZ(14deg) scale(0.84);
+    /* Stage 4: Reaches bottom of screen and fully dissolves */
+    transform: perspective(1200px) translateY(460px) rotateX(72deg) scale(0.88);
+    transform-origin: center center;
     opacity: 0;
+    box-shadow: none;
   }
 }
 
+.animate-calendar-tear-fall,
 .animate-falling-leaf {
-  animation: fallingLeafFold 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  transform-origin: bottom center;
+  animation: calendarTearOffAndDrop 0.58s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 /* Shake Animation for Incorrect Attempts */

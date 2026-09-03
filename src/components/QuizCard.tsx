@@ -29,7 +29,7 @@ export const QuizCard: React.FC<QuizCardProps> = ({
   return (
     <div
       className={`w-full max-w-xl mx-auto bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 transition-all duration-300 ${
-        isExiting ? 'animate-falling-leaf pointer-events-none' : 'scale-100 opacity-100'
+        isExiting ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
       }`}
     >
       {/* Quiz Card Header / Progress */}

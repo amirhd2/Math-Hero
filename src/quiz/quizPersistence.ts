@@ -6,6 +6,7 @@
 import { QuizResult, MistakeRecord, UserProfile } from '../types';
 import { storage } from '../utils/storage';
 import { evaluateAchievements } from '../results/achievementResolver';
+import { invalidateSmartReviewCache } from '../smartReview/smartReviewEngine';
 
 export async function persistQuizCompletion(
   result: QuizResult,
@@ -58,6 +59,9 @@ export async function persistQuizCompletion(
       console.warn('Failed to persist mistake record:', err);
     }
   }
+
+  // 7. Invalidate Smart Review cache
+  invalidateSmartReviewCache();
 
   return { updatedProfile, finalResult };
 }

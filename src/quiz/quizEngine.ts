@@ -117,14 +117,14 @@ export function useQuizEngine({
   }, [session.currentIndex, focusInput]);
 
   /**
-   * Internal transition handler to advance to next question with falling-leaf effect.
+   * Internal transition handler to advance to next question with calendar page tear-off effect.
    */
   const transitionToNext = useCallback(
     async (updatedSession: QuizSession) => {
       setIsAdvancing(true);
       sound.playCardSlide(soundEnabled);
 
-      // Duration matches fallingLeaf animation (550ms)
+      // Duration matches calendarPageTearFall animation (580ms)
       setTimeout(async () => {
         if (updatedSession.currentIndex + 1 < updatedSession.questions.length) {
           const advanced = advanceSessionToNext(updatedSession);
@@ -156,7 +156,7 @@ export function useQuizEngine({
 
           onFinishQuiz(savedResult);
         }
-      }, 550);
+      }, 580);
     },
     [soundEnabled, profile, onFinishQuiz, focusInput]
   );
