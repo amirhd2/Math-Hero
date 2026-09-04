@@ -26,6 +26,11 @@ import { SmartReviewState } from '../smartReview/smartReviewTypes';
 import { getLevelProgress } from '../gamification/levelCalculator';
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { TrophyInfo } from '../gamification/gamificationTypes';
+import { AdaptiveLearningPlan, PromotionEvent } from '../adaptive/adaptiveTypes';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
+import { AdaptiveRecommendationCard } from '../components/adaptive/AdaptiveRecommendationCard';
+import { PromotionModal } from '../components/adaptive/PromotionModal';
+import { OperationType } from '../types';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -56,6 +61,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [smartReviewState, setSmartReviewState] = useState<SmartReviewState | null>(null);
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
   const [unlockedBadgesCount, setUnlockedBadgesCount] = useState(0);
+  const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
+  const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
 
   const handleOpenSmartReview = async () => {
     const state = await getSmartReviewState();
@@ -68,6 +75,37 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     if (onStartSmartReview) {
       onStartSmartReview();
     }
+  };
+
+  const handleAcceptPromotion = async () => {
+    if (!pendingPromotion) return;
+    const promo = pendingPromotion;
+    await SmartTeacherEngine.acceptPromotion(promo.id);
+    setPendingPromotion(null);
+    const updatedPlan = await SmartTeacherEngine.getLearningPlan();
+    setAdaptivePlan(updatedPlan);
+    onOpenSetup({
+      selectedOperations: [promo.operation],
+      mode: 'practice',
+      isAdaptive: true,
+      adaptiveSkillTier: promo.unlockedTier,
+    });
+  };
+
+  const handlePostponePromotion = async () => {
+    if (!pendingPromotion) return;
+    await SmartTeacherEngine.postponePromotion(pendingPromotion.id);
+    setPendingPromotion(null);
+  };
+
+  const handleStartAdaptiveRecommendation = (op: OperationType) => {
+    const activeTier = adaptivePlan?.operations[op]?.currentTier || 1;
+    onOpenSetup({
+      selectedOperations: [op],
+      mode: 'practice',
+      isAdaptive: true,
+      adaptiveSkillTier: activeTier,
+    });
   };
 
   const [opMastery, setOpMastery] = useState<Record<string, { accuracy: number; stars: number }>>({
@@ -89,12 +127,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        const [mistakes, results, achievements, overview] = await Promise.all([
+        const [mistakes, results, achievements, overview, plan, promo] = await Promise.all([
           storage.getMistakes(),
           storage.getResults(),
           storage.getAchievements(),
           gamificationEngine.getOverviewData(),
+          SmartTeacherEngine.getLearningPlan(),
+          SmartTeacherEngine.getPendingPromotion(),
         ]);
+
+        setAdaptivePlan(plan);
+        setPendingPromotion(promo);
 
         // Unresolved mistakes
         const unresolved = mistakes.filter((m) => !m.resolved);
@@ -368,6 +411,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             onOpenSetup({
               selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
               mode: 'test',
+              isAdaptive: true,
               questionCount: 20,
             })
           }
@@ -497,6 +541,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             );
           })}
         </div>
+
+        {/* Adaptive Teacher Recommendation Banner (Compact & Positive) */}
+        {adaptivePlan && (
+          <div className="pt-2">
+            <AdaptiveRecommendationCard
+              plan={adaptivePlan}
+              onStartRecommended={handleStartAdaptiveRecommendation}
+            />
+          </div>
+        )}
       </div>
 
       {/* 4.5 Compact Recent/Favorite Saved Test Patterns */}
@@ -650,6 +704,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         onClose={() => setIsSmartReviewModalOpen(false)}
         onStart={handleConfirmStartSmartReview}
       />
+
+      {/* Adaptive Promotion Celebration Modal */}
+      {pendingPromotion && (
+        <PromotionModal
+          promotion={pendingPromotion}
+          onAccept={handleAcceptPromotion}
+          onPostpone={handlePostponePromotion}
+        />
+      )}
     </div>
   );
 };

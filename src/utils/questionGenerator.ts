@@ -33,13 +33,13 @@ export const DEFAULT_OPERATION_SETTINGS: OperationSettings = {
     allowNegative: false,
   },
   multiplication: {
-    mode: 'table',
+    mode: 'free',
     operand1Digits: 1,
     operand2Digits: 1,
     tableNumber: 9,
   },
   division: {
-    mode: 'table',
+    mode: 'free',
     dividendDigits: 2,
     divisorDigits: 1,
     tableNumber: 9,
@@ -225,14 +225,30 @@ export function generateSingleQuestion(
       const divisor = generateNumberWithDigits(divisorDigits, 2); // Avoid divide by 0 and 1
 
       if (!s.allowRemainder) {
-        // Clean integer division: pick quotient, calculate dividend = divisor * quotient
-        const quotientDigits = Math.max(1, s.dividendDigits - divisorDigits + 1);
-        const quotient = generateNumberWithDigits(quotientDigits, 1);
-        const dividend = divisor * quotient;
+        // Clean integer division: ensure dividend has exactly `s.dividendDigits`
+        const minDividend = s.dividendDigits === 1 ? 1 : Math.pow(10, s.dividendDigits - 1);
+        const maxDividend = Math.pow(10, s.dividendDigits) - 1;
+        
+        let actualDivisor = divisor;
+        if (actualDivisor > maxDividend) {
+          actualDivisor = Math.max(1, maxDividend);
+        }
+
+        const minQuotient = Math.ceil(minDividend / actualDivisor);
+        const maxQuotient = Math.floor(maxDividend / actualDivisor);
+        
+        let quotient = 1;
+        if (maxQuotient >= minQuotient) {
+          quotient = Math.floor(Math.random() * (maxQuotient - minQuotient + 1)) + minQuotient;
+        } else {
+          quotient = minQuotient;
+        }
+        const dividend = actualDivisor * quotient;
+
         return {
           id,
           num1: dividend,
-          num2: divisor,
+          num2: actualDivisor,
           operation: 'division',
           correctAnswer: quotient,
         };

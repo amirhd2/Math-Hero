@@ -20,6 +20,26 @@ import { evaluateStreak, getLocalCalendarDate } from './streakManager';
 import { evaluateBadges } from './achievementEngine';
 import { getTrophyInfo, calculateTrophyStage } from './trophyManager';
 import { loadGamificationState, saveGamificationState } from './gamificationPersistence';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
+import { OperationType } from '../types';
+
+async function getMasteredTiersCount(): Promise<number> {
+  try {
+    const plan = await SmartTeacherEngine.getLearningPlan();
+    let count = 0;
+    (['addition', 'subtraction', 'multiplication', 'division'] as OperationType[]).forEach((op) => {
+      const profile = plan.operations[op];
+      if (profile) {
+        Object.values(profile.tiers).forEach((t) => {
+          if (t.state === 'mastered') count++;
+        });
+      }
+    });
+    return count;
+  } catch {
+    return 0;
+  }
+}
 
 class GamificationEngineService {
   private cachedState: GamificationState | null = null;
@@ -56,11 +76,24 @@ class GamificationEngineService {
       now
     );
 
-    // 2. Calculate Base & Bonus XP for this quiz
+    // 2. Calculate Base & Bonus XP for this quiz with Anti-Grind checks
+    let isGrinding = result.adaptiveMetadata?.isGrindingMasteredTier;
+    if (isGrinding === undefined && result.operation && result.operation !== 'mixed') {
+      try {
+        isGrinding = await SmartTeacherEngine.isGrindingMasteredTier(
+          result.operation,
+          result.adaptiveMetadata?.targetTier || 1
+        );
+      } catch {
+        isGrinding = false;
+      }
+    }
+
     const xpBreakdown = calculateQuizXp({
       result,
       previousResults,
       currentStreak: streakResult.currentStreak,
+      isGrindingMasteredTier: isGrinding,
     });
 
     const xpBefore = currentState.totalXp;
@@ -104,9 +137,11 @@ class GamificationEngineService {
 
     // 6. Trophy calculation
     const trophyStageBefore = currentState.trophyStage || 1;
+    const masteredTiersCount = await getMasteredTiersCount();
     const trophyStageAfter = calculateTrophyStage(
       levelTransition.levelAfter,
-      updatedUnlockedBadges.length
+      updatedUnlockedBadges.length,
+      masteredTiersCount
     );
     const trophyUpgraded = trophyStageAfter > trophyStageBefore;
 
@@ -187,7 +222,8 @@ class GamificationEngineService {
 
     const newXp = currentState.totalXp + bonusXp;
     const newLevel = getLevelFromXp(newXp);
-    const newTrophyStage = calculateTrophyStage(newLevel, updatedUnlockedBadges.length);
+    const masteredTiersCount = await getMasteredTiersCount();
+    const newTrophyStage = calculateTrophyStage(newLevel, updatedUnlockedBadges.length, masteredTiersCount);
 
     const updatedState: GamificationState = {
       ...currentState,
@@ -230,7 +266,8 @@ class GamificationEngineService {
   }> {
     const state = await this.getState();
     const levelInfo = getLevelProgress(state.totalXp);
-    const trophyInfo = getTrophyInfo(state.currentLevel, state.unlockedBadges.length);
+    const masteredTiersCount = await getMasteredTiersCount();
+    const trophyInfo = getTrophyInfo(state.currentLevel, state.unlockedBadges.length, masteredTiersCount);
 
     // Evaluate all badges with progress against current state
     const { allBadgesWithProgress } = evaluateBadges({ state });

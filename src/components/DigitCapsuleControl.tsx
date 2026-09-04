@@ -22,7 +22,7 @@ export const DigitCapsuleControl: React.FC<DigitCapsuleControlProps> = ({
   value,
   onChange,
   min = 1,
-  max = 4,
+  max = 100,
   label,
   id = 'digit-capsule',
   disabled = false,
@@ -112,7 +112,7 @@ export const DigitCapsuleControl: React.FC<DigitCapsuleControlProps> = ({
             />
           ) : (
             <span className="text-sm font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-              {toPersianDigits(value)} <span className="text-[10px] font-normal text-slate-400">رقم</span>
+              {toPersianDigits(value)} {label !== undefined && label !== "" && <span className="text-[10px] font-normal text-slate-400">رقم</span>}
             </span>
           )}
         </div>

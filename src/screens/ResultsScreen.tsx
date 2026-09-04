@@ -22,6 +22,9 @@ import {
 } from '../results/reviewSessionGenerator';
 import { DEFAULT_QUIZ_CONFIG } from '../utils/questionGenerator';
 import { calculateMeasurableImprovement } from '../smartReview/smartReviewPersistence';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
+import { PromotionEvent } from '../adaptive/adaptiveTypes';
+import { PromotionModal } from '../components/adaptive/PromotionModal';
 
 interface ResultsScreenProps {
   result: QuizResult;
@@ -49,6 +52,29 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   );
   const mistakes = result.mistakes || [];
   const hasMistakes = mistakes.length > 0;
+
+  const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
+
+  useEffect(() => {
+    SmartTeacherEngine.getPendingPromotion().then((promo) => {
+      if (promo) {
+        setPendingPromotion(promo);
+      }
+    });
+  }, []);
+
+  const handleAcceptPromotion = async () => {
+    if (!pendingPromotion) return;
+    await SmartTeacherEngine.acceptPromotion(pendingPromotion.id);
+    setPendingPromotion(null);
+    onNavigate('home');
+  };
+
+  const handlePostponePromotion = async () => {
+    if (!pendingPromotion) return;
+    await SmartTeacherEngine.postponePromotion(pendingPromotion.id);
+    setPendingPromotion(null);
+  };
 
   // Sound and celebration effects on mount
   useEffect(() => {
@@ -154,6 +180,15 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         onGoHome={handleGoHome}
         onViewAchievements={() => onNavigate('achievements')}
       />
+
+      {/* Adaptive Promotion Celebration Modal */}
+      {pendingPromotion && (
+        <PromotionModal
+          promotion={pendingPromotion}
+          onAccept={handleAcceptPromotion}
+          onPostpone={handlePostponePromotion}
+        />
+      )}
     </div>
   );
 };

@@ -17,6 +17,7 @@ import {
 import { storage, DEFAULT_PROFILE, DEFAULT_SETTINGS, DEFAULT_PRESETS, DEFAULT_TEST_PATTERNS } from './utils/storage';
 import { createQuizSession } from './utils/questionGenerator';
 import { createSmartReviewSession } from './smartReview/smartReviewEngine';
+import { SmartTeacherEngine } from './adaptive/smartTeacherEngine';
 import { Navbar } from './components/Navbar';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -38,6 +39,20 @@ export default function App() {
   const [testPatterns, setTestPatterns] = useState<TestPattern[]>(DEFAULT_TEST_PATTERNS);
 
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
+
+  useEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+    };
+    scrollToTop();
+    setTimeout(scrollToTop, 10);
+    setTimeout(scrollToTop, 50);
+    setTimeout(scrollToTop, 150);
+  }, [currentScreen]);
   const [activePreset, setActivePreset] = useState<QuizPreset>(DEFAULT_PRESETS[0]);
   const [activeSession, setActiveSession] = useState<QuizSession | null>(null);
   const [activeQuizConfig, setActiveQuizConfig] = useState<Partial<QuizConfiguration> | undefined>(undefined);
@@ -140,8 +155,31 @@ export default function App() {
   };
 
   // Start Quiz directly from generated Quiz Configuration
-  const handleStartQuizWithConfig = (config: QuizConfiguration) => {
+  const handleStartQuizWithConfig = async (config: QuizConfiguration) => {
     try {
+      if (config.isAdaptive && config.selectedOperations.length === 1) {
+        const op = config.selectedOperations[0];
+        const adaptiveQuestions = await SmartTeacherEngine.generateAdaptiveQuestions(
+          op,
+          config.questionCount,
+          config.adaptiveSkillTier
+        );
+        const baseSession = createQuizSession(config);
+        const session: QuizSession = {
+          ...baseSession,
+          questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
+          currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
+          adaptiveMetadata: {
+            isAdaptive: true,
+            operation: op,
+            targetTier: config.adaptiveSkillTier,
+          },
+        };
+        setActiveSession(session);
+        setCurrentScreen('quiz_active');
+        return;
+      }
+
       const session = createQuizSession(config);
       setActiveSession(session);
       setCurrentScreen('quiz_active');

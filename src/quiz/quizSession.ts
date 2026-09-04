@@ -139,5 +139,6 @@ export function buildFinalQuizResult(
               : undefined,
         }
       : undefined,
+    adaptiveMetadata: session.adaptiveMetadata,
   };
 }

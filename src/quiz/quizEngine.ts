@@ -4,7 +4,7 @@
  * falling-leaf card transitions, submission locking, and persistence.
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   QuizSession,
   QuizConfiguration,
@@ -21,6 +21,7 @@ import { recordResponseInSession, advanceSessionToNext, buildFinalQuizResult } f
 import { persistQuizCompletion } from './quizPersistence';
 import { sound } from '../utils/sound';
 import { QuizFeedbackStatus } from './quizTypes';
+import { QuizQuestionBuffer } from './quizQuestionBuffer';
 
 interface UseQuizEngineOptions {
   session?: QuizSession;
@@ -86,6 +87,20 @@ export function useQuizEngine({
 
   const currentQuestion: QuizQuestion =
     session.questions[session.currentIndex] || session.questions[0];
+
+  // 2. Rolling Question Preloader Buffer
+  const bufferRef = useRef<QuizQuestionBuffer>(new QuizQuestionBuffer(session));
+  useEffect(() => {
+    bufferRef.current.updateSession(session);
+  }, [session]);
+
+  const bufferState = bufferRef.current.getBufferState();
+  const preparedNextQuestion = bufferState.nextQuestion;
+  const preparedNextNextQuestion = bufferState.nextNextQuestion;
+  const preparedNextThirdQuestion = bufferState.nextThirdQuestion;
+  const upcomingQuestions = useMemo(() => {
+    return bufferState.upcomingQuestions;
+  }, [bufferState.upcomingQuestions]);
 
   // Keep input focused automatically on initial mount and question transitions
   const focusInput = useCallback(() => {
@@ -328,6 +343,11 @@ export function useQuizEngine({
   return {
     session,
     currentQuestion,
+    preparedNextQuestion,
+    preparedNextNextQuestion,
+    preparedNextThirdQuestion,
+    upcomingQuestions,
+    bufferState,
     questionIndex: session.currentIndex,
     questionNumber: session.currentIndex + 1,
     totalQuestions: session.questions.length,

@@ -17,18 +17,20 @@ export interface XpRulesConfig {
   improvementBonus: number;
   streakBonusMax: number;
   maxSessionXp: number;
+  grindDiminishingFactor: number; // 0.5 for already-mastered tier grinding
 }
 
 export const DEFAULT_XP_RULES: XpRulesConfig = {
-  baseQuizXp: 15,
-  xpPerCorrectAnswer: 10,
-  perfectQuizBonus: 25,
-  highAccuracyBonus: 15,
-  smartReviewBonus: 30,
+  baseQuizXp: 10,
+  xpPerCorrectAnswer: 8,
+  perfectQuizBonus: 20,
+  highAccuracyBonus: 12,
+  smartReviewBonus: 25,
   testModeBonus: 15,
-  improvementBonus: 20,
-  streakBonusMax: 20,
-  maxSessionXp: 250,
+  improvementBonus: 15,
+  streakBonusMax: 15,
+  maxSessionXp: 180,
+  grindDiminishingFactor: 0.5,
 };
 
 export interface XpCalculationInput {
@@ -36,6 +38,7 @@ export interface XpCalculationInput {
   previousResults?: QuizResult[];
   currentStreak?: number;
   customRules?: Partial<XpRulesConfig>;
+  isGrindingMasteredTier?: boolean;
 }
 
 /**
@@ -101,7 +104,7 @@ export function calculateQuizXp(input: XpCalculationInput): XpBreakdown {
   const achievementBonusXp = 0;
 
   // Total with Anti-Grind Cap
-  const uncappedTotal =
+  let uncappedTotal =
     baseQuizXp +
     correctAnswersXp +
     accuracyBonusXp +
@@ -109,6 +112,11 @@ export function calculateQuizXp(input: XpCalculationInput): XpBreakdown {
     testModeBonusXp +
     improvementBonusXp +
     streakBonusXp;
+
+  // Anti-grind rule: if repeatedly practicing an already-mastered tier, reduce reward
+  if (input.isGrindingMasteredTier) {
+    uncappedTotal = Math.round(uncappedTotal * rules.grindDiminishingFactor);
+  }
 
   const totalXpEarned = Math.min(uncappedTotal, rules.maxSessionXp);
 

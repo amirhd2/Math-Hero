@@ -109,9 +109,9 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
           ref={inputRef}
           id="math-quiz-numeric-input"
           type="text"
-          inputMode="numeric"
+          inputMode="none"
+          readOnly
           pattern="[0-9۰-۹\-]*"
-          autoFocus
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -120,8 +120,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
           value={displayValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          readOnly={isAnswerRevealed}
-          placeholder="پاسخ را بنویسید..."
+          placeholder="پاسخ را بزنید..."
           className={`w-full text-center text-3xl sm:text-4xl md:text-5xl font-black py-3 px-6 rounded-2xl md:rounded-3xl border-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-inner outline-none transition-all placeholder:text-base sm:placeholder:text-lg placeholder:font-bold placeholder:text-slate-400 ${inputBorderClass}`}
           aria-label="پاسخ عددی"
         />
@@ -133,9 +132,8 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               onChange('');
-              inputRef.current?.focus({ preventScroll: true });
             }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold hover:bg-slate-300 transition-colors"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold hover:bg-slate-300 transition-colors cursor-pointer"
             title="پاک کردن"
           >
             ✕
@@ -143,33 +141,15 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
         )}
       </div>
 
-      {/* Action Button: Submit or Proceed */}
-      {isAnswerRevealed ? (
+      {/* Action Button: Only shown when answer is revealed for explanation */}
+      {isAnswerRevealed && (
         <button
           type="button"
           onClick={onAdvanceNow}
-          className="w-full py-3.5 sm:py-4 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all text-base sm:text-lg flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3 sm:py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all text-base flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>متوجه شدم، سوال بعدی</span>
           <span>←</span>
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => {
-            if (!isLocked && value.trim() !== '') {
-              onSubmit();
-            }
-          }}
-          disabled={isLocked || value.trim() === ''}
-          className={`w-full py-3 sm:py-3.5 text-white font-black rounded-2xl shadow-xl transition-all text-base sm:text-lg flex items-center justify-center gap-2 ${
-            isPractice
-              ? 'bg-emerald-600 hover:bg-emerald-500 active:scale-98 shadow-emerald-600/20'
-              : 'bg-indigo-600 hover:bg-indigo-500 active:scale-98 shadow-indigo-600/20'
-          } disabled:opacity-40 disabled:pointer-events-none cursor-pointer`}
-        >
-          <span>{isSubmitting ? 'در حال بررسی...' : 'ثبت پاسخ'}</span>
-          <span className="text-xl">⏎</span>
         </button>
       )}
     </div>

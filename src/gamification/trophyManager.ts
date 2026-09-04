@@ -19,6 +19,7 @@ export interface TrophyStageConfig {
   icon: string;
   levelRequired: number;
   badgesRequired: number;
+  masteredTiersRequired?: number;
 }
 
 export const TROPHY_STAGES: TrophyStageConfig[] = [
@@ -30,6 +31,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     icon: '🌱',
     levelRequired: 1,
     badgesRequired: 0,
+    masteredTiersRequired: 0,
   },
   {
     stage: 2,
@@ -39,6 +41,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     icon: '🥉',
     levelRequired: 3,
     badgesRequired: 3,
+    masteredTiersRequired: 0,
   },
   {
     stage: 3,
@@ -46,8 +49,9 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام تیزبینی و هوش',
     description: 'تسلط بر مفاهیم پایه و حل دقیق مسائل',
     icon: '🥈',
-    levelRequired: 6,
-    badgesRequired: 7,
+    levelRequired: 5,
+    badgesRequired: 6,
+    masteredTiersRequired: 1,
   },
   {
     stage: 4,
@@ -55,8 +59,9 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام افتخار و درخشش',
     description: 'مهارت عالی در عملیات‌های چهارگانه ریاضی',
     icon: '🥇',
-    levelRequired: 10,
-    badgesRequired: 12,
+    levelRequired: 8,
+    badgesRequired: 10,
+    masteredTiersRequired: 2,
   },
   {
     stage: 5,
@@ -64,8 +69,9 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام نبوغ و استادی',
     description: 'پیشتازی بی‌نظیر در محاسبات و مرور هوشمند',
     icon: '💎',
-    levelRequired: 13,
-    badgesRequired: 18,
+    levelRequired: 11,
+    badgesRequired: 14,
+    masteredTiersRequired: 4,
   },
   {
     stage: 6,
@@ -73,21 +79,31 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'تاج زرین قهرمان ریاضی',
     description: 'بالاترین افتخار جهان ریاضی؛ استاد بی‌بدیل اعداد',
     icon: '👑',
-    levelRequired: 15,
-    badgesRequired: 22,
+    levelRequired: 14,
+    badgesRequired: 18,
+    masteredTiersRequired: 6,
   },
 ];
 
 export const MAX_TROPHY_STAGE = TROPHY_STAGES.length;
 
 /**
- * Evaluates current trophy stage based on level and unlocked badge count.
+ * Evaluates current trophy stage based on level, badges, and verified mastered skill tiers.
  */
-export function calculateTrophyStage(currentLevel: number, unlockedBadgesCount: number): number {
+export function calculateTrophyStage(
+  currentLevel: number,
+  unlockedBadgesCount: number,
+  masteredTiersCount = 0
+): number {
   let stage = 1;
   for (let i = 0; i < TROPHY_STAGES.length; i++) {
     const config = TROPHY_STAGES[i];
-    if (currentLevel >= config.levelRequired && unlockedBadgesCount >= config.badgesRequired) {
+    const tiersReq = config.masteredTiersRequired || 0;
+    if (
+      currentLevel >= config.levelRequired &&
+      unlockedBadgesCount >= config.badgesRequired &&
+      masteredTiersCount >= tiersReq
+    ) {
       stage = config.stage;
     } else {
       break;
@@ -99,8 +115,12 @@ export function calculateTrophyStage(currentLevel: number, unlockedBadgesCount: 
 /**
  * Returns comprehensive Trophy state and progress toward next stage.
  */
-export function getTrophyInfo(currentLevel: number, unlockedBadgesCount: number): TrophyInfo {
-  const stageNumber = calculateTrophyStage(currentLevel, unlockedBadgesCount);
+export function getTrophyInfo(
+  currentLevel: number,
+  unlockedBadgesCount: number,
+  masteredTiersCount = 0
+): TrophyInfo {
+  const stageNumber = calculateTrophyStage(currentLevel, unlockedBadgesCount, masteredTiersCount);
   const currentConfig = TROPHY_STAGES[stageNumber - 1] || TROPHY_STAGES[0];
   const isMax = stageNumber >= MAX_TROPHY_STAGE;
 
@@ -137,9 +157,13 @@ export function getTrophyInfo(currentLevel: number, unlockedBadgesCount: number)
 
   const badgesRemaining = Math.max(0, targetBadges - unlockedBadgesCount);
   const levelsRemaining = Math.max(0, targetLevel - currentLevel);
+  const nextTiersReq = nextConfig.masteredTiersRequired || 0;
+  const tiersRemaining = Math.max(0, nextTiersReq - masteredTiersCount);
 
   let nextRequirementText = '';
-  if (badgesRemaining > 0 && levelsRemaining > 0) {
+  if (tiersRemaining > 0) {
+    nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: تسلط بر ${tiersRemaining} مرحله جدید از مهارت‌ها نیاز است.`;
+  } else if (badgesRemaining > 0 && levelsRemaining > 0) {
     nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: ${levelsRemaining} سطح بالاتر و ${badgesRemaining} نشان جدید نیاز داری.`;
   } else if (badgesRemaining > 0) {
     nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: ${badgesRemaining} نشان افتخار دیگر کسب کن.`;

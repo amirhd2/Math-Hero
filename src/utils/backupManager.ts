@@ -18,6 +18,8 @@ import {
 } from '../gamification/gamificationPersistence';
 import { GamificationState } from '../gamification/gamificationTypes';
 import { invalidateSmartReviewCache } from '../smartReview/smartReviewPersistence';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
+import { AdaptiveLearningPlan, PromotionEvent } from '../adaptive/adaptiveTypes';
 
 export const BACKUP_FORMAT_VERSION = 1;
 export const APP_VERSION = '1.0.0';
@@ -34,6 +36,7 @@ export interface MathHeroBackupMetadata {
     mistakes: number;
     achievements: number;
     testPatterns: number;
+    promotions?: number;
   };
 }
 
@@ -46,6 +49,8 @@ export interface MathHeroBackupData {
   achievements: Achievement[];
   testPatterns: TestPattern[];
   gamification?: GamificationState;
+  learningPlan?: AdaptiveLearningPlan;
+  promotions?: PromotionEvent[];
 }
 
 export interface BackupValidationResult {
@@ -119,7 +124,7 @@ export async function getStoredDataCounts(): Promise<StoredDataCounts> {
  * Generates a complete Math Hero application backup object.
  */
 export async function createFullBackup(): Promise<{ filename: string; json: string; data: MathHeroBackupData }> {
-  const [profile, settings, results, mistakes, achievements, testPatterns, gamification] =
+  const [profile, settings, results, mistakes, achievements, testPatterns, gamification, learningPlan, promotions] =
     await Promise.all([
       storage.getProfile(),
       storage.getSettings(),
@@ -128,6 +133,8 @@ export async function createFullBackup(): Promise<{ filename: string; json: stri
       storage.getAchievements(),
       storage.getTestPatterns(),
       loadGamificationState(),
+      SmartTeacherEngine.getLearningPlan(),
+      SmartTeacherEngine.getPromotions(),
     ]);
 
   const now = Date.now();
@@ -149,6 +156,7 @@ export async function createFullBackup(): Promise<{ filename: string; json: stri
         mistakes: mistakes.length,
         achievements: achievements.length,
         testPatterns: testPatterns.length,
+        promotions: promotions.length,
       },
     },
     profile,
@@ -158,6 +166,8 @@ export async function createFullBackup(): Promise<{ filename: string; json: stri
     achievements,
     testPatterns,
     gamification,
+    learningPlan,
+    promotions,
   };
 
   const json = JSON.stringify(backupData, null, 2);
@@ -354,6 +364,18 @@ export async function restoreBackup(
         await saveGamificationState(backup.gamification);
       }
 
+      // 8. Replace Adaptive Learning Plan & Promotions
+      if (backup.learningPlan) {
+        await SmartTeacherEngine.saveLearningPlan(backup.learningPlan);
+      }
+      if (Array.isArray(backup.promotions)) {
+        try {
+          localStorage.setItem('math_hero_promotions_v1', JSON.stringify(backup.promotions));
+        } catch (e) {
+          console.warn('Failed to restore promotions', e);
+        }
+      }
+
       invalidateSmartReviewCache();
 
       return {
@@ -497,6 +519,24 @@ export async function restoreBackup(
       await saveGamificationState(mergedGamification);
     }
 
+    // 8. Merge Adaptive Learning Plan & Promotions
+    if (backup.learningPlan) {
+      await SmartTeacherEngine.saveLearningPlan(backup.learningPlan);
+    }
+    if (Array.isArray(backup.promotions)) {
+      try {
+        const currentPromotions = await SmartTeacherEngine.getPromotions();
+        const promoIds = new Set(currentPromotions.map((p) => p.id));
+        const mergedPromotions = [...currentPromotions];
+        backup.promotions.forEach((p) => {
+          if (!promoIds.has(p.id)) mergedPromotions.push(p);
+        });
+        localStorage.setItem('math_hero_promotions_v1', JSON.stringify(mergedPromotions));
+      } catch (e) {
+        console.warn('Failed to merge promotions', e);
+      }
+    }
+
     invalidateSmartReviewCache();
 
     return {
@@ -519,6 +559,12 @@ export async function restoreBackup(
  */
 export async function resetApplicationData(): Promise<void> {
   await storage.resetAllData();
+  try {
+    localStorage.removeItem('math_hero_learning_plan_v1');
+    localStorage.removeItem('math_hero_promotions_v1');
+  } catch {
+    // ignore
+  }
   invalidateSmartReviewCache();
 }
 

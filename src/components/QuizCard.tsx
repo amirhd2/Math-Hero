@@ -1,7 +1,3 @@
-/**
- * QuizCard Component with Falling-Leaf Transition and Stable Keyboard Layout
- */
-
 import React from 'react';
 import { QuizQuestion } from '../types';
 import { formatExpression } from '../utils/persian';
@@ -25,6 +21,17 @@ export const QuizCard: React.FC<QuizCardProps> = ({
     question.operation === 'addition' ? '+' :
     question.operation === 'subtraction' ? '-' :
     question.operation === 'multiplication' ? '×' : '÷';
+    
+  const opIcon = 
+    question.operation === 'addition' ? '➕' :
+    question.operation === 'subtraction' ? '➖' :
+    question.operation === 'multiplication' ? '✖️' : '➗';
+    
+  const opBg = 
+    question.operation === 'addition' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
+    question.operation === 'subtraction' ? 'bg-sky-100 dark:bg-sky-900/50 text-sky-600 dark:text-sky-400 border-sky-200 dark:border-sky-800' :
+    question.operation === 'multiplication' ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800' : 
+    'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 border-violet-200 dark:border-violet-800';
 
   return (
     <div
@@ -32,16 +39,10 @@ export const QuizCard: React.FC<QuizCardProps> = ({
         isExiting ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
       }`}
     >
-      {/* Quiz Card Header / Progress */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
-          سوال {questionNumber} از {totalQuestions}
-        </span>
-        <div className="w-32 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-          <div
-            className="bg-indigo-600 h-full transition-all duration-300 rounded-full"
-            style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
-          />
+      {/* Quiz Card Header (Operation Icon) */}
+      <div className="flex items-center justify-center mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className={`w-12 h-12 flex items-center justify-center rounded-2xl border shadow-sm ${opBg}`}>
+            <span className="text-2xl drop-shadow-sm">{opIcon}</span>
         </div>
       </div>
 

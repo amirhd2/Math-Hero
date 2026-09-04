@@ -7,6 +7,7 @@ import { QuizResult, MistakeRecord, UserProfile, Achievement } from '../types';
 import { storage } from '../utils/storage';
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { invalidateSmartReviewCache } from '../smartReview/smartReviewEngine';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 
 export async function persistQuizCompletion(
   result: QuizResult,
@@ -49,7 +50,14 @@ export async function persistQuizCompletion(
   // 5. Save Quiz Result
   await storage.saveResult(finalResult);
 
-  // 6. Save individual mistake records for Smart Review
+  // 6. Record evidence in Adaptive Learning Engine
+  try {
+    await SmartTeacherEngine.recordQuizEvidence(finalResult);
+  } catch (err) {
+    console.warn('Failed to record adaptive evidence:', err);
+  }
+
+  // 7. Save individual mistake records for Smart Review
   for (const mistake of mistakes) {
     try {
       await storage.saveMistake(mistake);
@@ -58,7 +66,7 @@ export async function persistQuizCompletion(
     }
   }
 
-  // 7. Invalidate Smart Review cache
+  // 8. Invalidate Smart Review cache
   invalidateSmartReviewCache();
 
   return {

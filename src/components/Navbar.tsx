@@ -1,9 +1,8 @@
 /**
  * Top Navbar & Header component for Math Hero.
- * Displays profile summary (XP, level, streak, coins), PWA install trigger, theme toggle, and navigation triggers.
+ * Displays profile summary (XP, level, streak, coins), PWA install trigger, and navigation triggers.
  * Includes safe area inset support for iOS / iPad status bar.
  */
-
 import React from 'react';
 import { UserProfile, AppSettings, ScreenId } from '../types';
 import { Character } from './Character';
@@ -23,7 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   settings,
   currentScreen,
   onNavigate,
-  onToggleTheme,
 }) => {
   const isQuizActive = currentScreen === 'quiz_active';
 
@@ -69,19 +67,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Right Actions: PWA Install Button (Chromium only), Theme Toggle & Profile */}
+        {/* Right Actions: PWA Install Button (Chromium only) & Profile */}
         <div className="flex items-center gap-2 sm:gap-3">
           {!isQuizActive && <PWAInstallButton />}
-
-          <button
-            onClick={onToggleTheme}
-            className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors shadow-sm shrink-0"
-            aria-label="تغییر تم"
-            title="تغییر حالت نمایش"
-          >
-            {settings.theme === 'dark' ? '🌞' : '🌙'}
-          </button>
-
+          
           {!isQuizActive && (
             <button
               onClick={() => onNavigate('settings')}

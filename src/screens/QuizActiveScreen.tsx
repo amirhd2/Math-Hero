@@ -2,18 +2,17 @@
  * QuizActiveScreen component for Math Hero.
  * Connects directly to the dedicated Quiz Engine (useQuizEngine).
  * Provides responsive layout:
- * - Minimal distance (2-3mm) between progress bar and card.
- * - Hero companion character sits directly inside the corner of the card.
+ * - Minimal distance between progress bar and card stack.
  * - Automatic keyboard activation and persistent focus across card transitions.
  */
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QuizPreset, QuizResult, UserProfile, QuizSession, AppSettings } from '../types';
 import { useQuizEngine } from '../quiz/quizEngine';
 import { QuizGuard } from '../components/QuizGuard';
 import { QuizHeader } from '../components/quiz/QuizHeader';
 import { QuizCardStack } from '../components/quiz/QuizCardStack';
 import { AnswerInput } from '../components/quiz/AnswerInput';
+import { VirtualKeyboard } from '../components/quiz/VirtualKeyboard';
 import { ExitConfirmationModal } from '../components/quiz/ExitConfirmationModal';
 
 interface QuizActiveScreenProps {
@@ -36,10 +35,39 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
 }) => {
   const [showExitModal, setShowExitModal] = useState(false);
 
+  useEffect(() => {
+    const resetScroll = () => {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      const root = document.getElementById('root');
+      if (root) root.scrollTop = 0;
+      const container = document.getElementById('active-screen-container');
+      if (container) container.scrollTop = 0;
+    };
+
+    resetScroll();
+    window.addEventListener('scroll', resetScroll);
+    window.addEventListener('resize', resetScroll);
+
+    const origHtmlOverflow = document.documentElement.style.overflow;
+    const origBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('scroll', resetScroll);
+      window.removeEventListener('resize', resetScroll);
+      document.documentElement.style.overflow = origHtmlOverflow;
+      document.body.style.overflow = origBodyOverflow;
+    };
+  }, []);
+
   // Initialize Quiz Engine
   const {
     session,
     currentQuestion,
+    upcomingQuestions,
     questionNumber,
     totalQuestions,
     mode,
@@ -65,8 +93,6 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
     onFinishQuiz,
     onCancelQuiz,
   });
-
-  const upcomingQuestions = session.questions.slice(session.currentIndex + 1, session.currentIndex + 3);
 
   // Guard exit handler (catches accidental browser back/popstate)
   const handleGuardTriggerExit = () => {
@@ -94,12 +120,13 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           inputRef.current.focus({ preventScroll: true });
         }
       }}
-      className="relative w-full min-h-[100dvh] max-h-[100dvh] overflow-y-auto md:overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-start pt-safe pb-safe px-3 sm:px-6 transition-colors select-none"
+      id="active-screen-container"
+      className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between pt-2 pb-safe px-3 sm:px-6 transition-colors select-none"
     >
       {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
-      {/* 2. Top Header & Progress */}
+      {/* 2. Connected Dots Bar (Very Top) */}
       <div className="w-full max-w-xl mx-auto pt-1 sm:pt-2">
         <QuizHeader
           questionNumber={questionNumber}
@@ -110,8 +137,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 3. Main Center Area: Card placed directly 2-3mm below progress bar */}
-      <div className="w-full max-w-xl mx-auto flex-1 flex flex-col justify-start mt-1 sm:mt-1.5 pb-3">
+      {/* 3. Main Center Area: Card placed higher with clean equal stack offsets */}
+      <div className="w-full max-w-xl mx-auto flex-1 flex flex-col justify-start mt-1 overflow-hidden">
         <QuizCardStack
           currentQuestion={currentQuestion}
           upcomingQuestions={upcomingQuestions}
@@ -140,8 +167,32 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         </QuizCardStack>
       </div>
 
-      {/* 4. Bottom Safe Space for virtual numeric keyboard */}
-      <div className="h-2 sm:h-4 shrink-0" aria-hidden="true" />
+      {/* 4. Custom Virtual Numeric Keyboard */}
+      <div className="w-full max-w-xl mx-auto pb-1 sm:pb-2 pt-1 shrink-0">
+        <VirtualKeyboard
+          onInputDigit={(digit) => {
+            if (!isSubmitting && !isAdvancing && revealedAnswer === null) {
+              setUserAnswer((prev) => (prev.length < 6 ? prev + digit : prev));
+            }
+          }}
+          onBackspace={() => {
+            if (!isSubmitting && !isAdvancing && revealedAnswer === null) {
+              setUserAnswer((prev) => prev.slice(0, -1));
+            }
+          }}
+          onSubmit={() => {
+            if (revealedAnswer !== null) {
+              advanceNow();
+            } else if (!isSubmitting && !isAdvancing && userAnswer.trim() !== '') {
+              submitAnswer();
+            }
+          }}
+          onExit={handleHeaderExitClick}
+          disabled={isSubmitting || isAdvancing}
+          submitDisabled={userAnswer.trim() === '' && revealedAnswer === null}
+          isPractice={isPractice}
+        />
+      </div>
 
       {/* 5. Safe Exit Confirmation Modal */}
       <ExitConfirmationModal

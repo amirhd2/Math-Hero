@@ -74,6 +74,8 @@ export interface QuizConfiguration {
   operationSettings: OperationSettings;
   distribution: Record<OperationType, number>;
   smartReviewEnabled: boolean;
+  isAdaptive?: boolean;
+  adaptiveSkillTier?: number;
   createdAt?: number;
   updatedAt?: number;
 }
@@ -124,6 +126,12 @@ export interface QuizSession {
     targetOperations?: OperationType[];
     insightFa?: string;
     preReviewAccuracy?: number;
+  };
+  adaptiveMetadata?: {
+    targetTier?: number;
+    operation?: OperationType;
+    isAdaptive?: boolean;
+    isGrindingMasteredTier?: boolean;
   };
 }
 
@@ -210,6 +218,12 @@ export interface QuizResult {
     preReviewAccuracy?: number;
     postReviewAccuracy?: number;
     accuracyDelta?: number;
+  };
+  adaptiveMetadata?: {
+    targetTier?: number;
+    operation?: OperationType;
+    isAdaptive?: boolean;
+    isGrindingMasteredTier?: boolean;
   };
 }
 

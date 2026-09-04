@@ -1,10 +1,13 @@
 /**
  * QuizCardStack Component.
- * Implements a tactile 3D card stack visual with subtle background cards,
- * and the falling-leaf transition with realistic edge-folding illusion.
- * Incorporates the Hero Character companion directly inside the card corner.
+ * Implements a true physical multi-card stacked deck visual:
+ * - Active Card (Question N): In the front, 100% scale, fully readable and interactive.
+ * - Next Card (Question N+1): Physical card layer immediately behind, equal subtle 8px offset.
+ * - Next+1 Card (Question N+2): Third physical card layer behind that (16px offset).
+ * - Next+2 Card (Question N+3): Fourth physical card layer (24px offset).
+ * - Synchronized forward promotion when active card departs (falling-leaf / tear-off).
+ * - Stable geometry, zero layout shifts, zero blank frames, persistent focus.
  */
-
 import React from 'react';
 import { QuizQuestion, CharacterGender, CharacterPose } from '../../types';
 import { QuestionRenderer } from './QuestionRenderer';
@@ -24,23 +27,69 @@ interface QuizCardStackProps {
   children: React.ReactNode;
 }
 
+/**
+ * Back Card Physical Layer Component
+ */
+interface BackCardLayerProps {
+  question: QuizQuestion;
+  layer: 1 | 2 | 3;
+  isAdvancing: boolean;
+  characterGender?: CharacterGender;
+}
+
+const BackCardLayer: React.FC<BackCardLayerProps> = ({
+  question,
+  layer,
+  isAdvancing,
+}) => {
+  // Tight physical stack transforms (subtle 3px step bottom protrusion bringing cards UP close under card 1)
+  let transformClasses = '';
+  let bgClasses = '';
+
+  if (layer === 1) {
+    // Card N+1 (Immediately behind active card)
+    transformClasses = isAdvancing
+      ? 'translate-y-0 scale-x-100 opacity-100 shadow-xl z-30'
+      : 'translate-y-[3px] scale-x-[0.985] opacity-100 z-20 shadow-xs';
+    bgClasses = 'bg-slate-50 dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/80';
+  } else if (layer === 2) {
+    // Card N+2 (Third card in stack)
+    transformClasses = isAdvancing
+      ? 'translate-y-[3px] scale-x-[0.985] opacity-100 z-20 shadow-xs'
+      : 'translate-y-[6px] scale-x-[0.97] opacity-90 z-10 shadow-2xs';
+    bgClasses = 'bg-slate-100 dark:bg-slate-800/70 border-slate-200/70 dark:border-slate-700/60';
+  } else {
+    // Card N+3 (Fourth card in stack)
+    transformClasses = isAdvancing
+      ? 'translate-y-[6px] scale-x-[0.97] opacity-90 z-10 shadow-2xs'
+      : 'translate-y-[9px] scale-x-[0.955] opacity-75 z-0 shadow-2xs';
+    bgClasses = 'bg-slate-200 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-700/40';
+  }
+
+  return (
+    <div
+      key={`back-card-${layer}-${question.id}`}
+      aria-hidden="true"
+      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border ${bgClasses} ${transformClasses}`}
+    >
+      {/* Clean inner background shell for stacked card depth */}
+      <div className="w-full h-full rounded-2xl border border-dashed border-slate-200/50 dark:border-slate-700/50" />
+    </div>
+  );
+};
+
 export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   currentQuestion,
   upcomingQuestions,
   isAdvancing,
   feedbackStatus,
   characterGender = 'boy',
-  characterPose = 'thinking',
-  characterMessage,
   isPractice = false,
   currentAttempts = 0,
   maxAttempts = 3,
   children,
 }) => {
-  const hasNextCard = upcomingQuestions.length > 0;
-  const hasSecondNextCard = upcomingQuestions.length > 1;
-
-  // Visual border feedback state
+  // Visual border feedback state for active card
   let feedbackRingClass = '';
   if (feedbackStatus === 'correct') {
     feedbackRingClass = 'ring-4 ring-emerald-500/80 shadow-emerald-500/20';
@@ -50,18 +99,18 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
     feedbackRingClass = 'ring-4 ring-amber-500/80 shadow-amber-500/20';
   }
 
-  // Character pose mapping
-  const getPoseEmoji = () => {
-    switch (characterPose) {
-      case 'celebrating':
-        return '🎉';
-      case 'encouraging':
-        return '💪';
-      case 'sad':
-        return '💭';
-      case 'thinking':
+  const getOperationIcon = (op: string) => {
+    switch (op) {
+      case 'addition':
+        return { symbol: '+', class: 'bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-800' };
+      case 'subtraction':
+        return { symbol: '−', class: 'bg-amber-100 text-amber-600 border-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800' };
+      case 'multiplication':
+        return { symbol: '×', class: 'bg-purple-100 text-purple-600 border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800' };
+      case 'division':
+        return { symbol: '÷', class: 'bg-emerald-100 text-emerald-600 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800' };
       default:
-        return characterGender === 'boy' ? '👦' : '👧';
+        return { symbol: '★', class: 'bg-indigo-100 text-indigo-600 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:border-indigo-800' };
     }
   };
 
@@ -72,127 +121,101 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
     }
   };
 
+  const cardN1 = upcomingQuestions[0] || null;
+  const cardN2 = upcomingQuestions[1] || null;
+  const cardN3 = upcomingQuestions[2] || null;
+
+  const activeOpInfo = getOperationIcon(currentQuestion.operation);
+
   return (
-    <div className="relative w-full max-w-xl mx-auto select-none">
-      {/* Background Stack Card 2 (furthest back - peeks out from bottom/left corners) */}
-      {hasSecondNextCard && (
-        <div
-          aria-hidden="true"
-          className={`absolute inset-0 rounded-3xl -z-20 bg-slate-100/95 dark:bg-slate-800/90 border border-slate-300/70 dark:border-slate-700/70 shadow-md pointer-events-none transition-all duration-500 ease-out transform ${
-            isAdvancing
-              ? 'translate-y-1.5 translate-x-2 rotate-[1.8deg] scale-[0.98] opacity-90'
-              : 'translate-y-3.5 -translate-x-2 -rotate-[2.2deg] scale-[0.95] opacity-60'
-          }`}
-        >
-          {/* Subtle top border decorative accent */}
-          <div className="absolute top-3 left-6 right-6 h-1 bg-slate-200/60 dark:bg-slate-700/50 rounded-full opacity-40" />
-        </div>
+    <div className="relative w-full max-w-xl mx-auto select-none pb-2 pt-0">
+      {/* =========================================================================
+          PHYSICAL CARD STACK LAYERS (Rendered in reverse depth order)
+          ========================================================================= */}
+      {/* Layer 3: Card N+3 (Deepest card) */}
+      {cardN3 && (
+        <BackCardLayer
+          question={cardN3}
+          layer={3}
+          isAdvancing={isAdvancing}
+          characterGender={characterGender}
+        />
       )}
 
-      {/* Background Stack Card 1 (immediately behind active card - peeks out from right corner and scales up to front on advance) */}
-      {hasNextCard && (
-        <div
-          aria-hidden="true"
-          className={`absolute inset-0 rounded-3xl -z-10 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-lg pointer-events-none transition-all duration-500 ease-out transform ${
-            isAdvancing
-              ? 'translate-y-0 translate-x-0 rotate-0 scale-100 opacity-100 shadow-2xl z-0'
-              : 'translate-y-1.5 translate-x-2 rotate-[1.8deg] scale-[0.98] opacity-90'
-          }`}
-        >
-          {/* Faint preview indicator inside the waiting card */}
-          <div className="p-6 opacity-30 flex items-center justify-between">
-            <div className="w-8 h-8 rounded-xl bg-slate-200 dark:bg-slate-800" />
-            <div className="w-20 h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
-          </div>
-        </div>
+      {/* Layer 2: Card N+2 (Middle card) */}
+      {cardN2 && (
+        <BackCardLayer
+          question={cardN2}
+          layer={2}
+          isAdvancing={isAdvancing}
+          characterGender={characterGender}
+        />
       )}
 
-      {/* Top Calendar Binding Bar & Hanging Rings (حلقه و شیرازه تقویم دیواری/رومیزی) */}
-      <div 
-        aria-hidden="true" 
-        className="relative z-10 flex items-center justify-center gap-12 sm:gap-16 -mb-2.5 pointer-events-none"
-      >
-        {/* Left Calendar Ring */}
-        <div className="flex flex-col items-center">
-          <div className="w-3 sm:w-3.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-slate-400 via-slate-300 to-slate-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 shadow-md border border-slate-400/50 dark:border-slate-600/50" />
-        </div>
-        {/* Center subtle tear perforation indicator */}
-        <div className="h-0.5 w-16 sm:w-24 border-t-2 border-dashed border-slate-300/80 dark:border-slate-700/80 opacity-60" />
-        {/* Right Calendar Ring */}
-        <div className="flex flex-col items-center">
-          <div className="w-3 sm:w-3.5 h-5 sm:h-6 rounded-full bg-gradient-to-b from-slate-400 via-slate-300 to-slate-400 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 shadow-md border border-slate-400/50 dark:border-slate-600/50" />
-        </div>
-      </div>
+      {/* Layer 1: Card N+1 (Immediately behind active card) */}
+      {cardN1 && (
+        <BackCardLayer
+          question={cardN1}
+          layer={1}
+          isAdvancing={isAdvancing}
+          characterGender={characterGender}
+        />
+      )}
 
-      {/* Primary Active Quiz Card (Calendar Leaf / برگه تقویم) */}
+      {/* =========================================================================
+          PRIMARY ACTIVE QUIZ CARD (Question N)
+          Interactive foreground card with real input, keyboard focus, and transition.
+          ========================================================================= */}
       <div
+        key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
-        className={`relative w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 md:p-7 shadow-xl border border-slate-200/80 dark:border-slate-800 transition-all duration-300 cursor-text ${feedbackRingClass} ${
+        className={`relative z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-col justify-between min-h-[250px] sm:min-h-[280px] ${feedbackRingClass} ${
           isAdvancing ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
         }`}
       >
-        {/* Top Perforated Line Effect for Calendar Page */}
-        <div 
-          aria-hidden="true" 
-          className="absolute top-0 left-6 right-6 h-[1px] border-t border-dashed border-slate-200 dark:border-slate-800 opacity-70 pointer-events-none" 
-        />
-        {/* Top Internal Header inside Card: Character on Corner & Practice Indicator */}
+        {/* Top Header inside Active Card */}
         <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800/80">
-          {/* Corner Character Avatar + Speech Bubble */}
+          {/* Right side (RTL): Operation Icon */}
           <div className="flex items-center gap-2">
-            <div 
-              className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-lg sm:text-xl shadow-xs transition-transform duration-300 border ${
-                characterPose === 'celebrating'
-                  ? 'bg-amber-400 text-slate-950 scale-110 border-amber-300 animate-bounce'
-                  : characterPose === 'encouraging'
-                  ? 'bg-blue-500 text-white border-blue-400 animate-pulse'
-                  : characterPose === 'sad'
-                  ? 'bg-indigo-400 text-white border-indigo-300'
-                  : 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-indigo-400/40'
+            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black shadow-xs border ${activeOpInfo.class}`}>
+              {activeOpInfo.symbol}
+            </div>
+          </div>
+
+          {/* Center: Mode Badge */}
+          <div className="flex-1 flex justify-center">
+            <span
+              className={`text-[11px] sm:text-xs px-3 py-1 rounded-full font-black border shadow-2xs ${
+                isPractice
+                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                  : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
               }`}
             >
-              {getPoseEmoji()}
-            </div>
+              {isPractice ? 'تمرین یادگیری 🌱' : 'آزمون استاندارد 🎯'}
+            </span>
+          </div>
 
-            {/* In-Card Speech / Feedback Bubble */}
-            {characterMessage ? (
-              <div
-                className={`text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-xl border shadow-2xs animate-fade-in ${
-                  feedbackStatus === 'correct'
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700'
-                    : feedbackStatus === 'incorrect' || characterPose === 'encouraging'
-                    ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-200 border-amber-300 dark:border-amber-700'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                }`}
-              >
-                {characterMessage}
-              </div>
+          {/* Left side (RTL): Attempts */}
+          <div className="flex items-center">
+            {isPractice ? (
+              <span className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                تلاش {toPersianDigits(currentAttempts + 1)} از {toPersianDigits(maxAttempts)}
+              </span>
             ) : (
               <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                قهرمان همراه
+                آزمون
               </span>
             )}
           </div>
-
-          {/* Practice Attempt or Status Counter in opposite corner */}
-          {isPractice ? (
-            <span className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              تلاش {toPersianDigits(currentAttempts + 1)} از {toPersianDigits(maxAttempts)}
-            </span>
-          ) : (
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-              آزمون
-            </span>
-          )}
         </div>
 
         {/* Math Question Presentation */}
-        <div className="mb-3 sm:mb-5">
+        <div className="my-auto py-2">
           <QuestionRenderer question={currentQuestion} />
         </div>
 
-        {/* Answer Input & Controls Container */}
-        <div>{children}</div>
+        {/* Interactive Answer Input & Controls */}
+        <div className="mt-auto pt-2">{children}</div>
       </div>
     </div>
   );
