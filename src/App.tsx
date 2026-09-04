@@ -267,7 +267,7 @@ export default function App() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center text-3xl font-black mx-auto animate-bounce shadow-xl shadow-indigo-500/30">
-            ۵
+            🧮
           </div>
           <p className="font-bold text-slate-600 dark:text-slate-400">در حال آماده‌سازی قهرمان ریاضی...</p>
         </div>

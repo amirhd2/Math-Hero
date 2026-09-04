@@ -31,19 +31,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-2">
-        {/* Brand / Logo */}
+        {/* Brand / Logo with Animated Hero Character */}
         <div 
-          onClick={() => !isQuizActive && onNavigate('home')} 
-          className="flex items-center gap-3 cursor-pointer group shrink-0"
+          onClick={() => !isQuizActive && onNavigate('profile')} 
+          className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+          title="پروفایل قهرمان"
         >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-            ۵
+          <div className="w-10 h-10 rounded-2xl bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform overflow-hidden">
+            <Character character={profile.gender} pose="master" size="sm" className="w-8 h-8 text-lg" />
           </div>
           <div>
-            <h1 className="text-lg font-black bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
+            <h1 className="text-base sm:text-lg font-black bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">
               قهرمان ریاضی
             </h1>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block">Math Hero PWA</p>
+            <p className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hidden sm:block">
+              {profile.name} • سطح {formatNumber(profile.level, settings.numberFormat)}
+            </p>
           </div>
         </div>
 
@@ -67,34 +70,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Right Actions: PWA Install Button (Chromium only) & Profile */}
+        {/* Left Actions: Settings Button & PWA Install Button */}
         <div className="flex items-center gap-2 sm:gap-3">
           {!isQuizActive && <PWAInstallButton />}
           
           {!isQuizActive && (
             <button
               onClick={() => onNavigate('settings')}
-              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors shadow-sm shrink-0 ${
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all shadow-sm shrink-0 cursor-pointer ${
                 currentScreen === 'settings'
                   ? 'bg-indigo-600 text-white shadow-indigo-600/30'
-                  : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800'
               }`}
               aria-label="تنظیمات برنامه"
               title="تنظیمات"
             >
-              ⚙️
-            </button>
-          )}
-
-          {!isQuizActive && (
-            <button
-              onClick={() => onNavigate('profile')}
-              className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 p-1.5 pr-3 rounded-2xl border border-indigo-200 dark:border-indigo-800 transition-colors shrink-0"
-            >
-              <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 hidden sm:inline">
-                {profile.name}
-              </span>
-              <Character character={profile.gender} pose="master" size="sm" className="w-8 h-8 text-lg" />
+              <span className="text-xl">⚙️</span>
             </button>
           )}
         </div>

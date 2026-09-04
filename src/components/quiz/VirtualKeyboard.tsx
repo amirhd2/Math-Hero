@@ -17,6 +17,8 @@ interface VirtualKeyboardProps {
   disabled?: boolean;
   submitDisabled?: boolean;
   isPractice?: boolean;
+  submitLabel?: string;
+  exitLabel?: string;
 }
 
 export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
@@ -27,6 +29,8 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
   disabled = false,
   submitDisabled = false,
   isPractice = false,
+  submitLabel = 'ثبت جواب',
+  exitLabel = 'خروج',
 }) => {
   // Global physical keyboard listener for desktop users
   useEffect(() => {
@@ -79,8 +83,8 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
         </button>
       </div>
 
-      {/* Main 3-Column Keypad */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center" dir="rtl">
+      {/* Main 3-Column Keypad (LTR order so 1 is top-left, 3 is top-right) */}
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center" dir="ltr">
         {/* Row 1: 1, 2, 3 */}
         <button
           type="button"
@@ -159,8 +163,29 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           {toPersianDigits(9)}
         </button>
 
-        {/* Row 4: Right = Submit (Blue), Center = 0, Left = Exit */}
-        {/* Column 1 (Right side in RTL): Blue Submit Answer Button */}
+        {/* Row 4: Column 1 = Exit (Left of 0), Column 2 = 0, Column 3 = Submit (Right of 0) */}
+        {/* Left Column: Exit Button */}
+        <button
+          type="button"
+          onClick={onExit}
+          disabled={disabled}
+          className="py-2.5 sm:py-3.5 px-1 bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900 active:bg-rose-300 dark:active:bg-rose-800 active:scale-95 text-rose-700 dark:text-rose-300 font-black text-xs sm:text-sm rounded-2xl border border-rose-200/70 dark:border-rose-800/70 shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
+        >
+          <span>{exitLabel}</span>
+          <span className="text-sm">✕</span>
+        </button>
+
+        {/* Center Column: Digit 0 Key */}
+        <button
+          type="button"
+          onClick={() => handleKeyClick('0')}
+          disabled={disabled}
+          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+        >
+          {toPersianDigits(0)}
+        </button>
+
+        {/* Right Column: Submit Button */}
         <button
           type="button"
           onClick={onSubmit}
@@ -171,29 +196,8 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
               : 'bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-indigo-600/20'
           } active:scale-95 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40 disabled:pointer-events-none`}
         >
-          <span>ثبت جواب</span>
+          <span>{submitLabel}</span>
           <span className="text-base sm:text-lg">↵</span>
-        </button>
-
-        {/* Column 2 (Center): Digit 0 Key */}
-        <button
-          type="button"
-          onClick={() => handleKeyClick('0')}
-          disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
-        >
-          {toPersianDigits(0)}
-        </button>
-
-        {/* Column 3 (Left side in RTL): Exit Button */}
-        <button
-          type="button"
-          onClick={onExit}
-          disabled={disabled}
-          className="py-2.5 sm:py-3.5 px-1 bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900 active:bg-rose-300 dark:active:bg-rose-800 active:scale-95 text-rose-700 dark:text-rose-300 font-black text-xs sm:text-sm rounded-2xl border border-rose-200/70 dark:border-rose-800/70 shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
-        >
-          <span>خروج</span>
-          <span className="text-sm">✕</span>
         </button>
       </div>
     </div>

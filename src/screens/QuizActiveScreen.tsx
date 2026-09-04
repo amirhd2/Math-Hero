@@ -121,7 +121,11 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         }
       }}
       id="active-screen-container"
-      className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between pt-2 pb-safe px-3 sm:px-6 transition-colors select-none"
+      className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between px-3 sm:px-6 transition-colors select-none"
+      style={{
+        paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 8px))',
+      }}
     >
       {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />

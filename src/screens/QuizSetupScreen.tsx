@@ -163,10 +163,11 @@ export const QuizSetupScreen: React.FC<QuizSetupScreenProps> = ({
       <div className="flex items-center justify-between">
         <button
           onClick={onBack}
-          className="px-4 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm flex items-center gap-2 shadow-xs"
+          className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer"
+          title="بازگشت"
+          aria-label="بازگشت"
         >
-          <span>←</span>
-          <span>بازگشت</span>
+          ←
         </button>
         <div className="text-center">
           <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">

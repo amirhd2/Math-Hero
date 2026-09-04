@@ -11,6 +11,7 @@ interface CharacterProps {
   pose?: CharacterPose;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
+  showBadge?: boolean;
   onClick?: () => void;
 }
 
@@ -19,6 +20,7 @@ export const Character: React.FC<CharacterProps> = ({
   pose = 'master',
   size = 'md',
   className = '',
+  showBadge = false,
   onClick,
 }) => {
   const sizeClasses = {
@@ -57,7 +59,7 @@ export const Character: React.FC<CharacterProps> = ({
       case 'sad': return '💭';
       case 'master':
       default:
-        return '👑';
+        return '⭐';
     }
   };
 
@@ -68,9 +70,11 @@ export const Character: React.FC<CharacterProps> = ({
       aria-label={`شخصیت ${character === 'boy' ? 'پسر' : 'دختر'} در حالت ${pose}`}
     >
       <span className="select-none filter drop-shadow-md">{poseEmoji()}</span>
-      <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-7 h-7 bg-amber-400 text-slate-900 rounded-full text-xs font-bold shadow-md border-2 border-white dark:border-slate-900 animate-bounce">
-        {poseBadge()}
-      </span>
+      {showBadge && (
+        <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 bg-amber-400 text-slate-900 rounded-full text-xs font-bold shadow-md border-2 border-white dark:border-slate-900">
+          {poseBadge()}
+        </span>
+      )}
     </div>
   );
 };

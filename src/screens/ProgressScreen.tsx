@@ -84,10 +84,11 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
         <button
           type="button"
           onClick={() => onNavigate('home')}
-          className="px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-bold border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-xs flex items-center gap-2 text-xs sm:text-sm"
+          className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-extrabold border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-2xs flex items-center justify-center text-lg cursor-pointer shrink-0"
+          title="بازگشت به خانه"
+          aria-label="بازگشت به خانه"
         >
-          <span>←</span>
-          <span>بازگشت به خانه</span>
+          ←
         </button>
 
         <div className="text-left">
