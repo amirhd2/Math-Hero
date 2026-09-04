@@ -93,10 +93,11 @@
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
-  .animate-falling-leaf {
+  .animate-falling-leaf,
+  .animate-calendar-tear-fall {
     animation: none !important;
     opacity: 0 !important;
-    transition: opacity 0.2s ease-out;
+    transition: opacity 0.15s ease-out;
   }
   .animate-shake {
     animation: none !important;

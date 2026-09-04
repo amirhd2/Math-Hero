@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import { QuizPreset, QuizResult, UserProfile, QuizSession } from '../types';
+import { QuizPreset, QuizResult, UserProfile, QuizSession, AppSettings } from '../types';
 import { useQuizEngine } from '../quiz/quizEngine';
 import { QuizGuard } from '../components/QuizGuard';
 import { QuizHeader } from '../components/quiz/QuizHeader';
@@ -20,6 +20,7 @@ interface QuizActiveScreenProps {
   preset?: QuizPreset;
   session?: QuizSession;
   profile: UserProfile;
+  settings?: AppSettings;
   soundEnabled: boolean;
   onFinishQuiz: (result: QuizResult) => void;
   onCancelQuiz: () => void;
@@ -28,6 +29,7 @@ interface QuizActiveScreenProps {
 export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
   session: propSession,
   profile,
+  settings,
   soundEnabled,
   onFinishQuiz,
   onCancelQuiz,
@@ -59,15 +61,25 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
   } = useQuizEngine({
     session: propSession,
     profile,
-    soundEnabled,
+    soundEnabled: settings ? settings.soundEnabled : soundEnabled,
     onFinishQuiz,
     onCancelQuiz,
   });
 
   const upcomingQuestions = session.questions.slice(session.currentIndex + 1, session.currentIndex + 3);
 
-  const handleTriggerExit = () => {
+  // Guard exit handler (catches accidental browser back/popstate)
+  const handleGuardTriggerExit = () => {
     setShowExitModal(true);
+  };
+
+  // Header explicit 'X' button exit handler
+  const handleHeaderExitClick = () => {
+    if (settings?.confirmExitQuiz === false) {
+      onCancelQuiz();
+    } else {
+      setShowExitModal(true);
+    }
   };
 
   const handleConfirmExit = () => {
@@ -78,14 +90,14 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
   return (
     <div 
       onClick={() => {
-        if (inputRef.current) {
+        if (settings?.autoFocusAnswer !== false && inputRef.current) {
           inputRef.current.focus({ preventScroll: true });
         }
       }}
       className="relative w-full min-h-[100dvh] max-h-[100dvh] overflow-y-auto md:overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-start pt-safe pb-safe px-3 sm:px-6 transition-colors select-none"
     >
       {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
-      <QuizGuard isActive={true} onAttemptExit={handleTriggerExit} />
+      <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
       {/* 2. Top Header & Progress */}
       <div className="w-full max-w-xl mx-auto pt-1 sm:pt-2">
@@ -94,7 +106,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           totalQuestions={totalQuestions}
           mode={mode}
           streak={streak}
-          onExitClick={handleTriggerExit}
+          onExitClick={handleHeaderExitClick}
         />
       </div>
 
@@ -105,9 +117,9 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           upcomingQuestions={upcomingQuestions}
           isAdvancing={isAdvancing}
           feedbackStatus={feedbackStatus}
-          characterGender={profile.gender}
+          characterGender={settings?.showQuizCharacter !== false ? profile.gender : undefined}
           characterPose={characterPose}
-          characterMessage={feedbackMessage}
+          characterMessage={settings?.showQuizCharacter !== false ? feedbackMessage : null}
           isPractice={isPractice}
           currentAttempts={currentAttempts}
           maxAttempts={maxAttempts}

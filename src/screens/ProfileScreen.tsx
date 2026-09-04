@@ -9,6 +9,9 @@ import { UserProfile, CharacterGender, CharacterPose, QuizResult, ScreenId } fro
 import { Character } from '../components/Character';
 import { formatNumber } from '../utils/persian';
 import { storage } from '../utils/storage';
+import { getLevelProgress } from '../gamification/levelCalculator';
+import { getTrophyInfo } from '../gamification/trophyManager';
+import { gamificationEngine } from '../gamification/gamificationEngine';
 
 interface ProfileScreenProps {
   profile: UserProfile;
@@ -28,6 +31,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [gender, setGender] = useState<CharacterGender>(profile.gender);
   const [activePose, setActivePose] = useState<CharacterPose>('master');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [unlockedBadgesCount, setUnlockedBadgesCount] = useState(0);
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     totalQuestions: 0,
@@ -35,11 +39,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     favoriteOp: 'جمع',
   });
 
-  // Calculate real performance metrics from storage
+  // Calculate real performance metrics & gamification state from storage
   useEffect(() => {
     async function loadStats() {
       try {
         const results: QuizResult[] = await storage.getResults();
+        const overview = await gamificationEngine.getOverviewData();
+        setUnlockedBadgesCount(overview.unlockedBadges.length);
+
         if (results && results.length > 0) {
           const totalQ = results.reduce((acc, r) => acc + (r.totalQuestions || 0), 0);
           const totalCorrect = results.reduce((acc, r) => acc + (r.correctCount || 0), 0);
@@ -96,17 +103,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const getLevelTitle = (lvl: number) => {
-    if (lvl <= 1) return 'نوآموز شجاع';
-    if (lvl === 2) return 'ماجراجوی باهوش';
-    if (lvl === 3) return 'استاد محاسبات';
-    if (lvl === 4) return 'قهرمان افسانه‌ای';
-    return 'نابغه برتر ریاضی';
-  };
-
-  const nextLevelXp = profile.level * 200;
-  const currentLevelProgress = profile.xp % 200;
-  const progressPercent = Math.min(100, Math.round((currentLevelProgress / 200) * 100));
+  const levelInfo = getLevelProgress(profile.xp);
+  const trophyInfo = getTrophyInfo(levelInfo.level, unlockedBadgesCount);
 
   const poses: { pose: CharacterPose; label: string; icon: string }[] = [
     { pose: 'master', label: 'قهرمان', icon: '👑' },
@@ -174,8 +172,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Right: Info & XP Progress */}
         <div className="flex-1 text-center md:text-right space-y-4 z-10 w-full">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
-            <span>⭐</span>
-            <span>{getLevelTitle(profile.level)}</span>
+            <span>{levelInfo.icon}</span>
+            <span>{levelInfo.title}</span>
           </div>
 
           <h3 className="text-3xl sm:text-4xl font-black">{profile.name}</h3>
@@ -187,17 +185,46 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           {/* Level Progress Bar */}
           <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-2">
             <div className="flex items-center justify-between text-xs font-extrabold">
-              <span>سطح {formatNumber(profile.level, 'persian')}</span>
-              <span>{formatNumber(currentLevelProgress, 'persian')} / ۲۰۰ XP تا سطح بعدی</span>
+              <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
+              <span>
+                {formatNumber(levelInfo.xpInCurrentLevel, 'persian')} / {formatNumber(levelInfo.xpRequiredForNextLevel, 'persian')} XP تا سطح بعدی
+              </span>
             </div>
             <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
+                style={{ width: `${Math.max(4, levelInfo.progressPercent)}%` }}
               />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Trophy & Badges Banner with link to Achievements */}
+      <div
+        onClick={() => onNavigate && onNavigate('achievements')}
+        className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-slate-950 p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:shadow-2xl transition-all group"
+      >
+        <div className="flex items-center gap-4 text-center sm:text-right">
+          <div className="w-14 h-14 rounded-2xl bg-white/40 flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform">
+            {trophyInfo.icon}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-slate-950 text-amber-300">
+                مرحله {formatNumber(trophyInfo.stage, 'persian')}
+              </span>
+              <h4 className="text-lg font-black">{trophyInfo.stageNameFa}</h4>
+            </div>
+            <p className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">
+              {formatNumber(unlockedBadgesCount, 'persian')} نشان افتخار کسب شده • {trophyInfo.nextRequirementText}
+            </p>
+          </div>
+        </div>
+
+        <span className="px-4 py-2 bg-slate-950 text-amber-300 text-xs font-black rounded-xl shadow-md shrink-0 group-hover:bg-slate-900 transition-colors">
+          مشاهده تالار افتخارات ←
+        </span>
       </div>
 
       {/* Gamification Summary Badges */}
@@ -206,7 +233,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <span className="text-2xl">👑</span>
           <p className="text-xs font-bold text-slate-500">سطح قهرمانی</p>
           <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
-            {formatNumber(profile.level, 'persian')}
+            {formatNumber(levelInfo.level, 'persian')}
           </p>
         </div>
 

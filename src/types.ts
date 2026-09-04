@@ -143,11 +143,23 @@ export interface UserProfile {
 
 export interface AppSettings {
   theme: 'light' | 'dark' | 'system';
-  soundEnabled: boolean;
-  musicEnabled: boolean;
+  language: 'fa' | 'en';
   numberFormat: 'persian' | 'english';
-  highContrast: boolean;
-  reducedMotion: boolean;
+
+  soundEnabled: boolean;
+  hapticsEnabled: boolean;
+  celebrationSoundEnabled: boolean;
+  quizFeedbackEnabled: boolean;
+
+  autoOpenKeyboard: boolean;
+  autoFocusAnswer: boolean;
+  showQuizCharacter: boolean;
+  confirmExitQuiz: boolean;
+
+  // Optional legacy compatibility
+  musicEnabled?: boolean;
+  highContrast?: boolean;
+  reducedMotion?: boolean;
 }
 
 export interface QuizPreset {

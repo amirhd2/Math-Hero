@@ -9,6 +9,7 @@ import { UserProfile, CharacterPose } from '../../types';
 import { Character } from '../Character';
 import { formatNumber } from '../../utils/persian';
 import { StatisticsSummary } from '../../statistics/statisticsTypes';
+import { getLevelProgress } from '../../gamification/levelCalculator';
 
 interface StatisticsHeroProps {
   profile: UserProfile;
@@ -16,8 +17,7 @@ interface StatisticsHeroProps {
 }
 
 export const StatisticsHero: React.FC<StatisticsHeroProps> = ({ profile, summary }) => {
-  const currentXpInLevel = profile.xp % 200;
-  const levelProgressPercent = Math.min(100, Math.round((currentXpInLevel / 200) * 100));
+  const levelInfo = getLevelProgress(profile.xp);
 
   let characterPose: CharacterPose = 'master';
   if (summary.accuracyPercent >= 85) {
@@ -38,8 +38,8 @@ export const StatisticsHero: React.FC<StatisticsHeroProps> = ({ profile, summary
         {/* Left/Main Column: Title, Level & Stats Overview */}
         <div className="space-y-4 text-center md:text-right w-full md:w-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
-            <span>⭐</span>
-            <span>مسیر قهرمانی ریاضی شما</span>
+            <span>{levelInfo.icon}</span>
+            <span>{levelInfo.title}</span>
           </div>
 
           <div>
@@ -56,16 +56,16 @@ export const StatisticsHero: React.FC<StatisticsHeroProps> = ({ profile, summary
             <div className="flex items-center justify-between text-xs font-black">
               <span className="flex items-center gap-1.5">
                 <span>👑</span>
-                <span>سطح {formatNumber(profile.level, 'persian')}</span>
+                <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
               </span>
               <span className="text-amber-300">
-                {formatNumber(currentXpInLevel, 'persian')} / ۲۰۰ XP
+                {formatNumber(levelInfo.xpInCurrentLevel, 'persian')} / {formatNumber(levelInfo.xpRequiredForNextLevel, 'persian')} XP
               </span>
             </div>
             <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-700 shadow-sm"
-                style={{ width: `${levelProgressPercent}%` }}
+                style={{ width: `${Math.max(4, levelInfo.progressPercent)}%` }}
               />
             </div>
           </div>

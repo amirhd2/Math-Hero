@@ -77,9 +77,25 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={onToggleTheme}
             className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 transition-colors shadow-sm shrink-0"
             aria-label="تغییر تم"
+            title="تغییر حالت نمایش"
           >
             {settings.theme === 'dark' ? '🌞' : '🌙'}
           </button>
+
+          {!isQuizActive && (
+            <button
+              onClick={() => onNavigate('settings')}
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-colors shadow-sm shrink-0 ${
+                currentScreen === 'settings'
+                  ? 'bg-indigo-600 text-white shadow-indigo-600/30'
+                  : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+              }`}
+              aria-label="تنظیمات برنامه"
+              title="تنظیمات"
+            >
+              ⚙️
+            </button>
+          )}
 
           {!isQuizActive && (
             <button

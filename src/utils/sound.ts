@@ -215,6 +215,10 @@ class SoundService {
   /**
    * Safe haptic vibration invocation.
    */
+  hasVibrationSupport(): boolean {
+    return typeof window !== 'undefined' && 'navigator' in window && typeof navigator.vibrate === 'function';
+  }
+
   vibrate(pattern: number | number[], enabled = true) {
     if (!enabled) return;
     try {

@@ -3,9 +3,9 @@
  * Integrates directly with storage, user profile gamification, and achievement unlocks.
  */
 
-import { QuizResult, MistakeRecord, UserProfile } from '../types';
+import { QuizResult, MistakeRecord, UserProfile, Achievement } from '../types';
 import { storage } from '../utils/storage';
-import { evaluateAchievements } from '../results/achievementResolver';
+import { gamificationEngine } from '../gamification/gamificationEngine';
 import { invalidateSmartReviewCache } from '../smartReview/smartReviewEngine';
 
 export async function persistQuizCompletion(
@@ -13,43 +13,41 @@ export async function persistQuizCompletion(
   mistakes: MistakeRecord[],
   profile: UserProfile
 ): Promise<{ updatedProfile: UserProfile; finalResult: QuizResult }> {
-  // 1. Calculate XP and Level Progression
-  const levelBefore = profile.level;
-  const newXp = profile.xp + result.xpEarned;
-  const newLevel = Math.floor(newXp / 200) + 1;
-  const leveledUp = newLevel > levelBefore;
-
-  const updatedProfile: UserProfile = {
-    ...profile,
-    xp: newXp,
-    level: newLevel,
-  };
-
-  // 2. Fetch previous results for cumulative milestones
+  // 1. Fetch previous results for improvement & cumulative evaluations
   const previousResults = await storage.getResults();
-  const totalCorrectHistory = previousResults.reduce((acc, r) => acc + (r.correctCount || 0), 0);
 
-  // 3. Evaluate Achievements
-  const { newlyUnlocked } = await evaluateAchievements(
+  // 2. Centralized Gamification Engine: Atomic calculation of XP, Level, Streak, Badges & Trophy
+  const gamificationResult = await gamificationEngine.processQuizCompletion(
     result,
-    updatedProfile,
-    previousResults.length,
-    totalCorrectHistory
+    previousResults,
+    profile
   );
 
-  // 4. Form complete QuizResult
+  // 3. Map newly unlocked badges to the Achievement interface for backward compatibility
+  const unlockedAchievements: Achievement[] = gamificationResult.newlyUnlockedBadges.map((b) => ({
+    id: b.id,
+    title: b.name,
+    description: b.description,
+    icon: b.icon,
+    unlocked: true,
+    progress: b.maxProgress || 1,
+    maxProgress: b.maxProgress || 1,
+    unlockedAt: b.unlockedAt || Date.now(),
+  }));
+
+  // 4. Form complete QuizResult with final verified metrics
   const finalResult: QuizResult = {
     ...result,
-    levelBefore,
-    levelAfter: newLevel,
-    leveledUp,
-    unlockedAchievements: newlyUnlocked,
+    xpEarned: gamificationResult.xpBreakdown.totalXpEarned,
+    levelBefore: gamificationResult.levelBefore,
+    levelAfter: gamificationResult.levelAfter,
+    leveledUp: gamificationResult.leveledUp,
+    unlockedAchievements,
     mistakes,
   };
 
-  // 5. Save Quiz Result and profile
+  // 5. Save Quiz Result
   await storage.saveResult(finalResult);
-  await storage.saveProfile(updatedProfile);
 
   // 6. Save individual mistake records for Smart Review
   for (const mistake of mistakes) {
@@ -63,6 +61,9 @@ export async function persistQuizCompletion(
   // 7. Invalidate Smart Review cache
   invalidateSmartReviewCache();
 
-  return { updatedProfile, finalResult };
+  return {
+    updatedProfile: gamificationResult.updatedProfile,
+    finalResult,
+  };
 }
 

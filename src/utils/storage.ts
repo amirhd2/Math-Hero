@@ -24,9 +24,20 @@ export const DEFAULT_PROFILE: UserProfile = {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'light',
-  soundEnabled: true,
-  musicEnabled: false,
+  language: 'fa',
   numberFormat: 'persian',
+
+  soundEnabled: true,
+  hapticsEnabled: true,
+  celebrationSoundEnabled: true,
+  quizFeedbackEnabled: true,
+
+  autoOpenKeyboard: true,
+  autoFocusAnswer: true,
+  showQuizCharacter: true,
+  confirmExitQuiz: true,
+
+  musicEnabled: false,
   highContrast: false,
   reducedMotion: false,
 };
@@ -274,12 +285,18 @@ class StorageService {
         const tx = db.transaction('settings', 'readonly');
         const store = tx.objectStore('settings');
         const req = store.get('app_settings');
-        req.onsuccess = () => resolve(req.result || DEFAULT_SETTINGS);
+        req.onsuccess = () => {
+          if (req.result) {
+            resolve({ ...DEFAULT_SETTINGS, ...req.result });
+          } else {
+            resolve(DEFAULT_SETTINGS);
+          }
+        };
         req.onerror = () => resolve(DEFAULT_SETTINGS);
       });
     } catch {
       const local = localStorage.getItem('math_hero_settings');
-      return local ? JSON.parse(local) : DEFAULT_SETTINGS;
+      return local ? { ...DEFAULT_SETTINGS, ...JSON.parse(local) } : DEFAULT_SETTINGS;
     }
   }
 
@@ -504,6 +521,115 @@ class StorageService {
       localStorage.setItem('math_hero_test_patterns', JSON.stringify(filtered));
     } catch (e) {
       console.error('Failed to delete test pattern from localStorage', e);
+    }
+  }
+
+  async clearResults(): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('results', 'readwrite');
+        const store = tx.objectStore('results');
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    } catch {
+      // Fallback
+    } finally {
+      localStorage.removeItem('math_hero_results');
+    }
+  }
+
+  async clearMistakes(): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('mistakes', 'readwrite');
+        const store = tx.objectStore('mistakes');
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    } catch {
+      // Fallback
+    } finally {
+      localStorage.removeItem('math_hero_mistakes');
+    }
+  }
+
+  async saveResultsBulk(results: QuizResult[]): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('results', 'readwrite');
+        const store = tx.objectStore('results');
+        store.clear();
+        results.forEach((item) => store.put(item));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      // Fallback
+    } finally {
+      localStorage.setItem('math_hero_results', JSON.stringify(results));
+    }
+  }
+
+  async saveMistakesBulk(mistakes: MistakeRecord[]): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('mistakes', 'readwrite');
+        const store = tx.objectStore('mistakes');
+        store.clear();
+        mistakes.forEach((item) => store.put(item));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      // Fallback
+    } finally {
+      localStorage.setItem('math_hero_mistakes', JSON.stringify(mistakes));
+    }
+  }
+
+  async saveTestPatternsBulk(patterns: TestPattern[]): Promise<void> {
+    try {
+      const db = await this.getDB();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction('presets', 'readwrite');
+        const store = tx.objectStore('presets');
+        patterns.forEach((item) => store.put(item));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    } catch {
+      // Fallback
+    } finally {
+      localStorage.setItem('math_hero_test_patterns', JSON.stringify(patterns));
+    }
+  }
+
+  async resetAllData(): Promise<void> {
+    try {
+      await this.resetProfile();
+      await this.saveProfile(DEFAULT_PROFILE);
+      await this.saveSettings(DEFAULT_SETTINGS);
+      await this.clearResults();
+      await this.clearMistakes();
+      await this.saveAchievements(INITIAL_ACHIEVEMENTS);
+      await this.saveTestPatternsBulk(DEFAULT_TEST_PATTERNS);
+    } catch (err) {
+      console.error('Error during resetAllData:', err);
+    } finally {
+      localStorage.removeItem('math_hero_gamification_state_v1');
+      localStorage.removeItem('math_hero_profile');
+      localStorage.removeItem('math_hero_settings');
+      localStorage.removeItem('math_hero_results');
+      localStorage.removeItem('math_hero_mistakes');
+      localStorage.removeItem('math_hero_test_patterns');
+      localStorage.removeItem('math_hero_achievements');
     }
   }
 }

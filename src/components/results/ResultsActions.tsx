@@ -10,6 +10,7 @@ interface ResultsActionsProps {
   onPracticeMistakes: () => void;
   onRetryQuiz: () => void;
   onGoHome: () => void;
+  onViewAchievements?: () => void;
 }
 
 export const ResultsActions: React.FC<ResultsActionsProps> = ({
@@ -17,6 +18,7 @@ export const ResultsActions: React.FC<ResultsActionsProps> = ({
   onPracticeMistakes,
   onRetryQuiz,
   onGoHome,
+  onViewAchievements,
 }) => {
   return (
     <nav
@@ -50,6 +52,18 @@ export const ResultsActions: React.FC<ResultsActionsProps> = ({
         >
           <span>🔄</span>
           <span>تکرار همین آزمون</span>
+        </button>
+      )}
+
+      {/* Achievements shortcut button */}
+      {onViewAchievements && (
+        <button
+          onClick={onViewAchievements}
+          className="w-full sm:w-auto py-4 px-5 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-black rounded-2xl transition-all flex items-center justify-center gap-1.5"
+          title="مشاهده نشان‌ها و جام‌ها"
+        >
+          <span>🏆</span>
+          <span>افتخارات</span>
         </button>
       )}
 

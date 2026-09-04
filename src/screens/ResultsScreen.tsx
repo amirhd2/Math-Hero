@@ -152,6 +152,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         onPracticeMistakes={handlePracticeMistakes}
         onRetryQuiz={handleRetryQuiz}
         onGoHome={handleGoHome}
+        onViewAchievements={() => onNavigate('achievements')}
       />
     </div>
   );

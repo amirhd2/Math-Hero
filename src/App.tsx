@@ -82,23 +82,40 @@ export default function App() {
     setCurrentScreen('home');
   };
 
-  // Synchronize dark theme class and status bar meta color
+  // Synchronize dark/light/system theme and status bar meta color
   useEffect(() => {
     const root = document.documentElement;
-    const isDark = settings.theme === 'dark';
-    if (isDark) {
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
-      document.body.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
-      document.body.classList.remove('dark');
-    }
+    const mediaQuery = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', isDark ? '#090d16' : '#4f46e5');
+    const applyTheme = () => {
+      let isDark = false;
+      if (settings.theme === 'system') {
+        isDark = mediaQuery ? mediaQuery.matches : false;
+      } else {
+        isDark = settings.theme === 'dark';
+      }
+
+      if (isDark) {
+        root.classList.add('dark');
+        root.setAttribute('data-theme', 'dark');
+        document.body.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+        root.setAttribute('data-theme', 'light');
+        document.body.classList.remove('dark');
+      }
+
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', isDark ? '#090d16' : '#4f46e5');
+      }
+    };
+
+    applyTheme();
+
+    if (settings.theme === 'system' && mediaQuery) {
+      mediaQuery.addEventListener('change', applyTheme);
+      return () => mediaQuery.removeEventListener('change', applyTheme);
     }
   }, [settings.theme]);
 
@@ -282,6 +299,7 @@ export default function App() {
             session={activeSession || undefined}
             preset={activePreset}
             profile={profile}
+            settings={settings}
             soundEnabled={settings.soundEnabled}
             onFinishQuiz={handleFinishQuiz}
             onCancelQuiz={() => setCurrentScreen('home')}
@@ -310,19 +328,20 @@ export default function App() {
           />
         )}
         {currentScreen === 'achievements' && (
-          <AchievementsScreen onNavigate={setCurrentScreen} />
+          <AchievementsScreen onNavigate={setCurrentScreen} settings={settings} />
         )}
         {currentScreen === 'settings' && (
           <SettingsScreen
             settings={settings}
+            profile={profile}
             onUpdateSettings={handleUpdateSettings}
             onNavigate={setCurrentScreen}
           />
         )}
       </main>
 
-      {/* Floating Bottom Quick Nav for non-quiz screens */}
-      {currentScreen !== 'quiz_active' && currentScreen !== 'onboarding' && currentScreen !== 'quiz_setup' && (
+      {/* Floating Bottom Quick Nav for non-quiz screens (Settings does NOT use persistent bottom nav) */}
+      {currentScreen !== 'quiz_active' && currentScreen !== 'onboarding' && currentScreen !== 'quiz_setup' && currentScreen !== 'settings' && (
         <nav 
           className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pt-2.5 px-6 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-3xl shadow-lg"
           style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}

@@ -1,0 +1,22 @@
+{
+  "name": "قهرمان ریاضی | Math Hero",
+  "short_name": "قهرمان ریاضی",
+  "description": "پلتفرم آموزشی و بازی‌وارسازی ریاضی برای کودکان و دانش‌آموزان (Math Hero Offline-First Educational Math PWA)",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#4f46e5",
+  "orientation": "any",
+  "dir": "rtl",
+  "lang": "fa",
+  "categories": ["education", "kids", "games"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

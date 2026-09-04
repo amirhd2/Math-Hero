@@ -23,6 +23,9 @@ import { SmartReviewHomeCard } from '../components/smartReview/SmartReviewHomeCa
 import { SmartReviewModal } from '../components/smartReview/SmartReviewModal';
 import { getSmartReviewState } from '../smartReview/smartReviewEngine';
 import { SmartReviewState } from '../smartReview/smartReviewTypes';
+import { getLevelProgress } from '../gamification/levelCalculator';
+import { gamificationEngine } from '../gamification/gamificationEngine';
+import { TrophyInfo } from '../gamification/gamificationTypes';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -51,6 +54,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [nextAchievement, setNextAchievement] = useState<Achievement | null>(null);
   const [isSmartReviewModalOpen, setIsSmartReviewModalOpen] = useState(false);
   const [smartReviewState, setSmartReviewState] = useState<SmartReviewState | null>(null);
+  const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
+  const [unlockedBadgesCount, setUnlockedBadgesCount] = useState(0);
 
   const handleOpenSmartReview = async () => {
     const state = await getSmartReviewState();
@@ -84,15 +89,34 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   useEffect(() => {
     async function loadDashboardData() {
       try {
-        const [mistakes, results, achievements] = await Promise.all([
+        const [mistakes, results, achievements, overview] = await Promise.all([
           storage.getMistakes(),
           storage.getResults(),
           storage.getAchievements(),
+          gamificationEngine.getOverviewData(),
         ]);
 
         // Unresolved mistakes
         const unresolved = mistakes.filter((m) => !m.resolved);
         setUnresolvedMistakesCount(unresolved.length);
+
+        // Gamification overview
+        if (overview) {
+          setTrophyInfo(overview.trophyInfo);
+          setUnlockedBadgesCount(overview.unlockedBadges.length);
+          const nextLocked = overview.lockedBadges[0] || null;
+          if (nextLocked) {
+            setNextAchievement({
+              id: nextLocked.id,
+              title: nextLocked.name,
+              description: nextLocked.description,
+              icon: nextLocked.icon,
+              unlocked: false,
+              progress: nextLocked.progress || 0,
+              maxProgress: nextLocked.maxProgress || 1,
+            });
+          }
+        }
 
         // Today's activity
         const startOfDay = new Date();
@@ -103,12 +127,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         setTodaySolved(qToday);
         setTodayXp(xpToday);
 
-        // Next locked achievement
-        const locked = achievements.find((a) => !a.unlocked);
-        if (locked) {
-          setNextAchievement(locked);
-        } else if (achievements.length > 0) {
-          setNextAchievement(achievements[0]);
+        // If no next achievement from overview, fallback to storage
+        if (!overview || !overview.lockedBadges.length) {
+          const locked = achievements.find((a) => !a.unlocked);
+          if (locked) {
+            setNextAchievement(locked);
+          } else if (achievements.length > 0) {
+            setNextAchievement(achievements[0]);
+          }
         }
 
         // Operation mastery calculation
@@ -148,10 +174,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     loadDashboardData();
   }, []);
 
-  // Level XP calculations
-  const nextLevelXp = 200;
-  const currentXpInLevel = profile.xp % 200;
-  const levelProgressPercent = Math.min(100, Math.round((currentXpInLevel / nextLevelXp) * 100));
+  // Level XP calculations from single source of truth
+  const levelInfo = getLevelProgress(profile.xp);
 
   // Find presets for each operation
   const getPresetForOp = (op: string) => {
@@ -220,8 +244,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Greeting and Level Info */}
           <div className="space-y-4 text-center md:text-right w-full md:w-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
-              <span>👋</span>
-              <span>{getGreeting()}، قهرمان!</span>
+              <span>{levelInfo.icon}</span>
+              <span>{levelInfo.title}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
@@ -237,22 +261,22 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <div className="flex items-center justify-between text-xs font-extrabold">
                 <span className="flex items-center gap-1.5">
                   <span>👑</span>
-                  <span>سطح {formatNumber(profile.level, 'persian')}</span>
+                  <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
                 </span>
                 <span className="text-amber-300">
-                  {formatNumber(currentXpInLevel, 'persian')} / ۲۰۰ XP
+                  {formatNumber(levelInfo.xpInCurrentLevel, 'persian')} / {formatNumber(levelInfo.xpRequiredForNextLevel, 'persian')} XP
                 </span>
               </div>
               <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-500 shadow-sm"
-                  style={{ width: `${levelProgressPercent}%` }}
+                  style={{ width: `${Math.max(4, levelInfo.progressPercent)}%` }}
                 />
               </div>
             </div>
           </div>
 
-          {/* Character Avatar with Streak & Profile triggers */}
+          {/* Character Avatar with Streak, Coins & Trophy triggers */}
           <div className="flex flex-col items-center gap-3">
             <div
               onClick={() => onNavigate('profile')}
@@ -267,15 +291,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-black">
-              <span className="bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-black">
+              <span className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-1.5">
                 <span>🔥</span>
                 <span>{formatNumber(profile.streakDays, 'persian')} روز متوالی</span>
               </span>
-              <span className="bg-amber-400/90 text-slate-950 px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 font-black">
+              <span className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-1.5 text-amber-200">
                 <span>🪙</span>
                 <span>{formatNumber(profile.coins, 'persian')} سکه</span>
               </span>
+              <button
+                type="button"
+                onClick={() => onNavigate('achievements')}
+                className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 font-black transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                title="مشاهده تالار افتخارات و جام‌ها"
+              >
+                <span>{trophyInfo?.icon || '🏆'}</span>
+                <span>{trophyInfo?.stageNameFa || 'جام قهرمان'}</span>
+              </button>
             </div>
           </div>
         </div>
