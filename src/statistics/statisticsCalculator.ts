@@ -6,6 +6,10 @@
 
 import { OperationType, QuizResult, MistakeRecord, UserProfile } from '../types';
 import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../utils/operationEvidence';
+import {
   StatisticsSummary,
   OperationStatistics,
   TimeRange,
@@ -189,22 +193,40 @@ export function calculateStatisticsSummary(
     }
 
     // Operation breakdown
-    const op = r.operation || 'addition';
-    if (opAccumulators[op]) {
-      opAccumulators[op].totalQuestions += qCount;
-      opAccumulators[op].correctAnswers += cCount;
-      opAccumulators[op].incorrectAnswers += iCount;
-      if (isTest) {
-        opAccumulators[op].testCount += 1;
-      } else {
-        opAccumulators[op].practiceCount += 1;
+    const breakdown = extractOperationBreakdownFromQuizResult(r);
+    for (const op of PRIMARY_OPERATIONS) {
+      const opStat = breakdown[op];
+      if (opStat && opStat.totalQuestions > 0 && opAccumulators[op]) {
+        opAccumulators[op].totalQuestions += opStat.totalQuestions;
+        opAccumulators[op].correctAnswers += opStat.correctCount;
+        opAccumulators[op].incorrectAnswers += opStat.incorrectCount;
+        if (isTest) {
+          opAccumulators[op].testCount += 1;
+        } else {
+          opAccumulators[op].practiceCount += 1;
+        }
+        if (opStat.timeSpentMs && opStat.timeSpentMs > 0) {
+          opAccumulators[op].totalTimeMs += opStat.timeSpentMs;
+          opAccumulators[op].timeCount += opStat.totalQuestions;
+        }
+        if (!opAccumulators[op].lastPracticedAt || r.timestamp > opAccumulators[op].lastPracticedAt!) {
+          opAccumulators[op].lastPracticedAt = r.timestamp;
+        }
       }
+    }
+
+    if (r.operation === 'mixed' && opAccumulators['mixed']) {
+      opAccumulators['mixed'].totalQuestions += qCount;
+      opAccumulators['mixed'].correctAnswers += cCount;
+      opAccumulators['mixed'].incorrectAnswers += iCount;
+      if (isTest) opAccumulators['mixed'].testCount += 1;
+      else opAccumulators['mixed'].practiceCount += 1;
       if (r.timeElapsed && r.timeElapsed > 0) {
-        opAccumulators[op].totalTimeMs += r.timeElapsed * 1000;
-        opAccumulators[op].timeCount += qCount;
+        opAccumulators['mixed'].totalTimeMs += r.timeElapsed * 1000;
+        opAccumulators['mixed'].timeCount += qCount;
       }
-      if (!opAccumulators[op].lastPracticedAt || r.timestamp > opAccumulators[op].lastPracticedAt!) {
-        opAccumulators[op].lastPracticedAt = r.timestamp;
+      if (!opAccumulators['mixed'].lastPracticedAt || r.timestamp > opAccumulators['mixed'].lastPracticedAt!) {
+        opAccumulators['mixed'].lastPracticedAt = r.timestamp;
       }
     }
   }

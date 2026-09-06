@@ -202,11 +202,21 @@ export interface QuizQuestion {
   options?: number[]; // for multiple choice if used
 }
 
+export interface QuizOperationStat {
+  operation: OperationType;
+  totalQuestions: number;
+  correctCount: number;
+  incorrectCount: number;
+  timeSpentMs?: number;
+  accuracy: number;
+}
+
 export interface QuizResult {
   id: string;
   timestamp: number;
   mode?: QuizMode;
   operation: OperationType;
+  operations?: OperationType[];
   totalQuestions: number;
   correctCount: number;
   incorrectCount: number;
@@ -220,6 +230,9 @@ export interface QuizResult {
   leveledUp?: boolean;
   unlockedAchievements?: Achievement[];
   mistakes?: MistakeRecord[];
+  questions?: QuizQuestion[];
+  questionResponses?: Record<number, QuizQuestionResponse>;
+  operationBreakdown?: Partial<Record<OperationType, QuizOperationStat>>;
   source?:
     | 'normal'
     | 'child-quick-start'

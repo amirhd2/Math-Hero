@@ -10,6 +10,11 @@ import { getLevelFromXp } from './levelCalculator';
 import { calculateTrophyStage } from './trophyManager';
 import { getLocalCalendarDate } from './streakManager';
 import { BADGE_REGISTRY } from './badgeRegistry';
+import { OperationType } from '../types';
+import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../utils/operationEvidence';
 
 const GAMIFICATION_LOCAL_STORAGE_KEY = 'math_hero_gamification_state_v1';
 
@@ -77,6 +82,36 @@ export async function loadGamificationState(): Promise<GamificationState> {
     const profile = await storage.getProfile();
     const results = await storage.getResults();
 
+    const opCorrectCounts: Record<OperationType, number> = {
+      addition: 0,
+      subtraction: 0,
+      multiplication: 0,
+      division: 0,
+      mixed: 0,
+    };
+    const opQuestionCounts: Record<OperationType, number> = {
+      addition: 0,
+      subtraction: 0,
+      multiplication: 0,
+      division: 0,
+      mixed: 0,
+    };
+
+    results.forEach((r) => {
+      const breakdown = extractOperationBreakdownFromQuizResult(r);
+      PRIMARY_OPERATIONS.forEach((op) => {
+        const stat = breakdown[op];
+        if (stat && stat.totalQuestions > 0) {
+          opCorrectCounts[op] += stat.correctCount;
+          opQuestionCounts[op] += stat.totalQuestions;
+        }
+      });
+      if (r.operation === 'mixed') {
+        opCorrectCounts.mixed += r.correctCount || 0;
+        opQuestionCounts.mixed += r.totalQuestions || 0;
+      }
+    });
+
     const bootstrappedStats: GamificationStats = {
       ...INITIAL_GAMIFICATION_STATS,
       totalQuizzesCompleted: results.length,
@@ -90,19 +125,13 @@ export async function loadGamificationState(): Promise<GamificationState> {
       testCount: results.filter((r) => r.mode === 'test').length,
       mistakesResolvedCount: 0,
       consecutiveImprovements: 0,
-      operationCorrectCounts: {
-        addition: results.filter((r) => r.operation === 'addition').reduce((acc, r) => acc + (r.correctCount || 0), 0),
-        subtraction: results.filter((r) => r.operation === 'subtraction').reduce((acc, r) => acc + (r.correctCount || 0), 0),
-        multiplication: results.filter((r) => r.operation === 'multiplication').reduce((acc, r) => acc + (r.correctCount || 0), 0),
-        division: results.filter((r) => r.operation === 'division').reduce((acc, r) => acc + (r.correctCount || 0), 0),
-        mixed: results.filter((r) => r.operation === 'mixed').reduce((acc, r) => acc + (r.correctCount || 0), 0),
-      },
+      operationCorrectCounts: opCorrectCounts,
       operationAccuracies: {
-        addition: 0,
-        subtraction: 0,
-        multiplication: 0,
-        division: 0,
-        mixed: 0,
+        addition: opQuestionCounts.addition > 0 ? Math.round((opCorrectCounts.addition / opQuestionCounts.addition) * 100) : 0,
+        subtraction: opQuestionCounts.subtraction > 0 ? Math.round((opCorrectCounts.subtraction / opQuestionCounts.subtraction) * 100) : 0,
+        multiplication: opQuestionCounts.multiplication > 0 ? Math.round((opCorrectCounts.multiplication / opQuestionCounts.multiplication) * 100) : 0,
+        division: opQuestionCounts.division > 0 ? Math.round((opCorrectCounts.division / opQuestionCounts.division) * 100) : 0,
+        mixed: opQuestionCounts.mixed > 0 ? Math.round((opCorrectCounts.mixed / opQuestionCounts.mixed) * 100) : 0,
       },
     };
 

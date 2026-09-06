@@ -6,6 +6,7 @@
 import React from 'react';
 import { QuizResult } from '../../types';
 import { formatNumber } from '../../utils/persian';
+import { extractOperationBreakdownFromQuizResult, PRIMARY_OPERATIONS } from '../../utils/operationEvidence';
 
 interface ScoreSummaryProps {
   result: QuizResult;
@@ -13,6 +14,10 @@ interface ScoreSummaryProps {
 
 export const ScoreSummary: React.FC<ScoreSummaryProps> = ({ result }) => {
   const isPractice = result.mode === 'practice';
+  const breakdown = extractOperationBreakdownFromQuizResult(result);
+  const activeOps = PRIMARY_OPERATIONS.filter((op) => breakdown[op] && breakdown[op].totalQuestions > 0);
+  const isCombined = result.operation === 'mixed' || activeOps.length > 1;
+
   const formatTime = (seconds: number) => {
     if (seconds < 60) {
       return `${formatNumber(seconds, 'persian')} ثانیه`;
@@ -121,6 +126,46 @@ export const ScoreSummary: React.FC<ScoreSummaryProps> = ({ result }) => {
           </div>
         </div>
       </div>
+
+      {/* Optional Combined Quiz Operations Breakdown */}
+      {isCombined && activeOps.length > 0 && (
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 block mb-2 text-right">
+            تفکیک عملکرد در هر عملیات:
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {activeOps.map((op) => {
+              const stat = breakdown[op];
+              const opTitle =
+                op === 'addition'
+                  ? 'جمع ➕'
+                  : op === 'subtraction'
+                  ? 'تفریق ➖'
+                  : op === 'multiplication'
+                  ? 'ضرب ✖️'
+                  : 'تقسیم ➗';
+              return (
+                <div
+                  key={op}
+                  className="bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-2.5 text-center flex flex-col justify-between"
+                >
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    {opTitle}
+                  </span>
+                  <div className="flex items-center justify-center gap-1.5 mt-1 text-xs font-black">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      {formatNumber(stat.correctCount, 'persian')}/{formatNumber(stat.totalQuestions, 'persian')}
+                    </span>
+                    <span className="text-slate-400 text-[10px]">
+                      ({formatNumber(stat.accuracy, 'persian')}٪)
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </section>
   );
 };

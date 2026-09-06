@@ -31,6 +31,10 @@ import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { AdaptiveRecommendationCard } from '../components/adaptive/AdaptiveRecommendationCard';
 import { PromotionModal } from '../components/adaptive/PromotionModal';
 import { OperationType } from '../types';
+import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../utils/operationEvidence';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -204,10 +208,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           };
 
           results.forEach((r) => {
-            if (ops[r.operation]) {
-              ops[r.operation].total += r.totalQuestions;
-              ops[r.operation].correct += r.correctCount;
-            }
+            const breakdown = extractOperationBreakdownFromQuizResult(r);
+            PRIMARY_OPERATIONS.forEach((op) => {
+              const stat = breakdown[op];
+              if (stat && stat.totalQuestions > 0 && ops[op]) {
+                ops[op].total += stat.totalQuestions;
+                ops[op].correct += stat.correctCount;
+              }
+            });
           });
 
           const newMastery: Record<string, { accuracy: number; stars: number }> = {};

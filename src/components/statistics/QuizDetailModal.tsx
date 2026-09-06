@@ -6,6 +6,10 @@
 import React from 'react';
 import { QuizResult } from '../../types';
 import { formatNumber, toPersianDigits } from '../../utils/persian';
+import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../../utils/operationEvidence';
 
 interface QuizDetailModalProps {
   result: QuizResult | null;
@@ -14,6 +18,10 @@ interface QuizDetailModalProps {
 
 export const QuizDetailModal: React.FC<QuizDetailModalProps> = ({ result, onClose }) => {
   if (!result) return null;
+
+  const breakdown = extractOperationBreakdownFromQuizResult(result);
+  const activeOps = PRIMARY_OPERATIONS.filter((op) => breakdown[op] && breakdown[op].totalQuestions > 0);
+  const isCombined = result.operation === 'mixed' || activeOps.length > 1;
 
   const opTitle =
     result.operation === 'addition'
@@ -24,7 +32,7 @@ export const QuizDetailModal: React.FC<QuizDetailModalProps> = ({ result, onClos
       ? 'ضرب'
       : result.operation === 'division'
       ? 'تقسیم'
-      : 'چالش مخلوط';
+      : 'چالش ترکیبی';
 
   const dateFormatted = new Intl.DateTimeFormat('fa-IR', {
     dateStyle: 'full',
@@ -96,6 +104,46 @@ export const QuizDetailModal: React.FC<QuizDetailModalProps> = ({ result, onClos
             {result.timeElapsed ? `${formatNumber(result.timeElapsed, 'persian')} ثانیه` : '—'}
           </span>
         </div>
+
+        {/* Combined Quiz Operation Breakdown */}
+        {isCombined && activeOps.length > 0 && (
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block text-right">
+              تفکیک نتایج عملیات‌ها در این آزمون:
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {activeOps.map((op) => {
+                const stat = breakdown[op];
+                const label =
+                  op === 'addition'
+                    ? 'جمع ➕'
+                    : op === 'subtraction'
+                    ? 'تفریق ➖'
+                    : op === 'multiplication'
+                    ? 'ضرب ✖️'
+                    : 'تقسیم ➗';
+                return (
+                  <div
+                    key={op}
+                    className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-center flex flex-col justify-between"
+                  >
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                      {label}
+                    </span>
+                    <div className="flex items-center justify-center gap-1 mt-1 text-xs font-black">
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        {formatNumber(stat.correctCount, 'persian')}/{formatNumber(stat.totalQuestions, 'persian')}
+                      </span>
+                      <span className="text-slate-400 text-[10px]">
+                        ({formatNumber(stat.accuracy, 'persian')}٪)
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Mistakes Review if any */}
         <div className="space-y-3">

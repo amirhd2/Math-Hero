@@ -5,6 +5,10 @@
  */
 
 import { QuizResult } from '../types';
+import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../utils/operationEvidence';
 import { BADGE_REGISTRY } from './badgeRegistry';
 import { Badge, GamificationState, GamificationStats } from './gamificationTypes';
 import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
@@ -84,18 +88,33 @@ export function evaluateBadges(input: EvaluateBadgesInput): EvaluateBadgesOutput
       stats.consecutiveImprovements = 1;
     }
 
-    // Operation specific accumulation
-    const op = latestResult.operation;
-    if (op && op !== 'mixed') {
-      stats.operationCorrectCounts[op] =
-        (stats.operationCorrectCounts[op] || 0) + (latestResult.correctCount || 0);
+    // Operation specific accumulation across all operations
+    const breakdown = extractOperationBreakdownFromQuizResult(latestResult);
+    PRIMARY_OPERATIONS.forEach((op) => {
+      const opStat = breakdown[op];
+      if (opStat && opStat.totalQuestions > 0) {
+        stats.operationCorrectCounts[op] =
+          (stats.operationCorrectCounts[op] || 0) + opStat.correctCount;
+      }
+    });
 
-      // Re-calculate rolling operation accuracy from previous results + current
-      const allOpQuizzes = [latestResult, ...previousResults.filter((r) => r.operation === op)];
-      const totalOpQ = allOpQuizzes.reduce((acc, r) => acc + (r.totalQuestions || 0), 0);
-      const totalOpC = allOpQuizzes.reduce((acc, r) => acc + (r.correctCount || 0), 0);
-      stats.operationAccuracies[op] = totalOpQ > 0 ? Math.round((totalOpC / totalOpQ) * 100) : accuracy;
-    }
+    // Re-calculate rolling operation accuracy from all previous results + current
+    const allResults = [latestResult, ...previousResults];
+    PRIMARY_OPERATIONS.forEach((op) => {
+      let totalOpQ = 0;
+      let totalOpC = 0;
+      allResults.forEach((r) => {
+        const rBreakdown = extractOperationBreakdownFromQuizResult(r);
+        const rStat = rBreakdown[op];
+        if (rStat && rStat.totalQuestions > 0) {
+          totalOpQ += rStat.totalQuestions;
+          totalOpC += rStat.correctCount;
+        }
+      });
+      if (totalOpQ > 0) {
+        stats.operationAccuracies[op] = Math.round((totalOpC / totalOpQ) * 100);
+      }
+    });
   }
 
   const newlyUnlockedBadges: Badge[] = [];

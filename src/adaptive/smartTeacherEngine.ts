@@ -9,6 +9,10 @@
  */
 
 import { OperationType, QuizQuestion, QuizResult, QuizSession } from '../types';
+import {
+  extractOperationBreakdownFromQuizResult,
+  PRIMARY_OPERATIONS,
+} from '../utils/operationEvidence';
 import { SkillId } from '../smartReview/smartReviewTypes';
 import {
   AdaptiveLearningPlan,
@@ -147,7 +151,7 @@ export class SmartTeacherEngine {
    * Evaluates historical results conservatively without granting unproven mastery.
    */
   private static bootstrapFromResults(plan: AdaptiveLearningPlan, results: QuizResult[]): void {
-    const validResults = results.filter((r) => r.totalQuestions && r.totalQuestions >= 3);
+    const validResults = results.filter((r) => r.totalQuestions && r.totalQuestions >= 1);
     const opCounts: Record<OperationType, number> = {
       addition: 0,
       subtraction: 0,
@@ -157,20 +161,22 @@ export class SmartTeacherEngine {
     };
 
     validResults.forEach((r) => {
-      const op = r.operation;
-      if (opCounts[op] !== undefined) {
-        opCounts[op] += r.totalQuestions;
-      }
-      // Record foundational tier activity conservatively
-      if (plan.operations[op]) {
-        const tier1 = plan.operations[op].tiers[1];
-        if (tier1) {
-          tier1.sessionsCount += 1;
-          tier1.questionsAttempted += r.totalQuestions;
-          tier1.questionsCorrect += r.correctCount;
-          tier1.state = 'practicing';
+      const breakdown = extractOperationBreakdownFromQuizResult(r);
+      PRIMARY_OPERATIONS.forEach((op) => {
+        const stat = breakdown[op];
+        if (stat && stat.totalQuestions > 0) {
+          opCounts[op] += stat.totalQuestions;
+          if (plan.operations[op]) {
+            const tier1 = plan.operations[op].tiers[1];
+            if (tier1) {
+              tier1.sessionsCount += 1;
+              tier1.questionsAttempted += stat.totalQuestions;
+              tier1.questionsCorrect += stat.correctCount;
+              tier1.state = 'practicing';
+            }
+          }
         }
-      }
+      });
     });
 
     // Detect neglected operations (operations with very few questions)
@@ -424,96 +430,85 @@ export class SmartTeacherEngine {
       return { plan, newPromotion: null };
     }
 
-    const op = result.operation;
-    if (op === 'mixed' && session?.questions) {
-      // Analyze individual questions for combined quizzes
-      session.questions.forEach((q, idx) => {
-        const resp = session.questionResponses?.[idx];
-        const isCorrect = resp ? resp.isCorrect : false;
-        const qOp = q.operation;
-        if (plan.operations[qOp]) {
-          const profile = plan.operations[qOp];
-          const tier = profile.currentTier || 1;
-          const evidence = profile.tiers[tier];
-          if (evidence) {
-            evidence.questionsAttempted += 1;
-            if (isCorrect) evidence.questionsCorrect += 1;
+    const breakdown = extractOperationBreakdownFromQuizResult(result, session);
+    let latestPromotion: PromotionEvent | null = null;
+
+    for (const op of PRIMARY_OPERATIONS) {
+      const opStat = breakdown[op];
+      if (!opStat || opStat.totalQuestions <= 0) continue;
+
+      if (plan.operations[op]) {
+        const profile = plan.operations[op];
+        const tier = profile.currentTier || 1;
+        const evidence = profile.tiers[tier];
+
+        if (evidence) {
+          evidence.sessionsCount += 1;
+          evidence.questionsAttempted += opStat.totalQuestions;
+          evidence.questionsCorrect += opStat.correctCount;
+          evidence.lastPracticedAt = Date.now();
+          if (!evidence.firstPracticedAt) evidence.firstPracticedAt = Date.now();
+
+          const sessionAccuracy = Math.round((opStat.correctCount / Math.max(1, opStat.totalQuestions)) * 100);
+
+          // Exponential moving average for recent accuracy (giving heavy weight to latest session)
+          evidence.recentAccuracy = Math.round(evidence.recentAccuracy * 0.4 + sessionAccuracy * 0.6);
+          evidence.allTimeAccuracy = Math.round(
+            (evidence.questionsCorrect / Math.max(1, evidence.questionsAttempted)) * 100
+          );
+
+          if (sessionAccuracy >= 90) {
+            evidence.consecutiveCorrectSessions += 1;
+          } else {
+            evidence.consecutiveCorrectSessions = 0;
           }
-        }
-      });
-    } else if (plan.operations[op]) {
-      const profile = plan.operations[op];
-      const tier = profile.currentTier || 1;
-      const evidence = profile.tiers[tier];
 
-      if (evidence) {
-        evidence.sessionsCount += 1;
-        evidence.questionsAttempted += result.totalQuestions;
-        evidence.questionsCorrect += result.correctCount;
-        evidence.lastPracticedAt = Date.now();
-        if (!evidence.firstPracticedAt) evidence.firstPracticedAt = Date.now();
+          // Mistakes in this session for this operation
+          const sessionMistakes = opStat.incorrectCount || 0;
+          if (sessionMistakes >= 2) {
+            evidence.repeatedMistakesCount += 1;
+          } else if (sessionMistakes === 0 && evidence.repeatedMistakesCount > 0) {
+            evidence.repeatedMistakesCount -= 1;
+          }
 
-        const sessionAccuracy = Math.round((result.correctCount / Math.max(1, result.totalQuestions)) * 100);
+          // Run mastery evaluation
+          const evaluation = SkillMasteryEvaluator.evaluate(evidence);
 
-        // Exponential moving average for recent accuracy (giving heavy weight to latest session)
-        evidence.recentAccuracy = Math.round(evidence.recentAccuracy * 0.4 + sessionAccuracy * 0.6);
-        evidence.allTimeAccuracy = Math.round(
-          (evidence.questionsCorrect / Math.max(1, evidence.questionsAttempted)) * 100
-        );
+          if (evaluation.readyForPromotion && tier < 4) {
+            // Promote current tier to mastered
+            evidence.state = 'mastered';
+            evidence.masteredAt = Date.now();
+            profile.highestMasteredTier = Math.max(profile.highestMasteredTier, tier);
 
-        if (sessionAccuracy >= 90) {
-          evidence.consecutiveCorrectSessions += 1;
-        } else {
-          evidence.consecutiveCorrectSessions = 0;
-        }
+            // Unlock next tier!
+            const nextTier = tier + 1;
+            const nextEvidence = profile.tiers[nextTier];
+            if (nextEvidence && nextEvidence.state === 'locked') {
+              nextEvidence.state = 'unlocked';
+              nextEvidence.unlockedAt = Date.now();
+              profile.highestUnlockedTier = Math.max(profile.highestUnlockedTier, nextTier);
 
-        // Mistakes in this session
-        const sessionMistakes = result.incorrectCount || 0;
-        if (sessionMistakes >= 2) {
-          evidence.repeatedMistakesCount += 1;
-        } else if (sessionMistakes === 0 && evidence.repeatedMistakesCount > 0) {
-          evidence.repeatedMistakesCount -= 1;
-        }
+              // Create persistent PromotionEvent
+              const currentDef = getTierDefinition(op, tier);
+              const nextDef = getTierDefinition(op, nextTier);
 
-        // Run mastery evaluation
-        const evaluation = SkillMasteryEvaluator.evaluate(evidence);
+              const promotionEvent: PromotionEvent = {
+                id: `promo_${op}_${nextTier}_${Date.now()}`,
+                operation: op,
+                masteredTier: tier,
+                masteredSkillId: currentDef.skillId,
+                masteredSkillTitleFa: currentDef.titleFa,
+                unlockedTier: nextTier,
+                unlockedSkillId: nextDef.skillId,
+                unlockedSkillTitleFa: nextDef.titleFa,
+                unlockedSampleExamplesFa: nextDef.sampleExamplesFa,
+                timestamp: Date.now(),
+                status: 'pending',
+              };
 
-        if (evaluation.readyForPromotion && tier < 4) {
-          // Promote current tier to mastered
-          evidence.state = 'mastered';
-          evidence.masteredAt = Date.now();
-          profile.highestMasteredTier = Math.max(profile.highestMasteredTier, tier);
-
-          // Unlock next tier!
-          const nextTier = tier + 1;
-          const nextEvidence = profile.tiers[nextTier];
-          if (nextEvidence && nextEvidence.state === 'locked') {
-            nextEvidence.state = 'unlocked';
-            nextEvidence.unlockedAt = Date.now();
-            profile.highestUnlockedTier = Math.max(profile.highestUnlockedTier, nextTier);
-
-            // Create persistent PromotionEvent
-            const currentDef = getTierDefinition(op, tier);
-            const nextDef = getTierDefinition(op, nextTier);
-
-            const promotionEvent: PromotionEvent = {
-              id: `promo_${op}_${nextTier}_${Date.now()}`,
-              operation: op,
-              masteredTier: tier,
-              masteredSkillId: currentDef.skillId,
-              masteredSkillTitleFa: currentDef.titleFa,
-              unlockedTier: nextTier,
-              unlockedSkillId: nextDef.skillId,
-              unlockedSkillTitleFa: nextDef.titleFa,
-              unlockedSampleExamplesFa: nextDef.sampleExamplesFa,
-              timestamp: Date.now(),
-              status: 'pending',
-            };
-
-            await this.savePromotionEvent(promotionEvent);
-            await this.saveLearningPlan(plan);
-
-            return { plan, newPromotion: promotionEvent };
+              await this.savePromotionEvent(promotionEvent);
+              latestPromotion = promotionEvent;
+            }
           }
         }
       }
@@ -523,7 +518,7 @@ export class SmartTeacherEngine {
     this.updateNeglectedOperations(plan);
     await this.saveLearningPlan(plan);
 
-    return { plan, newPromotion: null };
+    return { plan, newPromotion: latestPromotion };
   }
 
   /**

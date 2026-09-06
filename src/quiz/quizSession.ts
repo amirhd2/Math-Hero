@@ -3,6 +3,7 @@
  */
 
 import { QuizSession, QuizQuestionResponse, QuizResult, MistakeRecord } from '../types';
+import { extractQuestionEvidenceFromSession } from '../utils/operationEvidence';
 
 /**
  * Records a validated response into the current session state immutably.
@@ -114,11 +115,14 @@ export function buildFinalQuizResult(
       ? session.config.selectedOperations[0]
       : 'mixed';
 
+  const operationBreakdown = extractQuestionEvidenceFromSession(session, mistakes);
+
   return {
     id: `result_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     timestamp: Date.now(),
     mode: session.mode,
     operation: mainOperation,
+    operations: session.config.selectedOperations || [mainOperation],
     totalQuestions: session.questions.length,
     correctCount: session.correctAnswers,
     incorrectCount: session.incorrectAnswers,
@@ -128,6 +132,9 @@ export function buildFinalQuizResult(
     presetId: session.config.id || 'custom',
     config: session.config,
     mistakes,
+    questions: session.questions,
+    questionResponses: session.questionResponses,
+    operationBreakdown,
     source: session.source || (session.config.id === 'smart-review' ? 'smart-review' : 'normal'),
     smartReviewMetadata: session.smartReviewMetadata
       ? {
