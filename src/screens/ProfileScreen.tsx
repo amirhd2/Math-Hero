@@ -12,6 +12,7 @@ import { storage } from '../utils/storage';
 import { getLevelProgress } from '../gamification/levelCalculator';
 import { getTrophyInfo } from '../gamification/trophyManager';
 import { gamificationEngine } from '../gamification/gamificationEngine';
+import { CurrentBadgeCard } from '../components/CurrentBadgeCard';
 
 interface ProfileScreenProps {
   profile: UserProfile;
@@ -108,16 +109,17 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   const levelInfo = levelProgressData || getLevelProgress(profile.xp);
   const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount);
+  const remainingXp = Math.max(0, levelInfo.xpRequiredForNextLevel - levelInfo.xpInCurrentLevel);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
         
         {/* Right Column (Cards) */}
         <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
           
-      {/* Top Header */}
-      <div className="flex items-center justify-between">
+      {/* Top Desktop Header */}
+      <div className="hidden lg:flex items-center justify-between">
         <button
           onClick={onBack}
           className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer shrink-0"
@@ -139,45 +141,118 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       )}
 
-      {/* Hero Showcase Card */}
-      <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden flex flex-col sm:flex-row justify-end items-center gap-6 min-h-[400px] sm:min-h-0">
-        <div className="absolute -top-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none hidden sm:block" />
-        
-        {/* Mobile Portrait Background Image */}
-        <div className="absolute inset-0 z-0 sm:hidden">
-          <img 
-            src={`/assets/characters/${gender}/greeting.webp`} 
-            alt="Hero Character" 
-            className="w-full h-full object-cover object-top opacity-90" 
-          />
-          {/* Dark gradient overlay to make text readable */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/60 to-transparent" />
+      {/* Mobile & Tablet Portrait Hero Showcase Card (Matching Attached Design) */}
+      <div className="lg:hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 bg-gradient-to-b from-[#8E7FF3] via-[#8373ED] to-[#7968E7] rounded-b-[36px] sm:rounded-b-[44px] p-5 sm:p-7 pt-8 sm:pt-10 pb-6 sm:pb-8 text-white shadow-2xl relative space-y-4">
+        {/* Subtle Star Pattern Background Watermark */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20 overflow-hidden rounded-b-[36px] sm:rounded-b-[44px]" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 25 35 L 27 41 L 33 41 L 28 45 L 30 51 L 25 47 L 20 51 L 22 45 L 17 41 L 23 41 Z" fill="white" />
+          <path d="M 180 20 L 181.5 24.5 L 186 24.5 L 182.5 27 L 184 31.5 L 180 28.5 L 176 31.5 L 177.5 27 L 174 24.5 L 178.5 24.5 Z" fill="white" />
+          <path d="M 320 60 L 321.5 64.5 L 326 64.5 L 322.5 67 L 324 71.5 L 320 68.5 L 316 71.5 L 317.5 67 L 314 64.5 L 318.5 64.5 Z" fill="white" />
+          <path d="M 70 180 L 71.5 184.5 L 76 184.5 L 72.5 187 L 74 191.5 L 70 188.5 L 66 191.5 L 67.5 187 L 64 184.5 L 68.5 184.5 Z" fill="white" />
+          <path d="M 280 190 L 282 196 L 288 196 L 283 200 L 285 206 L 280 202 L 275 206 L 277 200 L 272 196 L 278 196 Z" fill="white" />
+        </svg>
+
+        {/* Top Header inside Purple Card */}
+        <div className="flex items-center justify-between w-full relative z-10 pb-1 px-1">
+          <button
+            onClick={onBack}
+            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white font-extrabold text-lg hover:bg-white/30 transition-all flex items-center justify-center shadow-xs cursor-pointer shrink-0"
+            title="بازگشت"
+            aria-label="بازگشت"
+          >
+            ←
+          </button>
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide">
+            پروفایل
+          </h2>
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white font-extrabold text-sm flex items-center justify-center shadow-xs cursor-default">
+            ?
+          </div>
         </div>
 
-        {/* Tablet Portrait / Mobile Landscape Image (inside the box) */}
-        <div className="hidden sm:flex lg:hidden z-10 shrink-0 justify-center w-1/3 order-2 h-48 md:h-64 overflow-hidden rounded-2xl">
-          <img 
-            src={`/assets/characters/${gender}/greeting.webp`} 
-            alt="Hero Character" 
-            className="w-full h-full object-cover object-top filter drop-shadow-2xl transform hover:scale-105 transition-transform origin-top" 
-          />
+        {/* Character & Stats Row - 50/50 Split with 5mm left, 3mm centerline, 5mm top header margins */}
+        <div className="grid grid-cols-2 items-stretch relative z-10 gap-2 sm:gap-4 pt-[5mm]">
+          {/* Right Side in RTL (50% Column): Name, Level Pill, Progress Bar & XP text (Centered Vertically and Horizontally) */}
+          <div className="flex flex-col items-center justify-center text-center space-y-2.5 pb-1 w-full my-auto">
+            {/* Name with Edit Pencil */}
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-2xl sm:text-3xl font-black text-white drop-shadow-md">
+                {profile.name}
+              </h3>
+              <button
+                type="button"
+                onClick={() => document.getElementById('edit-profile-form')?.scrollIntoView({ behavior: 'smooth' })}
+                className="text-white/80 hover:text-white text-base transition-colors cursor-pointer"
+                title="ویرایش اطلاعات"
+              >
+                ✏️
+              </button>
+            </div>
+
+            {/* Level Pill Button */}
+            <div className="inline-flex items-center justify-center px-4 py-1 rounded-full bg-[#5B45B6]/90 text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
+              Level {formatNumber(levelInfo.level, 'persian')}
+            </div>
+
+            {/* Golden Progress Bar Pill - Dynamic XP & conditional text positioning */}
+            <div className="w-full bg-white/20 backdrop-blur-md p-1 rounded-full border border-white/25 shadow-inner relative h-8 sm:h-9 flex items-center justify-between overflow-hidden">
+              {/* Dynamic Yellow Fill Bar */}
+              <div
+                className="h-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 rounded-full shadow-md transition-all duration-500 flex items-center justify-center relative overflow-hidden"
+                style={{ width: `${Math.max(8, Math.min(100, levelInfo.progressPercent))}%` }}
+              >
+                {/* If yellow bar >= 38% wide, place text centered inside yellow bar */}
+                {levelInfo.progressPercent >= 38 && (
+                  <span className="font-black text-amber-950 text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-xs">
+                    {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(levelInfo.nextLevelXpThreshold || (levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel), 'persian')} XP
+                  </span>
+                )}
+              </div>
+
+              {/* If yellow bar < 38% wide, place text outside yellow bar to its left */}
+              {levelInfo.progressPercent < 38 && (
+                <div className="flex-1 flex items-center justify-center font-black text-white text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-md z-10">
+                  {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(levelInfo.nextLevelXpThreshold || (levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel), 'persian')} XP
+                </div>
+              )}
+            </div>
+
+            {/* Next Level Text */}
+            <p className="text-xs sm:text-sm font-extrabold text-white/95 drop-shadow-xs text-center">
+              {formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}
+            </p>
+          </div>
+
+          {/* Left Side in RTL (50% Column): Character Container (Box extends up to 3mm below top header, 2mm from left screen edge, 3mm from centerline, bottom sits lower than CurrentBadgeCard top edge across all responsive screens) */}
+          <div className="flex items-end justify-center w-full relative -ml-5 sm:-ml-7 pl-[2mm] pr-[3mm] z-30 -mt-6 sm:-mt-8 translate-y-3 sm:translate-y-4 -mb-3 sm:-mb-4 h-[calc(100%+24px)] sm:h-[calc(100%+32px)]">
+            <img
+              src={`/assets/characters/${gender}/half-body/greeting.webp`}
+              alt="Hero Character"
+              className="w-full h-full object-contain object-bottom filter drop-shadow-2xl pointer-events-none"
+            />
+          </div>
         </div>
+      </div>
+
+      {/* Desktop Hero Showcase Card */}
+      <div className="hidden lg:flex bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden justify-end items-center gap-6 min-h-[400px]">
+        <div className="absolute -top-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
         {/* Content (Text, Level Progress) */}
-        <div className="relative z-10 w-full sm:flex-1 text-center sm:text-right space-y-4 mt-auto sm:mt-0 order-1">
+        <div className="relative z-10 w-full flex-1 text-right space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black shadow-sm">
             <span>{levelInfo.icon}</span>
             <span>{levelInfo.title}</span>
           </div>
 
-          <h3 className="text-3xl sm:text-4xl font-black drop-shadow-md">{profile.name}</h3>
+          <h3 className="text-4xl font-black drop-shadow-md">{profile.name}</h3>
 
           <p className="text-indigo-100 text-sm font-bold drop-shadow-md">
             سن: {formatNumber(profile.age, 'persian')} ساله • عضو قهرمانان ریاضی
           </p>
 
           {/* Level Progress Bar */}
-          <div className="bg-black/40 sm:bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/20 sm:border-white/10 space-y-2 shadow-lg sm:shadow-none">
+          <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-2">
             <div className="flex items-center justify-between text-xs font-extrabold">
               <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
               <span>
@@ -193,6 +268,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Current Honor Badge Card (نشان فعلی کاربر) */}
+      <CurrentBadgeCard trophyInfo={trophyInfo} levelTitle={levelInfo.title} level={levelInfo.level} onNavigate={onNavigate} />
 
       {/* Trophy & Badges Banner with link to Achievements */}
       <div
@@ -306,6 +384,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Edit Profile Form */}
       <form
+        id="edit-profile-form"
         onSubmit={handleSave}
         className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-100 dark:border-slate-800 shadow-xl space-y-6"
       >
@@ -352,33 +431,36 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
         </div>
 
-        {/* Name Input */}
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
-            نام قهرمان
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-extrabold focus:border-indigo-500 outline-none transition-colors"
-            placeholder="نام قهرمان..."
-          />
-        </div>
+        {/* Name & Age Inputs in 2-Column Grid (1 col on mobile portrait, 2 cols on tablet/desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Name Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+              نام قهرمان
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-extrabold focus:border-indigo-500 outline-none transition-colors"
+              placeholder="نام قهرمان..."
+            />
+          </div>
 
-        {/* Age Input */}
-        <div className="space-y-2">
-          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
-            سن (سال)
-          </label>
-          <input
-            type="number"
-            min="5"
-            max="15"
-            value={age}
-            onChange={(e) => setAge(Number(e.target.value))}
-            className="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-extrabold focus:border-indigo-500 outline-none transition-colors"
-          />
+          {/* Age Input */}
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
+              سن (سال)
+            </label>
+            <input
+              type="number"
+              min="5"
+              max="15"
+              value={age}
+              onChange={(e) => setAge(Number(e.target.value))}
+              className="w-full px-4 py-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-extrabold focus:border-indigo-500 outline-none transition-colors"
+            />
+          </div>
         </div>
 
         {/* Submit Save Button */}
@@ -395,11 +477,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         {/* Left Column (Character Image on Desktop/Large Screens) */}
         <div className="hidden lg:block w-full lg:w-2/5 xl:w-1/3">
-          <div className="sticky top-8 h-[calc(100vh-4rem)] flex flex-col items-center justify-center pb-8">
+          <div className="sticky top-0 h-screen m-0 p-0 flex flex-col items-center justify-center">
             <img 
               src={`/assets/characters/${gender}/greeting.webp`} 
               alt="Hero Character" 
-              className="w-full max-h-[85vh] object-contain filter drop-shadow-2xl transform hover:scale-105 transition-transform" 
+              className="w-full h-full max-h-screen object-contain filter drop-shadow-2xl transform hover:scale-105 transition-transform" 
             />
           </div>
         </div>

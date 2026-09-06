@@ -401,8 +401,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-['Vazirmatn',sans-serif] selection:bg-amber-400 selection:text-slate-900 transition-colors">
-      {/* Top Navbar (hidden during active quiz to prevent accidental mid-quiz navigation) */}
-      {currentScreen !== 'onboarding' && currentScreen !== 'quiz_active' && (
+      {/* Top Navbar (hidden during onboarding, active quiz, or profile to match clean full design) */}
+      {currentScreen !== 'onboarding' && currentScreen !== 'quiz_active' && currentScreen !== 'profile' && (
         <Navbar
           profile={profile}
           settings={settings}
