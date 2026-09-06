@@ -42,15 +42,21 @@ import { usePWAInstall } from '../hooks/usePWAInstall';
 interface SettingsScreenProps {
   settings: AppSettings;
   profile?: UserProfile;
+  appMode?: 'child' | 'parent';
   onUpdateSettings: (updated: AppSettings) => void;
   onNavigate: (screen: ScreenId) => void;
+  onOpenParentGate?: () => void;
+  onExitToChildMode?: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   settings,
   profile,
+  appMode = 'child',
   onUpdateSettings,
   onNavigate,
+  onOpenParentGate,
+  onExitToChildMode,
 }) => {
   const lang = settings.language || 'fa';
   const numPref = settings.numberFormat || 'persian';
@@ -333,6 +339,76 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
               <span>{isOnline ? 'آنلاین' : 'آفلاین پایدار'}</span>
             </span>
+          </div>
+        </div>
+
+        {/* Child Mode / Parent Mode Control Banner */}
+        <div className={`rounded-3xl p-5 sm:p-6 border shadow-sm transition-all ${
+          appMode === 'parent'
+            ? 'bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 text-white border-indigo-700/60'
+            : 'bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-900/60'
+        }`}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-inner ${
+                appMode === 'parent' ? 'bg-white/10 text-white' : 'bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600'
+              }`}>
+                {appMode === 'parent' ? '👨‍🏫' : '🔐'}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className={`font-black text-base sm:text-lg ${
+                    appMode === 'parent' ? 'text-white' : 'text-slate-900 dark:text-slate-100'
+                  }`}>
+                    {appMode === 'parent' ? 'حالت فعال: والد / مربی و آموزگار' : 'ورود به پنل اختصاصی والدین و مربیان'}
+                  </h3>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                    appMode === 'parent'
+                      ? 'bg-amber-400 text-slate-950'
+                      : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                  }`}>
+                    {appMode === 'parent' ? 'پیشرفته' : 'محافظت‌شده'}
+                  </span>
+                </div>
+                <p className={`text-xs mt-0.5 max-w-xl ${
+                  appMode === 'parent' ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'
+                }`}>
+                  {appMode === 'parent'
+                    ? 'شما به تنظیمات دستی آزمون‌ها، تعریف الگوهای سفارشی، محدوده ارقام و میز کار مربی دسترسی کامل دارید.'
+                    : 'تنظیمات دستی آزمون‌ها و مدیریت الگوها برای جلوگیری از سردرگمی کودک در پنل والدین قرار دارد.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              {appMode === 'parent' ? (
+                <>
+                  <button
+                    id="settings-open-parent-dashboard-btn"
+                    onClick={() => onNavigate('parent_dashboard')}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs transition-colors shadow-sm cursor-pointer"
+                  >
+                    میز کار مربی ←
+                  </button>
+                  <button
+                    id="settings-exit-to-child-btn"
+                    onClick={onExitToChildMode}
+                    className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-black text-xs transition-colors cursor-pointer border border-white/20"
+                  >
+                    خروج به حالت کودک 👦
+                  </button>
+                </>
+              ) : (
+                <button
+                  id="settings-enter-parent-gate-btn"
+                  onClick={onOpenParentGate}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs sm:text-sm transition-colors shadow-md cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <span>ورود والدین / مربیان</span>
+                  <span>←</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

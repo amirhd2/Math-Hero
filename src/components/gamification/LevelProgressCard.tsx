@@ -83,6 +83,14 @@ export const LevelProgressCard: React.FC<LevelProgressCardProps> = ({
           />
         </div>
       </div>
+
+      {/* Educational Requirement Hint when gated or approaching milestone */}
+      {levelInfo.nextLevelEducationalRequirementText && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 rounded-2xl text-xs text-amber-800 dark:text-amber-300 font-bold">
+          <span className="text-base">🎯</span>
+          <span className="leading-relaxed">{levelInfo.nextLevelEducationalRequirementText}</span>
+        </div>
+      )}
     </div>
   );
 };

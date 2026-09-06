@@ -30,12 +30,15 @@ export type BadgeRequirementType =
   | 'smart_review_count'
   | 'all_operations_tried'
   | 'fast_accurate_quiz'
-  | 'math_hero_grand';
+  | 'math_hero_grand'
+  | 'tier_mastered'
+  | 'balanced_mastery';
 
 export interface BadgeRequirement {
   type: BadgeRequirementType;
   target: number;
   operation?: OperationType;
+  tier?: number;
   minQuestions?: number;
   minAccuracy?: number;
   descriptionFa: string;
@@ -65,9 +68,12 @@ export interface TrophyInfo {
   icon: string;
   badgeRequiredCount: number;
   levelRequired: number;
+  masteredTiersRequired?: number;
+  distinctOpsRequired?: number;
   nextRequirementText: string;
   progressPercent: number;
   isMax: boolean;
+  isLockedAndMysterious?: boolean;
 }
 
 export interface LevelInfo {
@@ -81,6 +87,13 @@ export interface LevelInfo {
   xpRequiredForNextLevel: number;
   progressPercent: number;
   isMaxLevel: boolean;
+  // Educational Gating Information:
+  isEducationallyGated?: boolean;
+  pendingLevelByXp?: number;
+  nextLevelEducationalRequirementText?: string;
+  educationalRequirementMet?: boolean;
+  masteredTiersCount?: number;
+  requiredTiersForNextLevel?: number;
 }
 
 export interface XpBreakdown {
@@ -92,7 +105,10 @@ export interface XpBreakdown {
   improvementBonusXp: number;
   streakBonusXp: number;
   achievementBonusXp: number;
+  masteryMilestoneBonusXp: number;
+  tierUnlockBonusXp: number;
   totalXpEarned: number;
+  isGrindingReduced?: boolean;
 }
 
 export interface GamificationStats {
@@ -120,6 +136,11 @@ export interface GamificationState {
   lastActivityDate: string | null; // YYYY-MM-DD
   lastActivityAt: number | null;
   stats: GamificationStats;
+  // Idempotency & Rebalance Tracking:
+  processedQuizIds: string[];
+  awardedMasteryBonuses: string[];
+  masteredTiersCount?: number;
+  distinctOperationsMastered?: number;
 }
 
 export interface GamificationUpdateResult {

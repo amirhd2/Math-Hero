@@ -29,9 +29,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [name, setName] = useState(profile.name);
   const [age, setAge] = useState(profile.age);
   const [gender, setGender] = useState<CharacterGender>(profile.gender);
-  const [activePose, setActivePose] = useState<CharacterPose>('master');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [unlockedBadgesCount, setUnlockedBadgesCount] = useState(0);
+  const [levelProgressData, setLevelProgressData] = useState<any>(null);
+  const [trophyProgressData, setTrophyProgressData] = useState<any>(null);
   const [stats, setStats] = useState({
     totalQuizzes: 0,
     totalQuestions: 0,
@@ -46,6 +47,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         const results: QuizResult[] = await storage.getResults();
         const overview = await gamificationEngine.getOverviewData();
         setUnlockedBadgesCount(overview.unlockedBadges.length);
+        setLevelProgressData(overview.levelInfo);
+        setTrophyProgressData(overview.trophyInfo);
 
         if (results && results.length > 0) {
           const totalQ = results.reduce((acc, r) => acc + (r.totalQuestions || 0), 0);
@@ -103,19 +106,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const levelInfo = getLevelProgress(profile.xp);
-  const trophyInfo = getTrophyInfo(levelInfo.level, unlockedBadgesCount);
-
-  const poses: { pose: CharacterPose; label: string; icon: string }[] = [
-    { pose: 'master', label: 'قهرمان', icon: '👑' },
-    { pose: 'celebrating', label: 'شادی', icon: '🎉' },
-    { pose: 'encouraging', label: 'پرقدرت', icon: '💪' },
-    { pose: 'thinking', label: 'متفکر', icon: '🤔' },
-    { pose: 'greeting', label: 'سلام', icon: '👋' },
-  ];
+  const levelInfo = levelProgressData || getLevelProgress(profile.xp);
+  const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+        
+        {/* Right Column (Cards) */}
+        <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
+          
       {/* Top Header */}
       <div className="flex items-center justify-between">
         <button
@@ -140,51 +140,44 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       )}
 
       {/* Hero Showcase Card */}
-      <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="absolute -top-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden flex flex-col sm:flex-row justify-end items-center gap-6 min-h-[400px] sm:min-h-0">
+        <div className="absolute -top-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none hidden sm:block" />
         
-        {/* Left: Avatar Showcase with live pose switcher */}
-        <div className="flex flex-col items-center gap-3 z-10">
-          <div className="relative group">
-            <Character
-              character={gender}
-              pose={activePose}
-              size="xl"
-              className="transform hover:scale-105 transition-transform"
-            />
-          </div>
-          {/* Pose Selector Buttons */}
-          <div className="flex items-center gap-1.5 bg-black/20 backdrop-blur-md p-1.5 rounded-2xl border border-white/10">
-            {poses.map((p) => (
-              <button
-                key={p.pose}
-                onClick={() => setActivePose(p.pose)}
-                title={p.label}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm transition-all ${
-                  activePose === p.pose ? 'bg-amber-400 text-slate-900 font-bold scale-110 shadow-md' : 'text-white/80 hover:bg-white/20'
-                }`}
-              >
-                {p.icon}
-              </button>
-            ))}
-          </div>
+        {/* Mobile Portrait Background Image */}
+        <div className="absolute inset-0 z-0 sm:hidden">
+          <img 
+            src={`/assets/characters/${gender}/greeting.webp`} 
+            alt="Hero Character" 
+            className="w-full h-full object-cover object-top opacity-90" 
+          />
+          {/* Dark gradient overlay to make text readable */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-900/60 to-transparent" />
         </div>
 
-        {/* Right: Info & XP Progress */}
-        <div className="flex-1 text-center md:text-right space-y-4 z-10 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
+        {/* Tablet Portrait / Mobile Landscape Image (inside the box) */}
+        <div className="hidden sm:flex lg:hidden z-10 shrink-0 justify-center w-1/3 order-2 h-48 md:h-64 overflow-hidden rounded-2xl">
+          <img 
+            src={`/assets/characters/${gender}/greeting.webp`} 
+            alt="Hero Character" 
+            className="w-full h-full object-cover object-top filter drop-shadow-2xl transform hover:scale-105 transition-transform origin-top" 
+          />
+        </div>
+
+        {/* Content (Text, Level Progress) */}
+        <div className="relative z-10 w-full sm:flex-1 text-center sm:text-right space-y-4 mt-auto sm:mt-0 order-1">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black shadow-sm">
             <span>{levelInfo.icon}</span>
             <span>{levelInfo.title}</span>
           </div>
 
-          <h3 className="text-3xl sm:text-4xl font-black">{profile.name}</h3>
+          <h3 className="text-3xl sm:text-4xl font-black drop-shadow-md">{profile.name}</h3>
 
-          <p className="text-indigo-100 text-sm">
+          <p className="text-indigo-100 text-sm font-bold drop-shadow-md">
             سن: {formatNumber(profile.age, 'persian')} ساله • عضو قهرمانان ریاضی
           </p>
 
           {/* Level Progress Bar */}
-          <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-2">
+          <div className="bg-black/40 sm:bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/20 sm:border-white/10 space-y-2 shadow-lg sm:shadow-none">
             <div className="flex items-center justify-between text-xs font-extrabold">
               <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
               <span>
@@ -330,26 +323,30 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             <button
               type="button"
               onClick={() => setGender('boy')}
-              className={`p-4 rounded-2xl border-2 flex items-center justify-center gap-3 transition-all ${
+              className={`p-4 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
                 gender === 'boy'
                   ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 font-black shadow-md'
                   : 'border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
               }`}
             >
-              <span className="text-2xl">👦</span>
+              <div className="w-full h-32 sm:h-40 rounded-2xl bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shadow-inner">
+                <img src="/assets/characters/boy/boy.webp" alt="Boy Character" className="w-full h-full object-contain" />
+              </div>
               <span className="text-sm">پسر قهرمان</span>
             </button>
 
             <button
               type="button"
               onClick={() => setGender('girl')}
-              className={`p-4 rounded-2xl border-2 flex items-center justify-center gap-3 transition-all ${
+              className={`p-4 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
                 gender === 'girl'
                   ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/40 font-black shadow-md'
                   : 'border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
               }`}
             >
-              <span className="text-2xl">👧</span>
+              <div className="w-full h-32 sm:h-40 rounded-2xl bg-rose-100/50 dark:bg-rose-900/30 flex items-center justify-center overflow-hidden shadow-inner">
+                <img src="/assets/characters/girl/girl.webp" alt="Girl Character" className="w-full h-full object-contain" />
+              </div>
               <span className="text-sm">دختر قهرمان</span>
             </button>
           </div>
@@ -393,6 +390,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <span>ذخیره تغییرات پروفایل</span>
         </button>
       </form>
+
+        </div>
+
+        {/* Left Column (Character Image on Desktop/Large Screens) */}
+        <div className="hidden lg:block w-full lg:w-2/5 xl:w-1/3">
+          <div className="sticky top-8 h-[calc(100vh-4rem)] flex flex-col items-center justify-center pb-8">
+            <img 
+              src={`/assets/characters/${gender}/greeting.webp`} 
+              alt="Hero Character" 
+              className="w-full max-h-[85vh] object-contain filter drop-shadow-2xl transform hover:scale-105 transition-transform" 
+            />
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };

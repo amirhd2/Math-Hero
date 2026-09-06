@@ -36,22 +36,28 @@ interface HomeScreenProps {
   profile: UserProfile;
   presets: QuizPreset[];
   testPatterns: TestPattern[];
+  appMode?: 'child' | 'parent';
   onOpenSetup: (config?: Partial<QuizConfiguration>) => void;
   onStartPattern: (pattern: TestPattern) => void;
   onStartQuiz: (preset?: QuizPreset) => void;
   onNavigate: (screen: ScreenId) => void;
   onStartSmartReview?: () => void;
+  onStartChildQuickOperation: (op: OperationType) => void;
+  onStartChildCombined: () => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   profile,
   presets,
   testPatterns,
+  appMode = 'child',
   onOpenSetup,
   onStartPattern,
   onStartQuiz,
   onNavigate,
   onStartSmartReview,
+  onStartChildQuickOperation,
+  onStartChildCombined,
 }) => {
   const [unresolvedMistakesCount, setUnresolvedMistakesCount] = useState(0);
   const [todaySolved, setTodaySolved] = useState(0);
@@ -84,12 +90,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     setPendingPromotion(null);
     const updatedPlan = await SmartTeacherEngine.getLearningPlan();
     setAdaptivePlan(updatedPlan);
-    onOpenSetup({
-      selectedOperations: [promo.operation],
-      mode: 'practice',
-      isAdaptive: true,
-      adaptiveSkillTier: promo.unlockedTier,
-    });
+    if (appMode === 'child') {
+      onStartChildQuickOperation(promo.operation);
+    } else {
+      onOpenSetup({
+        selectedOperations: [promo.operation],
+        mode: 'practice',
+        isAdaptive: true,
+        adaptiveSkillTier: promo.unlockedTier,
+      });
+    }
   };
 
   const handlePostponePromotion = async () => {
@@ -99,20 +109,24 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   };
 
   const handleStartAdaptiveRecommendation = (op: OperationType) => {
-    const activeTier = adaptivePlan?.operations[op]?.currentTier || 1;
-    onOpenSetup({
-      selectedOperations: [op],
-      mode: 'practice',
-      isAdaptive: true,
-      adaptiveSkillTier: activeTier,
-    });
+    if (appMode === 'child') {
+      onStartChildQuickOperation(op);
+    } else {
+      const activeTier = adaptivePlan?.operations[op]?.currentTier || 1;
+      onOpenSetup({
+        selectedOperations: [op],
+        mode: 'practice',
+        isAdaptive: true,
+        adaptiveSkillTier: activeTier,
+      });
+    }
   };
 
   const [opMastery, setOpMastery] = useState<Record<string, { accuracy: number; stars: number }>>({
-    addition: { accuracy: 80, stars: 3 },
-    subtraction: { accuracy: 70, stars: 2 },
-    multiplication: { accuracy: 60, stars: 2 },
-    division: { accuracy: 50, stars: 1 },
+    addition: { accuracy: 0, stars: 0 },
+    subtraction: { accuracy: 0, stars: 0 },
+    multiplication: { accuracy: 0, stars: 0 },
+    division: { accuracy: 0, stars: 0 },
   });
 
   // Calculate greeting based on time of day
@@ -205,7 +219,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               else if (acc >= 65) stars = 2;
               newMastery[opKey] = { accuracy: acc, stars };
             } else {
-              newMastery[opKey] = { accuracy: 0, stars: 1 };
+              newMastery[opKey] = { accuracy: 0, stars: 0 };
             }
           });
           setOpMastery((prev) => ({ ...prev, ...newMastery }));
@@ -379,7 +393,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
 
         <button
-          onClick={() => onOpenSetup({ mode: 'practice', questionCount: 10 })}
+          id="home-start-daily-mission-btn"
+          onClick={() => {
+            if (appMode === 'child') {
+              onStartChildQuickOperation(adaptivePlan?.primaryOperation || 'addition');
+            } else {
+              onOpenSetup({ mode: 'practice', questionCount: 10 });
+            }
+          }}
           className="w-full sm:w-auto px-8 py-4 bg-slate-950 hover:bg-slate-900 text-white font-black text-lg rounded-2xl shadow-xl shadow-slate-950/20 transform hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
         >
           <span>🚀</span>
@@ -401,23 +422,30 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <h4 className="text-lg font-black">آزمون جامع چهار عمل اصلی</h4>
             </div>
             <p className="text-xs text-indigo-200">
-              ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه
+              {appMode === 'child'
+                ? 'ترکیب هوشمند مهارت‌های باز شده جمع، تفریق، ضرب و تقسیم'
+                : 'ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه'}
             </p>
           </div>
         </div>
 
         <button
-          onClick={() =>
-            onOpenSetup({
-              selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
-              mode: 'test',
-              isAdaptive: true,
-              questionCount: 20,
-            })
-          }
-          className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+          id="home-start-combined-quiz-btn"
+          onClick={() => {
+            if (appMode === 'child') {
+              onStartChildCombined();
+            } else {
+              onOpenSetup({
+                selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
+                mode: 'test',
+                isAdaptive: true,
+                questionCount: 20,
+              });
+            }
+          }}
+          className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
         >
-          <span>تنظیم و شروع آزمون ترکیبی</span>
+          <span>{appMode === 'child' ? 'شروع چالش ترکیبی' : 'تنظیم و شروع آزمون ترکیبی'}</span>
           <span>⚡</span>
         </button>
       </div>
@@ -469,15 +497,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <span>عملیات‌های اصلی ریاضی</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              با کلیک روی هر عملیات، مستقیماً وارد تنظیمات چالش آن شوید (Quick Start)
+              {appMode === 'child'
+                ? 'روی هر عملیات بزن تا تمرین هوشمند و متناسب با مرحله‌ات فوراً شروع بشه!'
+                : 'با کلیک روی هر عملیات، وارد تنظیمات چالش آن شوید'}
             </p>
           </div>
-          <button
-            onClick={() => onNavigate('presets')}
-            className="text-xs sm:text-sm font-black text-indigo-600 dark:text-indigo-400 hover:underline"
-          >
-            الگوهای ذخیره‌شده ←
-          </button>
+          {appMode === 'parent' && (
+            <button
+              onClick={() => onNavigate('presets')}
+              className="text-xs sm:text-sm font-black text-indigo-600 dark:text-indigo-400 hover:underline"
+            >
+              الگوهای ذخیره‌شده ←
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -486,12 +518,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             return (
               <div
                 key={op.id}
-                onClick={() =>
-                  onOpenSetup({
-                    selectedOperations: [op.id as any],
-                    mode: 'practice',
-                  })
-                }
+                id={`home-op-card-${op.id}`}
+                onClick={() => {
+                  if (appMode === 'child') {
+                    onStartChildQuickOperation(op.id as OperationType);
+                  } else {
+                    onOpenSetup({
+                      selectedOperations: [op.id as any],
+                      mode: 'practice',
+                    });
+                  }
+                }}
                 className={`bg-white dark:bg-slate-900 rounded-3xl p-6 border ${op.borderLight} shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col justify-between group hover:-translate-y-1`}
               >
                 <div className="space-y-4">
@@ -534,7 +571,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     دقت: ٪{formatNumber(mastery.accuracy, 'persian')}
                   </span>
                   <span className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-600 group-hover:text-white rounded-xl text-xs font-black transition-colors">
-                    تنظیم چالش ←
+                    {appMode === 'child' ? 'شروع تمرین 🚀' : 'تنظیم چالش ←'}
                   </span>
                 </div>
               </div>
@@ -553,8 +590,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         )}
       </div>
 
-      {/* 4.5 Compact Recent/Favorite Saved Test Patterns */}
-      {testPatterns && testPatterns.length > 0 && (
+      {/* 4.5 Compact Recent/Favorite Saved Test Patterns (Visible in Parent Mode) */}
+      {appMode === 'parent' && testPatterns && testPatterns.length > 0 && (
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

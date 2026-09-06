@@ -120,7 +120,17 @@ export interface QuizSession {
   xpEarned: number;
   startTime?: number;
   endTime?: number;
-  source?: 'normal' | 'smart-review' | 'mistakes-practice' | 'retry' | string;
+  isParentOverride?: boolean;
+  source?:
+    | 'normal'
+    | 'child-quick-start'
+    | 'child-combined'
+    | 'smart-review'
+    | 'mistakes-practice'
+    | 'retry'
+    | 'parent-manual'
+    | 'test-pattern'
+    | string;
   smartReviewMetadata?: {
     targetedSkills?: string[];
     targetOperations?: OperationType[];
@@ -210,7 +220,16 @@ export interface QuizResult {
   leveledUp?: boolean;
   unlockedAchievements?: Achievement[];
   mistakes?: MistakeRecord[];
-  source?: 'normal' | 'smart-review' | 'mistakes-practice' | 'retry' | string;
+  source?:
+    | 'normal'
+    | 'child-quick-start'
+    | 'child-combined'
+    | 'smart-review'
+    | 'mistakes-practice'
+    | 'retry'
+    | 'parent-manual'
+    | 'test-pattern'
+    | string;
   smartReviewMetadata?: {
     targetedSkills?: string[];
     targetOperations?: OperationType[];
@@ -261,4 +280,7 @@ export type ScreenId =
   | 'progress'
   | 'achievements'
   | 'presets'
-  | 'settings';
+  | 'settings'
+  | 'parent_dashboard';
+
+export type AppMode = 'child' | 'parent';

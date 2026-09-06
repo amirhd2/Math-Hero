@@ -13,9 +13,11 @@ import {
   TestPattern,
   QuizConfiguration,
   QuizSession,
+  AppMode,
+  OperationType,
 } from './types';
 import { storage, DEFAULT_PROFILE, DEFAULT_SETTINGS, DEFAULT_PRESETS, DEFAULT_TEST_PATTERNS } from './utils/storage';
-import { createQuizSession } from './utils/questionGenerator';
+import { createQuizSession, DEFAULT_OPERATION_SETTINGS } from './utils/questionGenerator';
 import { createSmartReviewSession } from './smartReview/smartReviewEngine';
 import { SmartTeacherEngine } from './adaptive/smartTeacherEngine';
 import { Navbar } from './components/Navbar';
@@ -30,6 +32,8 @@ import { MistakesScreen } from './screens/MistakesScreen';
 import { ProgressScreen } from './screens/ProgressScreen';
 import { AchievementsScreen } from './screens/AchievementsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { ParentDashboardScreen } from './screens/ParentDashboardScreen';
+import { ParentGateModal } from './components/parent/ParentGateModal';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 
 export default function App() {
@@ -37,6 +41,10 @@ export default function App() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [presets, setPresets] = useState<QuizPreset[]>(DEFAULT_PRESETS);
   const [testPatterns, setTestPatterns] = useState<TestPattern[]>(DEFAULT_TEST_PATTERNS);
+
+  // App Mode: 'child' (default) vs 'parent'
+  const [appMode, setAppMode] = useState<AppMode>('child');
+  const [isParentGateOpen, setIsParentGateOpen] = useState(false);
 
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
 
@@ -154,7 +162,7 @@ export default function App() {
     setCurrentScreen('quiz_setup');
   };
 
-  // Start Quiz directly from generated Quiz Configuration
+  // Start Quiz directly from generated Quiz Configuration (Parent Manual Setup)
   const handleStartQuizWithConfig = async (config: QuizConfiguration) => {
     try {
       if (config.isAdaptive && config.selectedOperations.length === 1) {
@@ -167,6 +175,8 @@ export default function App() {
         const baseSession = createQuizSession(config);
         const session: QuizSession = {
           ...baseSession,
+          source: 'parent-manual',
+          isParentOverride: true,
           questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
           currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
           adaptiveMetadata: {
@@ -181,6 +191,8 @@ export default function App() {
       }
 
       const session = createQuizSession(config);
+      session.source = 'parent-manual';
+      session.isParentOverride = true;
       setActiveSession(session);
       setCurrentScreen('quiz_active');
     } catch (err) {
@@ -192,10 +204,125 @@ export default function App() {
   const handleStartPattern = (pattern: TestPattern) => {
     try {
       const session = createQuizSession(pattern.config);
+      session.source = 'test-pattern';
+      session.isParentOverride = true;
       setActiveSession(session);
       setCurrentScreen('quiz_active');
     } catch (err) {
       console.error('Failed to start pattern quiz:', err);
+    }
+  };
+
+  // Start child quick practice directly for a selected operation (Adaptive & Simple)
+  const handleStartChildQuickOperation = async (op: OperationType) => {
+    try {
+      const plan = await SmartTeacherEngine.getLearningPlan();
+      const currentTier = plan.operations[op]?.currentTier || 1;
+      const adaptiveQuestions = await SmartTeacherEngine.generateAdaptiveQuestions(
+        op,
+        10,
+        currentTier
+      );
+      const config: QuizConfiguration = {
+        id: `child-${op}-${Date.now()}`,
+        title: `تمرین هوشمند ${op === 'addition' ? 'جمع' : op === 'subtraction' ? 'تفریق' : op === 'multiplication' ? 'ضرب' : 'تقسیم'}`,
+        mode: 'practice',
+        isAdaptive: true,
+        adaptiveSkillTier: currentTier,
+        selectedOperations: [op],
+        questionCount: 10,
+        operationSettings: DEFAULT_OPERATION_SETTINGS,
+        distribution: {
+          addition: op === 'addition' ? 100 : 0,
+          subtraction: op === 'subtraction' ? 100 : 0,
+          multiplication: op === 'multiplication' ? 100 : 0,
+          division: op === 'division' ? 100 : 0,
+          mixed: 0,
+        },
+        smartReviewEnabled: true,
+      };
+      const baseSession = createQuizSession(config);
+      const session: QuizSession = {
+        ...baseSession,
+        source: 'child-adaptive',
+        isParentOverride: false,
+        questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
+        currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
+        adaptiveMetadata: {
+          isAdaptive: true,
+          operation: op,
+          targetTier: currentTier,
+        },
+      };
+      setActiveSession(session);
+      setCurrentScreen('quiz_active');
+    } catch (err) {
+      console.error('Failed to start child quick operation:', err);
+    }
+  };
+
+  // Start child combined challenge across operations
+  const handleStartChildCombined = async () => {
+    try {
+      const plan = await SmartTeacherEngine.getLearningPlan();
+      const mistakes = await storage.getMistakes();
+      const sampleMistakes = mistakes.map((m) => m.question);
+      const adaptiveQuestions = SmartTeacherEngine.generateCombinedAdaptiveQuestions(
+        plan,
+        sampleMistakes
+      );
+      const operations: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
+      const config: QuizConfiguration = {
+        id: `child-combined-${Date.now()}`,
+        title: 'چالش جامع چهار عمل اصلی',
+        mode: 'test',
+        isAdaptive: true,
+        selectedOperations: operations,
+        questionCount: adaptiveQuestions.length,
+        operationSettings: DEFAULT_OPERATION_SETTINGS,
+        distribution: {
+          addition: 25,
+          subtraction: 25,
+          multiplication: 25,
+          division: 25,
+          mixed: 0,
+        },
+        smartReviewEnabled: true,
+      };
+      const baseSession = createQuizSession(config);
+      const session: QuizSession = {
+        ...baseSession,
+        source: 'child-adaptive',
+        isParentOverride: false,
+        questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
+        currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
+        adaptiveMetadata: {
+          isAdaptive: true,
+          operation: 'mixed',
+        },
+      };
+      setActiveSession(session);
+      setCurrentScreen('quiz_active');
+    } catch (err) {
+      console.error('Failed to start child combined quiz:', err);
+    }
+  };
+
+  // Parent Gate & Mode Switching
+  const handleOpenParentGate = () => {
+    setIsParentGateOpen(true);
+  };
+
+  const handleParentGateSuccess = () => {
+    setIsParentGateOpen(false);
+    setAppMode('parent');
+    setCurrentScreen('parent_dashboard');
+  };
+
+  const handleExitToChildMode = () => {
+    setAppMode('child');
+    if (currentScreen === 'parent_dashboard' || currentScreen === 'quiz_setup' || currentScreen === 'presets') {
+      setCurrentScreen('home');
     }
   };
 
@@ -243,17 +370,14 @@ export default function App() {
     }
   };
 
-  const handleFinishQuiz = (result: QuizResult) => {
+  const handleFinishQuiz = async (result: QuizResult) => {
     setLastResult(result);
-    // Update profile XP & level
-    const newXp = profile.xp + result.xpEarned;
-    const newLevel = Math.floor(newXp / 200) + 1;
-    const updatedProfile: UserProfile = {
-      ...profile,
-      xp: newXp,
-      level: newLevel,
-    };
-    handleUpdateProfile(updatedProfile);
+    try {
+      const freshProfile = await storage.getProfile();
+      setProfile(freshProfile);
+    } catch (err) {
+      console.warn('Failed to refresh profile after quiz:', err);
+    }
     setCurrentScreen('quiz_results');
   };
 
@@ -283,8 +407,11 @@ export default function App() {
           profile={profile}
           settings={settings}
           currentScreen={currentScreen}
+          appMode={appMode}
           onNavigate={setCurrentScreen}
           onToggleTheme={handleToggleTheme}
+          onOpenParentGate={handleOpenParentGate}
+          onExitToChildMode={handleExitToChildMode}
         />
       )}
 
@@ -298,11 +425,24 @@ export default function App() {
             profile={profile}
             presets={presets}
             testPatterns={testPatterns}
+            appMode={appMode}
             onOpenSetup={handleOpenQuizSetup}
             onStartPattern={handleStartPattern}
             onStartQuiz={handleStartQuiz}
             onNavigate={setCurrentScreen}
             onStartSmartReview={handleStartSmartReview}
+            onStartChildQuickOperation={handleStartChildQuickOperation}
+            onStartChildCombined={handleStartChildCombined}
+          />
+        )}
+        {currentScreen === 'parent_dashboard' && (
+          <ParentDashboardScreen
+            profile={profile}
+            testPatterns={testPatterns}
+            onOpenSetup={(cfg) => handleOpenQuizSetup(cfg)}
+            onStartPattern={handleStartPattern}
+            onNavigate={setCurrentScreen}
+            onExitToChildMode={handleExitToChildMode}
           />
         )}
         {currentScreen === 'quiz_setup' && (
@@ -310,7 +450,7 @@ export default function App() {
             initialConfig={activeQuizConfig}
             editingPattern={editingPattern}
             onStartQuiz={handleStartQuizWithConfig}
-            onBack={() => setCurrentScreen('home')}
+            onBack={() => setCurrentScreen(appMode === 'parent' ? 'parent_dashboard' : 'home')}
             onNavigate={setCurrentScreen}
           />
         )}
@@ -340,7 +480,7 @@ export default function App() {
             settings={settings}
             soundEnabled={settings.soundEnabled}
             onFinishQuiz={handleFinishQuiz}
-            onCancelQuiz={() => setCurrentScreen('home')}
+            onCancelQuiz={() => setCurrentScreen(appMode === 'parent' ? 'parent_dashboard' : 'home')}
           />
         )}
         {currentScreen === 'quiz_results' && lastResult && (
@@ -372,8 +512,11 @@ export default function App() {
           <SettingsScreen
             settings={settings}
             profile={profile}
+            appMode={appMode}
             onUpdateSettings={handleUpdateSettings}
             onNavigate={setCurrentScreen}
+            onOpenParentGate={handleOpenParentGate}
+            onExitToChildMode={handleExitToChildMode}
           />
         )}
       </main>
@@ -388,10 +531,17 @@ export default function App() {
             <span className="text-xl">🏠</span>
             <span className="text-[10px]">خانه</span>
           </button>
-          <button onClick={() => setCurrentScreen('presets')} className={`flex flex-col items-center gap-1 ${currentScreen === 'presets' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-            <span className="text-xl">📋</span>
-            <span className="text-[10px]">الگوها</span>
-          </button>
+          {appMode === 'parent' ? (
+            <button onClick={() => setCurrentScreen('parent_dashboard')} className={`flex flex-col items-center gap-1 ${currentScreen === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
+              <span className="text-xl">👨‍🏫</span>
+              <span className="text-[10px]">میز مربی</span>
+            </button>
+          ) : (
+            <button onClick={() => setCurrentScreen('mistakes')} className={`flex flex-col items-center gap-1 ${currentScreen === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
+              <span className="text-xl">💡</span>
+              <span className="text-[10px]">گنجینه</span>
+            </button>
+          )}
           <button onClick={() => setCurrentScreen('progress')} className={`flex flex-col items-center gap-1 ${currentScreen === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
             <span className="text-xl">📊</span>
             <span className="text-[10px]">آمار</span>
@@ -406,6 +556,14 @@ export default function App() {
           </button>
         </nav>
       )}
+
+      {/* Parent Security Gate Modal */}
+      <ParentGateModal
+        isOpen={isParentGateOpen}
+        onSuccess={handleParentGateSuccess}
+        onClose={() => setIsParentGateOpen(false)}
+      />
+
       {/* Offline Status Toast */}
       <OfflineIndicator />
     </div>

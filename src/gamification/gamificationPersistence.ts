@@ -50,6 +50,8 @@ export const INITIAL_GAMIFICATION_STATE: GamificationState = {
   lastActivityDate: null,
   lastActivityAt: null,
   stats: INITIAL_GAMIFICATION_STATS,
+  processedQuizIds: [],
+  awardedMasteryBonuses: [],
 };
 
 /**
@@ -146,6 +148,8 @@ export async function loadGamificationState(): Promise<GamificationState> {
       lastActivityDate,
       lastActivityAt: latestResult ? latestResult.timestamp : null,
       stats: bootstrappedStats,
+      processedQuizIds: results.map((r) => r.id),
+      awardedMasteryBonuses: [],
     };
 
     await saveGamificationState(state);
@@ -191,5 +195,7 @@ function mergeWithDefaults(saved: Partial<GamificationState>): GamificationState
         ...(saved.stats?.operationAccuracies || {}),
       },
     },
+    processedQuizIds: Array.isArray(saved.processedQuizIds) ? saved.processedQuizIds : [],
+    awardedMasteryBonuses: Array.isArray(saved.awardedMasteryBonuses) ? saved.awardedMasteryBonuses : [],
   };
 }

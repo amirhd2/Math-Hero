@@ -7,12 +7,15 @@
 import { QuizResult } from '../types';
 import { BADGE_REGISTRY } from './badgeRegistry';
 import { Badge, GamificationState, GamificationStats } from './gamificationTypes';
+import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
 
 export interface EvaluateBadgesInput {
   state: GamificationState;
   latestResult?: QuizResult;
   previousResults?: QuizResult[];
   mistakesResolvedCount?: number;
+  learningPlan?: AdaptiveLearningPlan | null;
+  mathHeroEligible?: boolean;
 }
 
 export interface EvaluateBadgesOutput {
@@ -215,9 +218,71 @@ export function evaluateBadges(input: EvaluateBadgesInput): EvaluateBadgesOutput
       case 'math_hero_grand': {
         const unlockedCount = state.unlockedBadges.length;
         progress = Math.min(unlockedCount, maxProgress);
-        if (state.currentLevel >= 15 && unlockedCount >= 15) {
+        if (input.mathHeroEligible || (state.currentLevel >= 15 && unlockedCount >= 15)) {
           unlocked = true;
+          progress = maxProgress;
         }
+        break;
+      }
+
+      case 'tier_mastered': {
+        const op = badgeDef.requirement.operation;
+        const targetTier = badgeDef.requirement.tier || 1;
+        let isTierMastered = false;
+
+        if (input.learningPlan?.operations) {
+          if (op) {
+            const profile = input.learningPlan.operations[op];
+            if (profile?.tiers?.[targetTier]?.state === 'mastered') {
+              isTierMastered = true;
+            }
+          } else {
+            // Any operation with this tier or higher
+            const allOps: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = [
+              'addition',
+              'subtraction',
+              'multiplication',
+              'division',
+            ];
+            for (const o of allOps) {
+              const prof = input.learningPlan.operations[o];
+              if (prof?.tiers) {
+                const hasMastered = Object.values(prof.tiers).some(
+                  (t) => t.tier >= targetTier && t.state === 'mastered'
+                );
+                if (hasMastered) {
+                  isTierMastered = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        progress = isTierMastered ? 1 : 0;
+        if (isTierMastered) unlocked = true;
+        break;
+      }
+
+      case 'balanced_mastery': {
+        let distinctOpsMastered = 0;
+        if (input.learningPlan?.operations) {
+          const allOps: ('addition' | 'subtraction' | 'multiplication' | 'division')[] = [
+            'addition',
+            'subtraction',
+            'multiplication',
+            'division',
+          ];
+          allOps.forEach((o) => {
+            const prof = input.learningPlan!.operations[o];
+            if (prof?.tiers) {
+              const hasAnyMastered = Object.values(prof.tiers).some((t) => t.state === 'mastered');
+              if (hasAnyMastered) distinctOpsMastered++;
+            }
+          });
+        }
+        progress = distinctOpsMastered;
+        if (distinctOpsMastered >= maxProgress) unlocked = true;
         break;
       }
 

@@ -1,10 +1,18 @@
 /**
  * Centralized Gamification Engine for Math Hero.
  * The Single Source of Truth for XP, Levels, Badges, Trophy, and Progression.
- * All screens (Home, Results, Statistics, Profile, Achievements) consume this unified state.
+ * 
+ * CORE PRINCIPLE:
+ * Strict conceptual separation between:
+ * MOTIVATIONAL PROGRESSION (XP, Level, Badges, Streaks)
+ * and
+ * EDUCATIONAL PROGRESSION (Skill Mastery, Approved Tier Evidence, Operation Breadth).
+ * 
+ * XP motivates the child, while Skill Mastery determines real educational progression.
+ * Level 15 / Grand Math Hero and Trophy Stage 6 strictly require satisfying verified educational milestones.
  */
 
-import { QuizResult, UserProfile } from '../types';
+import { QuizResult, UserProfile, OperationType } from '../types';
 import { storage } from '../utils/storage';
 import {
   GamificationState,
@@ -15,35 +23,68 @@ import {
   GamificationStats,
 } from './gamificationTypes';
 import { calculateQuizXp } from './xpCalculator';
-import { getLevelProgress, calculateLevelUp, getLevelFromXp } from './levelCalculator';
+import { getLevelProgress, calculateLevelUp, getLevelFromXp, getRawLevelByXp } from './levelCalculator';
 import { evaluateStreak, getLocalCalendarDate } from './streakManager';
 import { evaluateBadges } from './achievementEngine';
 import { getTrophyInfo, calculateTrophyStage } from './trophyManager';
 import { loadGamificationState, saveGamificationState } from './gamificationPersistence';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
-import { OperationType } from '../types';
+import { AdaptiveLearningPlan, PromotionEvent } from '../adaptive/adaptiveTypes';
+import { MathHeroEligibilityEvaluator, MathHeroEligibility } from './mathHeroEvaluator';
 
-async function getMasteredTiersCount(): Promise<number> {
+export interface EducationalStatsSummary {
+  masteredTiersCount: number;
+  distinctOperationsCount: number;
+  advancedTiersCount: number;
+  learningPlan: AdaptiveLearningPlan | null;
+}
+
+/**
+ * Extracts verified educational metrics from the child's AdaptiveLearningPlan.
+ */
+export async function getEducationalStatsSummary(): Promise<EducationalStatsSummary> {
   try {
     const plan = await SmartTeacherEngine.getLearningPlan();
-    let count = 0;
-    (['addition', 'subtraction', 'multiplication', 'division'] as OperationType[]).forEach((op) => {
-      const profile = plan.operations[op];
-      if (profile) {
-        Object.values(profile.tiers).forEach((t) => {
-          if (t.state === 'mastered') count++;
-        });
-      }
-    });
-    return count;
+    let masteredTiersCount = 0;
+    let advancedTiersCount = 0;
+    const opsWithMastery = new Set<OperationType>();
+
+    if (plan && plan.operations) {
+      const coreOps: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
+      coreOps.forEach((op) => {
+        const profile = plan.operations[op];
+        if (profile && profile.tiers) {
+          Object.values(profile.tiers).forEach((evidence) => {
+            if (evidence.state === 'mastered') {
+              masteredTiersCount++;
+              opsWithMastery.add(op);
+              if (evidence.tier >= 3) {
+                advancedTiersCount++;
+              }
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      masteredTiersCount,
+      distinctOperationsCount: opsWithMastery.size,
+      advancedTiersCount,
+      learningPlan: plan,
+    };
   } catch {
-    return 0;
+    return {
+      masteredTiersCount: 0,
+      distinctOperationsCount: 0,
+      advancedTiersCount: 0,
+      learningPlan: null,
+    };
   }
 }
 
 class GamificationEngineService {
   private cachedState: GamificationState | null = null;
-  private isProcessing = false;
 
   /**
    * Retrieves the current gamification state.
@@ -58,15 +99,47 @@ class GamificationEngineService {
   /**
    * Primary event pipeline: Process a completed quiz or practice session.
    * Atomically computes XP, Level, Streak, Badges, and Trophy.
+   * Enforces strict idempotency and educational gating.
    */
   async processQuizCompletion(
     result: QuizResult,
     previousResults: QuizResult[] = [],
-    profile: UserProfile
+    profile: UserProfile,
+    newPromotion?: PromotionEvent | null
   ): Promise<GamificationUpdateResult> {
     const currentState = await this.getState();
     const now = result.timestamp || Date.now();
     const todayStr = getLocalCalendarDate(now);
+
+    // 0. IDEMPOTENCY CHECK: Ensure the exact same quiz result ID cannot award duplicate XP or badges
+    if (result.id && currentState.processedQuizIds?.includes(result.id)) {
+      const levelInfo = getLevelProgress(currentState.totalXp);
+      return {
+        updatedState: currentState,
+        updatedProfile: profile,
+        xpBreakdown: {
+          baseQuizXp: 0,
+          correctAnswersXp: 0,
+          accuracyBonusXp: 0,
+          smartReviewBonusXp: 0,
+          testModeBonusXp: 0,
+          improvementBonusXp: 0,
+          streakBonusXp: 0,
+          achievementBonusXp: 0,
+          masteryMilestoneBonusXp: 0,
+          tierUnlockBonusXp: 0,
+          totalXpEarned: 0,
+        },
+        levelBefore: currentState.currentLevel,
+        levelAfter: currentState.currentLevel,
+        leveledUp: false,
+        levelsGained: 0,
+        newlyUnlockedBadges: [],
+        trophyStageBefore: currentState.trophyStage,
+        trophyStageAfter: currentState.trophyStage,
+        trophyUpgraded: false,
+      };
+    }
 
     // 1. Evaluate Daily Streak
     const streakResult = evaluateStreak(
@@ -76,7 +149,10 @@ class GamificationEngineService {
       now
     );
 
-    // 2. Calculate Base & Bonus XP for this quiz with Anti-Grind checks
+    // 2. Retrieve verified Educational Progress metrics from SmartTeacher
+    const eduSummary = await getEducationalStatsSummary();
+
+    // 3. Check for Anti-Grind (practicing already-mastered tier)
     let isGrinding = result.adaptiveMetadata?.isGrindingMasteredTier;
     if (isGrinding === undefined && result.operation && result.operation !== 'mixed') {
       try {
@@ -89,33 +165,70 @@ class GamificationEngineService {
       }
     }
 
+    // 4. One-Time Legitimate Educational Milestone Bonuses
+    const awardedBonuses = [...(currentState.awardedMasteryBonuses || [])];
+    let awardMasteryBonus = false;
+    let awardUnlockBonus = false;
+
+    if (newPromotion) {
+      const masteryKey = `mastery_${newPromotion.operation}_${newPromotion.masteredTier}`;
+      if (!awardedBonuses.includes(masteryKey)) {
+        awardMasteryBonus = true;
+        awardedBonuses.push(masteryKey);
+      }
+
+      const unlockKey = `unlock_${newPromotion.operation}_${newPromotion.unlockedTier}`;
+      if (!awardedBonuses.includes(unlockKey)) {
+        awardUnlockBonus = true;
+        awardedBonuses.push(unlockKey);
+      }
+    }
+
+    // 5. Calculate XP with quality tier scaling and anti-grind diminishing factor
     const xpBreakdown = calculateQuizXp({
       result,
       previousResults,
       currentStreak: streakResult.currentStreak,
       isGrindingMasteredTier: isGrinding,
+      tierNumber: result.adaptiveMetadata?.targetTier || 1,
+      oneTimeMasteryBonus: awardMasteryBonus,
+      oneTimeTierUnlockBonus: awardUnlockBonus,
     });
 
     const xpBefore = currentState.totalXp;
     const initialNewXp = xpBefore + xpBreakdown.totalXpEarned;
 
-    // Temporary state to evaluate badge unlock conditions
+    // Check Grand Math Hero Eligibility
+    const mathHeroEligibility = MathHeroEligibilityEvaluator.evaluate({
+      totalXp: initialNewXp,
+      unlockedBadgesCount: currentState.unlockedBadges.length,
+      learningPlan: eduSummary.learningPlan,
+    });
+
+    // 6. Temporary state for badge unlock evaluation
     const intermediateState: GamificationState = {
       ...currentState,
       totalXp: initialNewXp,
-      currentLevel: getLevelFromXp(initialNewXp),
+      currentLevel: getLevelFromXp(
+        initialNewXp,
+        eduSummary.masteredTiersCount,
+        eduSummary.distinctOperationsCount,
+        currentState.unlockedBadges.length
+      ),
       currentStreak: streakResult.currentStreak,
       bestStreak: streakResult.bestStreak,
     };
 
-    // 3. Evaluate Badges & Update Accumulated Stats
+    // 7. Evaluate Badges & Update Cumulative Stats
     const badgeEval = evaluateBadges({
       state: intermediateState,
       latestResult: result,
       previousResults,
+      learningPlan: eduSummary.learningPlan,
+      mathHeroEligible: mathHeroEligibility.isEligible,
     });
 
-    // 4. Award XP for newly unlocked badges
+    // 8. Award XP for newly unlocked badges
     let badgeXpBonus = 0;
     const updatedUnlockedBadges = [...currentState.unlockedBadges];
     const updatedTimestamps = { ...currentState.badgeUnlockTimestamps };
@@ -131,21 +244,35 @@ class GamificationEngineService {
     xpBreakdown.achievementBonusXp = badgeXpBonus;
     xpBreakdown.totalXpEarned += badgeXpBonus;
 
-    // 5. Final XP and Level calculation
+    // 9. Final XP & Level calculation with Educational Milestone Gating
     const finalTotalXp = xpBefore + xpBreakdown.totalXpEarned;
-    const levelTransition = calculateLevelUp(xpBefore, finalTotalXp);
 
-    // 6. Trophy calculation
+    const levelTransition = calculateLevelUp(
+      xpBefore,
+      finalTotalXp,
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      updatedUnlockedBadges.length
+    );
+
+    // 10. Trophy calculation incorporating verified educational mastery
     const trophyStageBefore = currentState.trophyStage || 1;
-    const masteredTiersCount = await getMasteredTiersCount();
     const trophyStageAfter = calculateTrophyStage(
       levelTransition.levelAfter,
       updatedUnlockedBadges.length,
-      masteredTiersCount
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      mathHeroEligibility.isEligible
     );
     const trophyUpgraded = trophyStageAfter > trophyStageBefore;
 
-    // 7. Assemble Updated GamificationState
+    // 11. Record processed quiz ID to enforce idempotency
+    const updatedProcessedQuizIds = [
+      ...(currentState.processedQuizIds || []),
+      result.id,
+    ].slice(-200); // retain last 200 IDs for storage hygiene
+
+    // 12. Assemble Updated GamificationState
     const updatedState: GamificationState = {
       totalXp: finalTotalXp,
       currentLevel: levelTransition.levelAfter,
@@ -157,9 +284,13 @@ class GamificationEngineService {
       lastActivityDate: todayStr,
       lastActivityAt: now,
       stats: badgeEval.updatedStats,
+      processedQuizIds: updatedProcessedQuizIds,
+      awardedMasteryBonuses: awardedBonuses,
+      masteredTiersCount: eduSummary.masteredTiersCount,
+      distinctOperationsMastered: eduSummary.distinctOperationsCount,
     };
 
-    // 8. Assemble Updated UserProfile for 100% synchronization
+    // 13. Assemble Synchronized UserProfile
     const updatedProfile: UserProfile = {
       ...profile,
       xp: finalTotalXp,
@@ -167,7 +298,7 @@ class GamificationEngineService {
       streakDays: streakResult.currentStreak,
     };
 
-    // 9. Persist atomically
+    // 14. Atomic Persistence
     this.cachedState = updatedState;
     await saveGamificationState(updatedState);
     await storage.saveProfile(updatedProfile);
@@ -195,9 +326,12 @@ class GamificationEngineService {
     updatedState: GamificationState;
   }> {
     const currentState = await this.getState();
+    const eduSummary = await getEducationalStatsSummary();
+
     const badgeEval = evaluateBadges({
       state: currentState,
       mistakesResolvedCount: 1,
+      learningPlan: eduSummary.learningPlan,
     });
 
     if (badgeEval.newlyUnlockedBadges.length === 0) {
@@ -221,9 +355,26 @@ class GamificationEngineService {
     }
 
     const newXp = currentState.totalXp + bonusXp;
-    const newLevel = getLevelFromXp(newXp);
-    const masteredTiersCount = await getMasteredTiersCount();
-    const newTrophyStage = calculateTrophyStage(newLevel, updatedUnlockedBadges.length, masteredTiersCount);
+    const newLevel = getLevelFromXp(
+      newXp,
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      updatedUnlockedBadges.length
+    );
+
+    const mathHeroEligibility = MathHeroEligibilityEvaluator.evaluate({
+      totalXp: newXp,
+      unlockedBadgesCount: updatedUnlockedBadges.length,
+      learningPlan: eduSummary.learningPlan,
+    });
+
+    const newTrophyStage = calculateTrophyStage(
+      newLevel,
+      updatedUnlockedBadges.length,
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      mathHeroEligibility.isEligible
+    );
 
     const updatedState: GamificationState = {
       ...currentState,
@@ -263,14 +414,38 @@ class GamificationEngineService {
     lockedBadges: Badge[];
     recentlyUnlocked: Badge[];
     stats: GamificationStats;
+    mathHeroEligibility: MathHeroEligibility;
   }> {
     const state = await this.getState();
-    const levelInfo = getLevelProgress(state.totalXp);
-    const masteredTiersCount = await getMasteredTiersCount();
-    const trophyInfo = getTrophyInfo(state.currentLevel, state.unlockedBadges.length, masteredTiersCount);
+    const eduSummary = await getEducationalStatsSummary();
+
+    const levelInfo = getLevelProgress(
+      state.totalXp,
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      state.unlockedBadges.length
+    );
+
+    const mathHeroEligibility = MathHeroEligibilityEvaluator.evaluate({
+      totalXp: state.totalXp,
+      unlockedBadgesCount: state.unlockedBadges.length,
+      learningPlan: eduSummary.learningPlan,
+    });
+
+    const trophyInfo = getTrophyInfo(
+      state.currentLevel,
+      state.unlockedBadges.length,
+      eduSummary.masteredTiersCount,
+      eduSummary.distinctOperationsCount,
+      mathHeroEligibility.isEligible
+    );
 
     // Evaluate all badges with progress against current state
-    const { allBadgesWithProgress } = evaluateBadges({ state });
+    const { allBadgesWithProgress } = evaluateBadges({
+      state,
+      learningPlan: eduSummary.learningPlan,
+      mathHeroEligible: mathHeroEligibility.isEligible,
+    });
 
     const unlockedBadges = allBadgesWithProgress.filter((b) => b.unlocked);
     const lockedBadges = allBadgesWithProgress.filter((b) => !b.unlocked);
@@ -289,6 +464,7 @@ class GamificationEngineService {
       lockedBadges,
       recentlyUnlocked,
       stats: state.stats,
+      mathHeroEligibility,
     };
   }
 }

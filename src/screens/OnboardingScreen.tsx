@@ -103,14 +103,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                   setGender('boy');
                   setErrorMsg('');
                 }}
-                className={`p-5 rounded-3xl border-3 flex flex-col items-center gap-3 transition-all transform active:scale-95 ${
+                className={`p-4 rounded-3xl border-3 flex flex-col items-center gap-3 transition-all transform active:scale-95 ${
                   gender === 'boy'
                     ? 'border-indigo-600 bg-indigo-50/60 dark:bg-indigo-950/50 shadow-xl shadow-indigo-500/20 scale-[1.02]'
                     : 'border-slate-200 dark:border-slate-800 hover:border-indigo-300 opacity-75 hover:opacity-100'
                 }`}
               >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-3xl shadow-md text-white">
-                  👦
+                <div className="w-full h-40 sm:h-56 rounded-2xl bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shadow-inner">
+                  <img src="/assets/characters/boy/boy.webp" alt="Boy Character" className="w-full h-full object-contain" />
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-slate-900 dark:text-slate-100 text-base">
@@ -121,7 +121,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                   </span>
                 </div>
                 {gender === 'boy' && (
-                  <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-3 py-0.5 rounded-full">
+                  <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/60 px-3 py-0.5 rounded-full mt-1">
                     ✓ انتخاب شده
                   </span>
                 )}
@@ -134,14 +134,14 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                   setGender('girl');
                   setErrorMsg('');
                 }}
-                className={`p-5 rounded-3xl border-3 flex flex-col items-center gap-3 transition-all transform active:scale-95 ${
+                className={`p-4 rounded-3xl border-3 flex flex-col items-center gap-3 transition-all transform active:scale-95 ${
                   gender === 'girl'
                     ? 'border-rose-500 bg-rose-50/60 dark:bg-rose-950/50 shadow-xl shadow-rose-500/20 scale-[1.02]'
                     : 'border-slate-200 dark:border-slate-800 hover:border-rose-300 opacity-75 hover:opacity-100'
                 }`}
               >
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center text-3xl shadow-md text-white">
-                  👧
+                <div className="w-full h-40 sm:h-56 rounded-2xl bg-rose-100/50 dark:bg-rose-900/30 flex items-center justify-center overflow-hidden shadow-inner">
+                  <img src="/assets/characters/girl/girl.webp" alt="Girl Character" className="w-full h-full object-contain" />
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-slate-900 dark:text-slate-100 text-base">
@@ -152,7 +152,7 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                   </span>
                 </div>
                 {gender === 'girl' && (
-                  <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/60 px-3 py-0.5 rounded-full">
+                  <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-900/60 px-3 py-0.5 rounded-full mt-1">
                     ✓ انتخاب شده
                   </span>
                 )}

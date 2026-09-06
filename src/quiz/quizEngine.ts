@@ -165,7 +165,12 @@ export function useQuizEngine({
           sound.playComplete(soundEnabled);
           sound.vibrateSuccess(soundEnabled);
 
-          const { finalResult: savedResult } = await persistQuizCompletion(finalResult, mistakesRef.current, profile);
+          const { finalResult: savedResult } = await persistQuizCompletion(
+            finalResult,
+            mistakesRef.current,
+            profile,
+            completed
+          );
           setIsAdvancing(false);
           setIsSubmitting(false);
 
