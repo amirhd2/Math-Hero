@@ -13,6 +13,7 @@ import { getLevelProgress } from '../gamification/levelCalculator';
 import { getTrophyInfo } from '../gamification/trophyManager';
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { CurrentBadgeCard } from '../components/CurrentBadgeCard';
+import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface ProfileScreenProps {
   profile: UserProfile;
@@ -223,54 +224,91 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </p>
           </div>
 
-          {/* Left Side in RTL (50% Column): Character Container (Box extends up to 3mm below top header, 2mm from left screen edge, 3mm from centerline, bottom sits lower than CurrentBadgeCard top edge across all responsive screens) */}
+          {/* Left Side in RTL (50% Column): Character Container */}
           <div className="flex items-end justify-center w-full relative -ml-5 sm:-ml-7 pl-[2mm] pr-[3mm] z-30 -mt-6 sm:-mt-8 translate-y-3 sm:translate-y-4 -mb-3 sm:-mb-4 h-[calc(100%+24px)] sm:h-[calc(100%+32px)]">
             <img
-              src={`/assets/characters/${gender}/half-body/greeting.webp`}
+              src={getAssetUrl(`assets/characters/${gender}/half-body/greeting.webp`)}
               alt="Hero Character"
               className="w-full h-full object-contain object-bottom filter drop-shadow-2xl pointer-events-none"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = '1';
+                  target.src = getFallbackAssetUrl(`assets/characters/${gender}/half-body/greeting.webp`);
+                }
+              }}
             />
           </div>
         </div>
       </div>
 
-      {/* Desktop Hero Showcase Card */}
-      <div className="hidden lg:flex bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden justify-end items-center gap-6 min-h-[400px]">
-        <div className="absolute -top-10 -left-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-
-        {/* Content (Text, Level Progress) */}
-        <div className="relative z-10 w-full flex-1 text-right space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black shadow-sm">
-            <span>{levelInfo.icon}</span>
-            <span>{levelInfo.title}</span>
-          </div>
-
-          <h3 className="text-4xl font-black drop-shadow-md">{profile.name}</h3>
-
-          <p className="text-indigo-100 text-sm font-bold drop-shadow-md">
-            سن: {formatNumber(profile.age, 'persian')} ساله • عضو قهرمانان ریاضی
-          </p>
-
-          {/* Level Progress Bar */}
-          <div className="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 space-y-2">
-            <div className="flex items-center justify-between text-xs font-extrabold">
-              <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
-              <span>
-                {formatNumber(levelInfo.xpInCurrentLevel, 'persian')} / {formatNumber(levelInfo.xpRequiredForNextLevel, 'persian')} XP تا سطح بعدی
-              </span>
-            </div>
-            <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-500"
-                style={{ width: `${Math.max(4, levelInfo.progressPercent)}%` }}
-              />
-            </div>
-          </div>
-        </div>
+      {/* Mobile / Tablet Portrait: Current Honor Badge Card */}
+      <div className="lg:hidden">
+        <CurrentBadgeCard trophyInfo={trophyInfo} levelTitle={levelInfo.title} level={levelInfo.level} onNavigate={onNavigate} />
       </div>
 
-      {/* Current Honor Badge Card (نشان فعلی کاربر) */}
-      <CurrentBadgeCard trophyInfo={trophyInfo} levelTitle={levelInfo.title} level={levelInfo.level} onNavigate={onNavigate} />
+      {/* Desktop / Tablet Landscape: 2-Column Grid (Right: Current Badge Card, Left: Profile Card) */}
+      <div className="hidden lg:grid grid-cols-2 gap-5 sm:gap-6 items-stretch">
+        {/* Right Side (Column 1 in RTL): Current Honor Badge Card */}
+        <CurrentBadgeCard trophyInfo={trophyInfo} levelTitle={levelInfo.title} level={levelInfo.level} onNavigate={onNavigate} />
+
+        {/* Left Side (Column 2 in RTL): Desktop Profile Card (White background, styled matching mobile card without character image) */}
+        <div className="bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 border border-indigo-100/90 dark:border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-center items-center text-center space-y-3">
+          {/* Top Header with subtle line dividers: —— کارت پروفایل —— */}
+          <div className="flex items-center justify-center gap-3 mb-1 w-full">
+            <div className="h-[1.5px] bg-indigo-100/80 dark:bg-slate-700/80 flex-1 max-w-[64px] rounded-full" />
+            <span className="text-sm font-black text-indigo-900 dark:text-indigo-300 tracking-wide">
+              کارت پروفایل
+            </span>
+            <div className="h-[1.5px] bg-indigo-100/80 dark:bg-slate-700/80 flex-1 max-w-[64px] rounded-full" />
+          </div>
+
+          {/* Name with Edit Pencil */}
+          <div className="flex items-center justify-center gap-2">
+            <h3 className="text-2xl sm:text-3xl font-black text-indigo-950 dark:text-indigo-100 tracking-tight">
+              {profile.name}
+            </h3>
+            <button
+              type="button"
+              onClick={() => document.getElementById('edit-profile-form')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-indigo-400 hover:text-indigo-600 dark:text-indigo-300 text-base transition-colors cursor-pointer"
+              title="ویرایش اطلاعات"
+            >
+              ✏️
+            </button>
+          </div>
+
+          {/* Level Pill Button */}
+          <div className="inline-flex items-center justify-center px-4 py-1 rounded-full bg-[#5B45B6] text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
+            Level {formatNumber(levelInfo.level, 'persian')}
+          </div>
+
+          {/* Golden Progress Bar Pill */}
+          <div className="w-full bg-slate-100 dark:bg-slate-800 p-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-inner relative h-8 sm:h-9 flex items-center justify-between overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 rounded-full shadow-md transition-all duration-500 flex items-center justify-center relative overflow-hidden"
+              style={{ width: `${Math.max(8, Math.min(100, levelInfo.progressPercent))}%` }}
+            >
+              {levelInfo.progressPercent >= 38 && (
+                <span className="font-black text-amber-950 text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-xs">
+                  {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(levelInfo.nextLevelXpThreshold || (levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel), 'persian')} XP
+                </span>
+              )}
+            </div>
+
+            {levelInfo.progressPercent < 38 && (
+              <div className="flex-1 flex items-center justify-center font-black text-slate-700 dark:text-slate-200 text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-xs z-10">
+                {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(levelInfo.nextLevelXpThreshold || (levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel), 'persian')} XP
+              </div>
+            )}
+          </div>
+
+          {/* Next Level Text */}
+          <p className="text-xs sm:text-sm font-extrabold text-slate-600 dark:text-slate-300 text-center">
+            {formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}
+          </p>
+        </div>
+      </div>
 
       {/* Trophy & Badges Banner with link to Achievements */}
       <div
@@ -409,7 +447,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               }`}
             >
               <div className="w-full h-32 sm:h-40 rounded-2xl bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                <img src="/assets/characters/boy/boy.webp" alt="Boy Character" className="w-full h-full object-contain" />
+                <img
+                  src={getAssetUrl('assets/characters/boy/boy.webp')}
+                  alt="Boy Character"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getFallbackAssetUrl('assets/characters/boy/boy.webp');
+                    }
+                  }}
+                />
               </div>
               <span className="text-sm">پسر قهرمان</span>
             </button>
@@ -424,7 +473,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               }`}
             >
               <div className="w-full h-32 sm:h-40 rounded-2xl bg-rose-100/50 dark:bg-rose-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                <img src="/assets/characters/girl/girl.webp" alt="Girl Character" className="w-full h-full object-contain" />
+                <img
+                  src={getAssetUrl('assets/characters/girl/girl.webp')}
+                  alt="Girl Character"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getFallbackAssetUrl('assets/characters/girl/girl.webp');
+                    }
+                  }}
+                />
               </div>
               <span className="text-sm">دختر قهرمان</span>
             </button>
@@ -479,9 +539,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <div className="hidden lg:block w-full lg:w-2/5 xl:w-1/3">
           <div className="sticky top-0 h-screen m-0 p-0 flex flex-col items-center justify-center">
             <img 
-              src={`/assets/characters/${gender}/greeting.webp`} 
+              src={getAssetUrl(`assets/characters/${gender}/greeting.webp`)} 
               alt="Hero Character" 
               className="w-full h-full max-h-screen object-contain filter drop-shadow-2xl transform hover:scale-105 transition-transform" 
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = '1';
+                  target.src = getFallbackAssetUrl(`assets/characters/${gender}/greeting.webp`);
+                }
+              }}
             />
           </div>
         </div>

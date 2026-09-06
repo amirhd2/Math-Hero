@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { UserProfile, CharacterGender, CharacterPose } from '../types';
 import { Character } from '../components/Character';
 import { formatNumber } from '../utils/persian';
+import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface OnboardingScreenProps {
   onComplete: (profile: UserProfile) => void;
@@ -110,7 +111,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                 }`}
               >
                 <div className="w-full h-40 sm:h-56 rounded-2xl bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                  <img src="/assets/characters/boy/boy.webp" alt="Boy Character" className="w-full h-full object-contain" />
+                  <img
+                    src={getAssetUrl('assets/characters/boy/boy.webp')}
+                    alt="Boy Character"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = '1';
+                        target.src = getFallbackAssetUrl('assets/characters/boy/boy.webp');
+                      }
+                    }}
+                  />
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-slate-900 dark:text-slate-100 text-base">
@@ -141,7 +153,18 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
                 }`}
               >
                 <div className="w-full h-40 sm:h-56 rounded-2xl bg-rose-100/50 dark:bg-rose-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                  <img src="/assets/characters/girl/girl.webp" alt="Girl Character" className="w-full h-full object-contain" />
+                  <img
+                    src={getAssetUrl('assets/characters/girl/girl.webp')}
+                    alt="Girl Character"
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = '1';
+                        target.src = getFallbackAssetUrl('assets/characters/girl/girl.webp');
+                      }
+                    }}
+                  />
                 </div>
                 <div className="text-center">
                   <span className="block font-black text-slate-900 dark:text-slate-100 text-base">

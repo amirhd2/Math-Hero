@@ -2,8 +2,9 @@
  * Reusable Character Component for Math Hero
  * Renders boy or girl avatars with dynamic background colors based on poses.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { CharacterGender, CharacterPose } from '../types';
+import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface CharacterProps {
   character: CharacterGender;
@@ -24,6 +25,9 @@ export const Character: React.FC<CharacterProps> = ({
   onClick,
   fullBody = false,
 }) => {
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [triedFallback, setTriedFallback] = useState(false);
+
   const sizeClasses = {
     sm: 'w-12 h-12',
     md: 'w-20 h-20',
@@ -73,9 +77,12 @@ export const Character: React.FC<CharacterProps> = ({
     }
   };
 
-  const imgSrc = fullBody
-    ? `/assets/characters/${character}/greeting.webp`
-    : `/assets/characters/${character}/head.webp`;
+  const relPath = fullBody
+    ? `assets/characters/${character}/greeting.webp`
+    : `assets/characters/${character}/head.webp`;
+
+  const primarySrc = getAssetUrl(relPath);
+  const fallbackSrc = getFallbackAssetUrl(relPath);
 
   return (
     <div
@@ -83,11 +90,27 @@ export const Character: React.FC<CharacterProps> = ({
       className={`relative inline-flex items-center justify-center rounded-3xl shadow-xl transition-transform duration-300 hover:scale-105 cursor-pointer ${bgGradient} ${sizeClasses[size]} ${className}`}
       aria-label={`شخصیت ${character === 'boy' ? 'پسر' : 'دختر'} در حالت ${pose}`}
     >
-      <img 
-        src={imgSrc} 
-        alt={`Character ${character}`} 
-        className="w-full h-full object-contain filter drop-shadow-sm p-1" 
-      />
+      {!loadFailed ? (
+        <img 
+          src={triedFallback ? fallbackSrc : primarySrc} 
+          alt={`Character ${character}`} 
+          className="w-full h-full object-contain filter drop-shadow-sm p-1"
+          onError={() => {
+            if (!triedFallback) {
+              setTriedFallback(true);
+            } else {
+              setLoadFailed(true);
+            }
+          }}
+        />
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none">
+          <span className="text-3xl sm:text-4xl">{isBoy ? '👦' : '👧'}</span>
+          <span className="text-[10px] font-black mt-1 text-slate-700 dark:text-slate-300">
+            {isBoy ? 'قهرمان' : 'قهرمان'}
+          </span>
+        </div>
+      )}
       {showBadge && (
         <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-6 h-6 bg-amber-400 text-slate-900 rounded-full text-xs font-bold shadow-md border-2 border-white dark:border-slate-900">
           {poseBadge()}

@@ -3,20 +3,14 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Kill any stale service worker and clear all cached assets to ensure live preview updates immediately
-if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+// In development mode only, clean up any old dev service workers so live preview updates immediately.
+// In production / PWA standalone mode, preserve the PWA service worker and image cache.
+if (import.meta.env.DEV && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const registration of registrations) {
       registration.unregister();
     }
   });
-  if ('caches' in window) {
-    caches.keys().then((names) => {
-      for (const name of names) {
-        caches.delete(name);
-      }
-    });
-  }
 }
 
 createRoot(document.getElementById('root')!).render(
