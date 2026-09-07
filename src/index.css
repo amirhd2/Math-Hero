@@ -120,6 +120,76 @@
   background: rgba(156, 163, 175, 0.7);
 }
 
+/* Floating Math Watermark Animations */
+@keyframes mathFloat1 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(30px, -25px) rotate(40deg) scale(1.08); }
+  66% { transform: translate(-20px, 30px) rotate(80deg) scale(0.95); }
+  100% { transform: translate(15px, 15px) rotate(120deg) scale(1.02); }
+}
+
+@keyframes mathFloat2 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(-35px, 20px) rotate(-45deg) scale(0.92); }
+  66% { transform: translate(25px, -30px) rotate(-90deg) scale(1.05); }
+  100% { transform: translate(-15px, -15px) rotate(-135deg) scale(0.98); }
+}
+
+@keyframes mathFloat3 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(25px, 35px) rotate(60deg) scale(1.05); }
+  66% { transform: translate(-30px, -20px) rotate(120deg) scale(0.95); }
+  100% { transform: translate(-10px, 25px) rotate(180deg) scale(1.03); }
+}
+
+@keyframes mathFloat4 {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  33% { transform: translate(-25px, -30px) rotate(-50deg) scale(1.06); }
+  66% { transform: translate(30px, 25px) rotate(-100deg) scale(0.94); }
+  100% { transform: translate(20px, -15px) rotate(-150deg) scale(1); }
+}
+
+/* Star Twinkle & Fade Animations for Profile Card Watermark */
+@keyframes starTwinkleFade1 {
+  0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  25% { opacity: 0.85; transform: scale(1.15) rotate(15deg); }
+  50% { opacity: 0.35; transform: scale(0.9) rotate(30deg); }
+  75% { opacity: 0.95; transform: scale(1.2) rotate(45deg); }
+  100% { opacity: 0; transform: scale(0.3) rotate(60deg); }
+}
+
+@keyframes starTwinkleFade2 {
+  0% { opacity: 0.75; transform: scale(1) rotate(0deg); }
+  30% { opacity: 0.1; transform: scale(0.5) rotate(-20deg); }
+  60% { opacity: 0.95; transform: scale(1.25) rotate(-40deg); }
+  85% { opacity: 0; transform: scale(0.3) rotate(-60deg); }
+  100% { opacity: 0.75; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes starTwinkleFade3 {
+  0% { opacity: 0.15; transform: scale(0.6) rotate(10deg); }
+  20% { opacity: 0; transform: scale(0.2) rotate(25deg); }
+  45% { opacity: 0.9; transform: scale(1.15) rotate(40deg); }
+  70% { opacity: 0.25; transform: scale(0.75) rotate(55deg); }
+  100% { opacity: 0.15; transform: scale(0.6) rotate(10deg); }
+}
+
+@keyframes starTwinkleFade4 {
+  0% { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+  35% { opacity: 0; transform: scale(0.3) rotate(-15deg); }
+  55% { opacity: 1; transform: scale(1.3) rotate(15deg); }
+  75% { opacity: 0.5; transform: scale(0.85) rotate(30deg); }
+  100% { opacity: 0; transform: scale(0.3) rotate(45deg); }
+}
+
+@keyframes starTwinkleFade5 {
+  0% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  40% { opacity: 1; transform: scale(1.2) rotate(90deg); }
+  60% { opacity: 0.8; transform: scale(1.05) rotate(135deg); }
+  85% { opacity: 0.05; transform: scale(0.4) rotate(180deg); }
+  100% { opacity: 0.3; transform: scale(0.8) rotate(270deg); }
+}
+
 /* Safe area padding utilities for iOS / iPad / Android */
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);

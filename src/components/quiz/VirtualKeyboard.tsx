@@ -67,22 +67,22 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-sm sm:max-w-md mx-auto select-none pt-2 pb-2 px-2.5 bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl shrink-0">
+    <div className="w-full max-w-md lg:max-w-lg mx-auto select-none pt-2 pb-2 px-2.5 bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl shrink-0 h-full flex flex-col">
       {/* Answer Input Box goes here at the top */}
       {children && (
-        <div className="mb-2 w-full">
+        <div className="mb-2 w-full shrink-0">
           {children}
         </div>
       )}
 
       {/* Main 3-Column Keypad (LTR order so 1 is top-left, 3 is top-right) */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center" dir="ltr">
+      <div className="grid grid-cols-3 grid-rows-4 gap-1.5 sm:gap-2 text-center flex-1" dir="ltr">
         {/* Row 1: 1, 2, 3 */}
         <button
           type="button"
           onClick={() => handleKeyClick('1')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(1)}
         </button>
@@ -90,7 +90,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('2')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(2)}
         </button>
@@ -98,7 +98,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('3')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(3)}
         </button>
@@ -108,7 +108,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('4')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(4)}
         </button>
@@ -116,7 +116,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('5')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(5)}
         </button>
@@ -124,7 +124,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('6')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(6)}
         </button>
@@ -134,7 +134,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('7')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(7)}
         </button>
@@ -142,7 +142,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('8')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(8)}
         </button>
@@ -150,7 +150,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('9')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(9)}
         </button>
@@ -161,7 +161,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={onExit}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 px-1 bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900 active:bg-rose-300 dark:active:bg-rose-800 active:scale-95 text-rose-700 dark:text-rose-300 font-black text-xs sm:text-sm rounded-2xl border border-rose-200/70 dark:border-rose-800/70 shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
+          className="h-full px-1 bg-rose-100 dark:bg-rose-950/70 hover:bg-rose-200 dark:hover:bg-rose-900 active:bg-rose-300 dark:active:bg-rose-800 active:scale-95 text-rose-700 dark:text-rose-300 font-black text-xs sm:text-sm rounded-2xl border border-rose-200/70 dark:border-rose-800/70 shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer disabled:opacity-40"
         >
           <span>{exitLabel}</span>
           <span className="text-sm">✕</span>
@@ -172,7 +172,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={() => handleKeyClick('0')}
           disabled={disabled}
-          className="py-2.5 sm:py-3.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
+          className="h-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 active:bg-slate-100 dark:active:bg-slate-700 active:scale-95 text-slate-800 dark:text-slate-100 text-xl sm:text-2xl font-black rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
         >
           {toPersianDigits(0)}
         </button>
@@ -182,7 +182,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
           type="button"
           onClick={onSubmit}
           disabled={disabled || submitDisabled}
-          className={`py-2.5 sm:py-3.5 px-1 ${
+          className={`h-full px-1 ${
             isPractice
               ? 'bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-emerald-600/20'
               : 'bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white shadow-indigo-600/20'

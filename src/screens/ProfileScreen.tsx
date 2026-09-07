@@ -13,6 +13,7 @@ import { getLevelProgress } from '../gamification/levelCalculator';
 import { getTrophyInfo } from '../gamification/trophyManager';
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { CurrentBadgeCard } from '../components/CurrentBadgeCard';
+import { StarBackgroundWatermark } from '../components/StarBackgroundWatermark';
 import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface ProfileScreenProps {
@@ -144,14 +145,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Mobile & Tablet Portrait Hero Showcase Card (Matching Attached Design) */}
       <div className="lg:hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 bg-gradient-to-b from-[#8E7FF3] via-[#8373ED] to-[#7968E7] rounded-b-[36px] sm:rounded-b-[44px] p-5 sm:p-7 pt-8 sm:pt-10 pb-6 sm:pb-8 text-white shadow-2xl relative space-y-4">
-        {/* Subtle Star Pattern Background Watermark */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20 overflow-hidden rounded-b-[36px] sm:rounded-b-[44px]" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 25 35 L 27 41 L 33 41 L 28 45 L 30 51 L 25 47 L 20 51 L 22 45 L 17 41 L 23 41 Z" fill="white" />
-          <path d="M 180 20 L 181.5 24.5 L 186 24.5 L 182.5 27 L 184 31.5 L 180 28.5 L 176 31.5 L 177.5 27 L 174 24.5 L 178.5 24.5 Z" fill="white" />
-          <path d="M 320 60 L 321.5 64.5 L 326 64.5 L 322.5 67 L 324 71.5 L 320 68.5 L 316 71.5 L 317.5 67 L 314 64.5 L 318.5 64.5 Z" fill="white" />
-          <path d="M 70 180 L 71.5 184.5 L 76 184.5 L 72.5 187 L 74 191.5 L 70 188.5 L 66 191.5 L 67.5 187 L 64 184.5 L 68.5 184.5 Z" fill="white" />
-          <path d="M 280 190 L 282 196 L 288 196 L 283 200 L 285 206 L 280 202 L 275 206 L 277 200 L 272 196 L 278 196 Z" fill="white" />
-        </svg>
+        {/* Dynamic Twinkling & Fading Stars Background Watermark */}
+        <StarBackgroundWatermark count={12} className="rounded-b-[36px] sm:rounded-b-[44px]" />
 
         {/* Top Header inside Purple Card */}
         <div className="flex items-center justify-between w-full relative z-10 pb-1 px-1">
@@ -252,8 +247,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         {/* Right Side (Column 1 in RTL): Current Honor Badge Card */}
         <CurrentBadgeCard trophyInfo={trophyInfo} levelTitle={levelInfo.title} level={levelInfo.level} onNavigate={onNavigate} />
 
-        {/* Left Side (Column 2 in RTL): Desktop Profile Card (White background, styled matching mobile card without character image) */}
+        {/* Left Side (Column 2 in RTL): Desktop Profile Card (Styled matching mobile card without character image) */}
         <div className="bg-white dark:bg-slate-900 rounded-[28px] sm:rounded-[32px] p-5 sm:p-6 border border-indigo-100/90 dark:border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-center items-center text-center space-y-3">
+          {/* Subtle Twinkling Star Watermark for Desktop */}
+          <StarBackgroundWatermark count={10} className="rounded-[28px] sm:rounded-[32px] opacity-40 dark:opacity-30" />
+
           {/* Top Header with subtle line dividers: —— کارت پروفایل —— */}
           <div className="flex items-center justify-center gap-3 mb-1 w-full">
             <div className="h-[1.5px] bg-indigo-100/80 dark:bg-slate-700/80 flex-1 max-w-[64px] rounded-full" />

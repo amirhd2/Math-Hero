@@ -11,6 +11,7 @@
 import React, { useMemo } from 'react';
 import { QuizQuestion, CharacterGender, CharacterPose } from '../../types';
 import { QuestionRenderer } from './QuestionRenderer';
+import { QuizCardContent } from './QuizCardContent';
 import { toPersianDigits } from '../../utils/persian';
 
 interface QuizCardStackProps {
@@ -35,12 +36,17 @@ interface BackCardLayerProps {
   layer: 1 | 2 | 3;
   isAdvancing: boolean;
   characterGender?: CharacterGender;
+  isPractice?: boolean;
+  maxAttempts?: number;
 }
 
 const BackCardLayer: React.FC<BackCardLayerProps> = ({
   question,
   layer,
   isAdvancing,
+  characterGender,
+  isPractice,
+  maxAttempts,
 }) => {
   // Tight physical stack transforms (subtle 3px step bottom protrusion bringing cards UP close under card 1)
   let transformClasses = '';
@@ -70,10 +76,18 @@ const BackCardLayer: React.FC<BackCardLayerProps> = ({
     <div
       key={`back-card-${layer}-${question.id}`}
       aria-hidden="true"
-      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border h-[60vh] ${bgClasses} ${transformClasses}`}
+      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border h-full ${bgClasses} ${transformClasses}`}
     >
-      {/* Clean inner background shell for stacked card depth */}
-      <div className="w-full h-full rounded-2xl border border-dashed border-slate-200/50 dark:border-slate-700/50" />
+      <div className="w-full h-full flex flex-col overflow-hidden pointer-events-none opacity-80" dir="rtl">
+        <QuizCardContent 
+          question={question}
+          characterGender={characterGender}
+          isPractice={isPractice}
+          currentAttempts={0}
+          maxAttempts={maxAttempts}
+          streak={0}
+        />
+      </div>
     </div>
   );
 };
@@ -99,21 +113,6 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
     feedbackRingClass = 'ring-4 ring-amber-500/80 shadow-amber-500/20';
   }
 
-  const getOperationIcon = (op: string) => {
-    switch (op) {
-      case 'addition':
-        return { symbol: '+', class: 'bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-800' };
-      case 'subtraction':
-        return { symbol: '−', class: 'bg-amber-100 text-amber-600 border-amber-200 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-800' };
-      case 'multiplication':
-        return { symbol: '×', class: 'bg-purple-100 text-purple-600 border-purple-200 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-800' };
-      case 'division':
-        return { symbol: '÷', class: 'bg-emerald-100 text-emerald-600 border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-400 dark:border-emerald-800' };
-      default:
-        return { symbol: '★', class: 'bg-indigo-100 text-indigo-600 border-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-400 dark:border-indigo-800' };
-    }
-  };
-
   const handleCardClick = () => {
     const inputEl = document.getElementById('math-quiz-numeric-input') as HTMLInputElement | null;
     if (inputEl) {
@@ -124,27 +123,8 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   const cardN1 = upcomingQuestions[0] || null;
   const cardN2 = upcomingQuestions[1] || null;
   const cardN3 = upcomingQuestions[2] || null;
-  const activeOpInfo = getOperationIcon(currentQuestion.operation);
-
-  // Generate a random image ID based on the question ID to keep it stable during re-renders
-  const imageId = useMemo(() => {
-    let hash = 0;
-    const str = currentQuestion.id;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const absHash = Math.abs(hash);
-    if (characterGender === 'boy') {
-      const validIds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-      return validIds[absHash % validIds.length];
-    } else {
-      const validIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-      return validIds[absHash % validIds.length];
-    }
-  }, [currentQuestion.id, characterGender]);
-
   return (
-    <div className="relative w-full max-w-2xl mx-auto select-none pb-2 pt-0 h-[60vh]">
+    <div className="relative w-full max-w-3xl lg:max-w-4xl mx-auto select-none pb-2 pt-0 h-full min-h-[300px]">
       {/* =========================================================================
           PHYSICAL CARD STACK LAYERS (Rendered in reverse depth order)
           ========================================================================= */}
@@ -186,73 +166,20 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
         key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
         dir="rtl"
-        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-row h-full overflow-hidden ${feedbackRingClass} ${
+        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-col h-full overflow-hidden ${feedbackRingClass} ${
           isAdvancing ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
         }`}
       >
-        {/* Animated Streak Banner (Top Left) */}
-        {streak >= 2 && (
-           <div className="absolute top-3 left-3 z-40">
-             <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black shadow-lg animate-bounce border border-amber-300/50 dark:border-amber-700/50">
-                <span>🔥</span>
-                <span>{toPersianDigits(streak)} متوالی!</span>
-             </div>
-           </div>
-        )}
 
-        {/* Right Half: Math Question Content */}
-        <div className="w-1/2 p-3 sm:p-5 flex flex-col justify-between">
-          {/* Top Header inside Active Card */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800/80">
-            {/* Right side (RTL): Operation Icon */}
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-lg sm:text-2xl font-black shadow-xs border ${activeOpInfo.class}`}>
-                {activeOpInfo.symbol}
-              </div>
-            </div>
 
-            {/* Center: Mode Badge */}
-            <div className="flex-1 flex justify-center w-full">
-              <span
-                className={`text-[10px] sm:text-[11px] px-2 sm:px-3 py-1 rounded-full font-black border shadow-2xs whitespace-nowrap ${
-                  isPractice
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                    : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
-                }`}
-              >
-                {isPractice ? 'تمرین یادگیری 🌱' : 'آزمون استاندارد 🎯'}
-              </span>
-            </div>
-
-            {/* Left side (RTL): Attempts */}
-            <div className="flex items-center">
-              {isPractice ? (
-                <span className="text-[10px] sm:text-xs font-bold px-2 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
-                  تلاش {toPersianDigits(currentAttempts + 1)} از {toPersianDigits(maxAttempts)}
-                </span>
-              ) : (
-                <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                  آزمون
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Math Question Presentation */}
-          <div className="my-auto py-2 flex items-center justify-center">
-            <QuestionRenderer question={currentQuestion} />
-          </div>
-        </div>
-
-        {/* Left Half: Random Image */}
-        <div className="w-1/2 relative h-full flex flex-col justify-end items-start p-0 m-0 bg-transparent">
-          <img 
-            src={`/assets/characters/${characterGender}/half-body/${imageId}.webp`} 
-            alt="Character"
-            className="w-full max-h-[90%] object-contain object-left-bottom absolute left-0 bottom-0 pointer-events-none"
-            style={{ margin: 0, padding: 0 }}
-          />
-        </div>
+        <QuizCardContent 
+          question={currentQuestion}
+          characterGender={characterGender}
+          isPractice={isPractice}
+          currentAttempts={currentAttempts}
+          maxAttempts={maxAttempts}
+          streak={streak}
+        />
       </div>
     </div>
   );

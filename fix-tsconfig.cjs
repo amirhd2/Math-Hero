@@ -1,12 +1,10 @@
-{
+const fs = require('fs');
+
+const tsconfig = {
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": [
-      "ES2020",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -20,11 +18,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
-}
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+};
+
+fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2));
