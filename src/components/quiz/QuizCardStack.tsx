@@ -8,7 +8,7 @@
  * - Synchronized forward promotion when active card departs (falling-leaf / tear-off).
  * - Stable geometry, zero layout shifts, zero blank frames, persistent focus.
  */
-import React from 'react';
+import React, { useMemo } from 'react';
 import { QuizQuestion, CharacterGender, CharacterPose } from '../../types';
 import { QuestionRenderer } from './QuestionRenderer';
 import { toPersianDigits } from '../../utils/persian';
@@ -24,7 +24,7 @@ interface QuizCardStackProps {
   isPractice?: boolean;
   currentAttempts?: number;
   maxAttempts?: number;
-  children: React.ReactNode;
+  streak?: number;
 }
 
 /**
@@ -70,7 +70,7 @@ const BackCardLayer: React.FC<BackCardLayerProps> = ({
     <div
       key={`back-card-${layer}-${question.id}`}
       aria-hidden="true"
-      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border ${bgClasses} ${transformClasses}`}
+      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border h-[60vh] ${bgClasses} ${transformClasses}`}
     >
       {/* Clean inner background shell for stacked card depth */}
       <div className="w-full h-full rounded-2xl border border-dashed border-slate-200/50 dark:border-slate-700/50" />
@@ -87,7 +87,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   isPractice = false,
   currentAttempts = 0,
   maxAttempts = 3,
-  children,
+  streak = 0,
 }) => {
   // Visual border feedback state for active card
   let feedbackRingClass = '';
@@ -124,11 +124,27 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   const cardN1 = upcomingQuestions[0] || null;
   const cardN2 = upcomingQuestions[1] || null;
   const cardN3 = upcomingQuestions[2] || null;
-
   const activeOpInfo = getOperationIcon(currentQuestion.operation);
 
+  // Generate a random image ID based on the question ID to keep it stable during re-renders
+  const imageId = useMemo(() => {
+    let hash = 0;
+    const str = currentQuestion.id;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const absHash = Math.abs(hash);
+    if (characterGender === 'boy') {
+      const validIds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+      return validIds[absHash % validIds.length];
+    } else {
+      const validIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      return validIds[absHash % validIds.length];
+    }
+  }, [currentQuestion.id, characterGender]);
+
   return (
-    <div className="relative w-full max-w-xl mx-auto select-none pb-2 pt-0">
+    <div className="relative w-full max-w-2xl mx-auto select-none pb-2 pt-0 h-[60vh]">
       {/* =========================================================================
           PHYSICAL CARD STACK LAYERS (Rendered in reverse depth order)
           ========================================================================= */}
@@ -169,53 +185,74 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
       <div
         key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
-        className={`relative z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-col justify-between min-h-[250px] sm:min-h-[280px] ${feedbackRingClass} ${
+        dir="rtl"
+        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-row h-full overflow-hidden ${feedbackRingClass} ${
           isAdvancing ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
         }`}
       >
-        {/* Top Header inside Active Card */}
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100 dark:border-slate-800/80">
-          {/* Right side (RTL): Operation Icon */}
-          <div className="flex items-center gap-2">
-            <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black shadow-xs border ${activeOpInfo.class}`}>
-              {activeOpInfo.symbol}
+        {/* Animated Streak Banner (Top Left) */}
+        {streak >= 2 && (
+           <div className="absolute top-3 left-3 z-40">
+             <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black shadow-lg animate-bounce border border-amber-300/50 dark:border-amber-700/50">
+                <span>🔥</span>
+                <span>{toPersianDigits(streak)} متوالی!</span>
+             </div>
+           </div>
+        )}
+
+        {/* Right Half: Math Question Content */}
+        <div className="w-1/2 p-3 sm:p-5 flex flex-col justify-between">
+          {/* Top Header inside Active Card */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100 dark:border-slate-800/80">
+            {/* Right side (RTL): Operation Icon */}
+            <div className="flex items-center gap-2">
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-2xl flex items-center justify-center text-lg sm:text-2xl font-black shadow-xs border ${activeOpInfo.class}`}>
+                {activeOpInfo.symbol}
+              </div>
+            </div>
+
+            {/* Center: Mode Badge */}
+            <div className="flex-1 flex justify-center w-full">
+              <span
+                className={`text-[10px] sm:text-[11px] px-2 sm:px-3 py-1 rounded-full font-black border shadow-2xs whitespace-nowrap ${
+                  isPractice
+                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                    : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                }`}
+              >
+                {isPractice ? 'تمرین یادگیری 🌱' : 'آزمون استاندارد 🎯'}
+              </span>
+            </div>
+
+            {/* Left side (RTL): Attempts */}
+            <div className="flex items-center">
+              {isPractice ? (
+                <span className="text-[10px] sm:text-xs font-bold px-2 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap">
+                  تلاش {toPersianDigits(currentAttempts + 1)} از {toPersianDigits(maxAttempts)}
+                </span>
+              ) : (
+                <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+                  آزمون
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Center: Mode Badge */}
-          <div className="flex-1 flex justify-center">
-            <span
-              className={`text-[11px] sm:text-xs px-3 py-1 rounded-full font-black border shadow-2xs ${
-                isPractice
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                  : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
-              }`}
-            >
-              {isPractice ? 'تمرین یادگیری 🌱' : 'آزمون استاندارد 🎯'}
-            </span>
-          </div>
-
-          {/* Left side (RTL): Attempts */}
-          <div className="flex items-center">
-            {isPractice ? (
-              <span className="text-[11px] sm:text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                تلاش {toPersianDigits(currentAttempts + 1)} از {toPersianDigits(maxAttempts)}
-              </span>
-            ) : (
-              <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                آزمون
-              </span>
-            )}
+          {/* Math Question Presentation */}
+          <div className="my-auto py-2 flex items-center justify-center">
+            <QuestionRenderer question={currentQuestion} />
           </div>
         </div>
 
-        {/* Math Question Presentation */}
-        <div className="my-auto py-2">
-          <QuestionRenderer question={currentQuestion} />
+        {/* Left Half: Random Image */}
+        <div className="w-1/2 relative h-full flex flex-col justify-end items-start p-0 m-0 bg-transparent">
+          <img 
+            src={`/assets/characters/${characterGender}/half-body/${imageId}.webp`} 
+            alt="Character"
+            className="w-full max-h-[90%] object-contain object-left-bottom absolute left-0 bottom-0 pointer-events-none"
+            style={{ margin: 0, padding: 0 }}
+          />
         </div>
-
-        {/* Interactive Answer Input & Controls */}
-        <div className="mt-auto pt-2">{children}</div>
       </div>
     </div>
   );

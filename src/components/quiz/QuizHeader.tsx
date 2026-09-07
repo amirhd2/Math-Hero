@@ -20,16 +20,6 @@ export const QuizHeader: React.FC<QuizHeaderProps> = ({
 
   return (
     <div className="w-full select-none my-0">
-      {/* Optional Streak Badge Row (if active) */}
-      {streak >= 2 && (
-        <div className="flex items-center justify-end mb-1">
-          <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-black shadow-xs animate-bounce">
-            <span>🔥</span>
-            <span>{toPersianDigits(streak)} متوالی!</span>
-          </div>
-        </div>
-      )}
-
       {/* Connected Dots Progress Indicator (Top-most Bar) */}
       <div className="w-full relative flex items-center justify-between h-3 px-1 my-0">
         {/* Background line (empty) */}

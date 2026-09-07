@@ -6,8 +6,7 @@
 
 import React from 'react';
 import { TrophyInfo, LevelInfo } from '../../gamification/gamificationTypes';
-import { UserProfile, CharacterPose } from '../../types';
-import { Character } from '../Character';
+import { UserProfile } from '../../types';
 import { formatNumber } from '../../utils/persian';
 
 interface TrophyHeroCardProps {
@@ -25,14 +24,6 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
   unlockedBadgesCount,
   totalBadgesCount,
 }) => {
-  // Select character pose based on achievements progress
-  let characterPose: CharacterPose = 'master';
-  if (trophyInfo.stage >= 5 || levelInfo.level >= 10) {
-    characterPose = 'celebrating';
-  } else if (unlockedBadgesCount > 5) {
-    characterPose = 'encouraging';
-  }
-
   // Trophy styling theme per stage
   const getStageTheme = (stage: number) => {
     switch (stage) {
@@ -190,14 +181,11 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
 
           {/* Child Character */}
           <div className="flex flex-col items-center">
-            <div className="p-2 bg-white/10 backdrop-blur-md rounded-3xl border border-white/20 shadow-inner">
-              <Character
-                character={profile.gender}
-                pose={characterPose}
-                size="lg"
-                className="drop-shadow-xl"
-              />
-            </div>
+            <img
+              src={`/assets/characters/${profile.gender === 'boy' ? 'boy' : 'girl'}/proud.webp`}
+              alt="قهرمان"
+              className="w-32 h-32 sm:w-40 sm:h-40 object-contain drop-shadow-2xl"
+            />
             <span className="text-[11px] font-bold text-white/80 mt-1.5">
               {profile.name || 'قهرمان ریاضی'}
             </span>

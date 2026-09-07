@@ -123,7 +123,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
       id="active-screen-container"
       className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between px-3 sm:px-6 transition-colors select-none"
       style={{
-        paddingTop: 'max(1rem, env(safe-area-inset-top, 16px))',
+        paddingTop: 'max(0.25rem, env(safe-area-inset-top, 0px))',
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 8px))',
       }}
     >
@@ -131,7 +131,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
       {/* 2. Connected Dots Bar (Very Top) */}
-      <div className="w-full max-w-xl mx-auto pt-1 sm:pt-2">
+      <div className="w-full max-w-xl mx-auto mt-1">
         <QuizHeader
           questionNumber={questionNumber}
           totalQuestions={totalQuestions}
@@ -154,24 +154,11 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           isPractice={isPractice}
           currentAttempts={currentAttempts}
           maxAttempts={maxAttempts}
-        >
-          <AnswerInput
-            inputRef={inputRef}
-            value={userAnswer}
-            onChange={setUserAnswer}
-            onSubmit={() => submitAnswer()}
-            onAdvanceNow={advanceNow}
-            isSubmitting={isSubmitting}
-            isAdvancing={isAdvancing}
-            revealedAnswer={revealedAnswer}
-            feedbackStatus={feedbackStatus}
-            isPractice={isPractice}
-            attemptsLeft={maxAttempts - currentAttempts}
-          />
-        </QuizCardStack>
+          streak={streak}
+        />
       </div>
 
-      {/* 4. Custom Virtual Numeric Keyboard */}
+      {/* 4. Custom Virtual Numeric Keyboard with Answer Input */}
       <div className="w-full max-w-xl mx-auto pb-1 sm:pb-2 pt-1 shrink-0">
         <VirtualKeyboard
           onInputDigit={(digit) => {
@@ -195,7 +182,21 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           disabled={isSubmitting || isAdvancing}
           submitDisabled={userAnswer.trim() === '' && revealedAnswer === null}
           isPractice={isPractice}
-        />
+        >
+          <AnswerInput
+            inputRef={inputRef}
+            value={userAnswer}
+            onChange={setUserAnswer}
+            onSubmit={() => submitAnswer()}
+            onAdvanceNow={advanceNow}
+            isSubmitting={isSubmitting}
+            isAdvancing={isAdvancing}
+            revealedAnswer={revealedAnswer}
+            feedbackStatus={feedbackStatus}
+            isPractice={isPractice}
+            attemptsLeft={maxAttempts - currentAttempts}
+          />
+        </VirtualKeyboard>
       </div>
 
       {/* 5. Safe Exit Confirmation Modal */}

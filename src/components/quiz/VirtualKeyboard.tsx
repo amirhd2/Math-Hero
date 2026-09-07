@@ -6,7 +6,7 @@
  * - Exact keypad layout with 1-9, 0, blue "ثبت جواب" on right of 0, and red/slate "خروج" on left of 0.
  * - Upper utility header with Backspace / Clear button.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
 import { toPersianDigits } from '../../utils/persian';
 
 interface VirtualKeyboardProps {
@@ -19,6 +19,7 @@ interface VirtualKeyboardProps {
   isPractice?: boolean;
   submitLabel?: string;
   exitLabel?: string;
+  children?: ReactNode;
 }
 
 export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
@@ -31,6 +32,7 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
   isPractice = false,
   submitLabel = 'ثبت جواب',
   exitLabel = 'خروج',
+  children,
 }) => {
   // Global physical keyboard listener for desktop users
   useEffect(() => {
@@ -66,22 +68,12 @@ export const VirtualKeyboard: React.FC<VirtualKeyboardProps> = ({
 
   return (
     <div className="w-full max-w-sm sm:max-w-md mx-auto select-none pt-2 pb-2 px-2.5 bg-slate-100/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xl shrink-0">
-      {/* Top utility row with backspace */}
-      <div className="flex items-center justify-between px-2 mb-1.5">
-        <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500">
-          صفحه‌کلید ریاضی
-        </span>
-        <button
-          type="button"
-          onClick={onBackspace}
-          disabled={disabled}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-200/90 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 active:bg-slate-300 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-40"
-          title="پاک کردن آخرین رقم"
-        >
-          <span>پاک کردن</span>
-          <span className="text-sm">⌫</span>
-        </button>
-      </div>
+      {/* Answer Input Box goes here at the top */}
+      {children && (
+        <div className="mb-2 w-full">
+          {children}
+        </div>
+      )}
 
       {/* Main 3-Column Keypad (LTR order so 1 is top-left, 3 is top-right) */}
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-center" dir="ltr">

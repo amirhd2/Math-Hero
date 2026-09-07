@@ -305,6 +305,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <div className="absolute -top-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Settings Button */}
+        <button
+          onClick={() => onNavigate('settings')}
+          className="absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md transition-colors border border-white/20 cursor-pointer"
+          title="تنظیمات"
+        >
+          <span className="text-xl">⚙️</span>
+        </button>
+
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Greeting and Level Info */}
           <div className="space-y-4 text-center md:text-right w-full md:w-auto">
@@ -379,120 +388,55 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         </div>
       </div>
 
-      {/* 2. Smart Review Entry Point (Requirement 2 & 29) */}
-      <SmartReviewHomeCard
-        onStartSmartReview={handleOpenSmartReview}
-        onOpenQuickQuiz={() => onOpenSetup({ mode: 'practice', questionCount: 10 })}
-      />
-
-      {/* 3. Main Action / Quick Start Card (Daily Mission) */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-6 sm:p-8 text-slate-950 shadow-xl border border-amber-300 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="space-y-2 text-center sm:text-right">
-          <div className="inline-flex items-center gap-1.5 bg-slate-950/10 px-3 py-1 rounded-full text-xs font-black">
-            <span>⚡</span>
-            <span>ماموریت روزانه</span>
-          </div>
-          <h3 className="text-2xl sm:text-3xl font-black">
-            ماجراجویی امروز قهرمان ریاضی
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-800 font-bold max-w-md">
-            ۱۰ معما برای گرم کردن ذهن • کسب ۵۰ امتیاز XP و سکه جایزه
-          </p>
-        </div>
-
-        <button
-          id="home-start-daily-mission-btn"
-          onClick={() => {
-            if (appMode === 'child') {
-              onStartChildQuickOperation(adaptivePlan?.primaryOperation || 'addition');
-            } else {
-              onOpenSetup({ mode: 'practice', questionCount: 10 });
-            }
-          }}
-          className="w-full sm:w-auto px-8 py-4 bg-slate-950 hover:bg-slate-900 text-white font-black text-lg rounded-2xl shadow-xl shadow-slate-950/20 transform hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
-        >
-          <span>🚀</span>
-          <span>شروع ماموریت روزانه</span>
-        </button>
-      </div>
-
-      {/* 2.5 Distinct Combined Quiz Action Banner */}
-      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-3xl p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-indigo-700/50">
-        <div className="flex items-center gap-4 text-center sm:text-right">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl shadow-inner">
-            🌟
-          </div>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2 justify-center sm:justify-start">
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950">
-                چالش ترکیبی
-              </span>
-              <h4 className="text-lg font-black">آزمون جامع چهار عمل اصلی</h4>
+      {/* 2. Top Grid: Daily Mission & Smart Review */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {/* Main Action / Quick Start Card (Daily Mission) */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 rounded-3xl p-6 sm:p-8 text-slate-950 shadow-xl border border-amber-300 flex flex-col justify-between gap-6 h-full">
+          <div className="space-y-2 text-center sm:text-right">
+            <div className="inline-flex items-center gap-1.5 bg-slate-950/10 px-3 py-1 rounded-full text-xs font-black">
+              <span>⚡</span>
+              <span>ماموریت روزانه</span>
             </div>
-            <p className="text-xs text-indigo-200">
-              {appMode === 'child'
-                ? 'ترکیب هوشمند مهارت‌های باز شده جمع، تفریق، ضرب و تقسیم'
-                : 'ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه'}
+            <h3 className="text-xl sm:text-2xl lg:text-3xl font-black">
+              ماجراجویی امروز
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-800 font-bold max-w-md">
+              ۱۰ معما برای گرم کردن ذهن • کسب ۵۰ امتیاز XP و سکه جایزه
             </p>
           </div>
-        </div>
 
-        <button
-          id="home-start-combined-quiz-btn"
-          onClick={() => {
-            if (appMode === 'child') {
-              onStartChildCombined();
-            } else {
-              onOpenSetup({
-                selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
-                mode: 'test',
-                isAdaptive: true,
-                questionCount: 20,
-              });
-            }
-          }}
-          className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-        >
-          <span>{appMode === 'child' ? 'شروع چالش ترکیبی' : 'تنظیم و شروع آزمون ترکیبی'}</span>
-          <span>⚡</span>
-        </button>
-      </div>
-
-      {/* 3. Mistakes Vault Callout Banner (if mistakes exist) */}
-      {unresolvedMistakesCount > 0 ? (
-        <div
-          onClick={() => onNavigate('mistakes')}
-          className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-5 sm:p-6 text-white shadow-xl cursor-pointer hover:shadow-2xl transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group"
-        >
-          <div className="flex items-center gap-4 text-center sm:text-right">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-              💡
-            </div>
-            <div>
-              <h4 className="text-lg font-black">گنجینه اشتباهات قهرمان!</h4>
-              <p className="text-xs sm:text-sm text-rose-100">
-                تو {formatNumber(unresolvedMistakesCount, 'persian')} تا سوال داری که می‌تونی دوباره حل کنی و امتیاز کامل بگیری!
-              </p>
-            </div>
-          </div>
-          <button className="px-5 py-2.5 bg-white text-rose-600 font-black text-xs sm:text-sm rounded-xl shadow-md group-hover:bg-rose-50 transition-colors">
-            تمرین و اصلاح اشتباهات ←
-          </button>
-        </div>
-      ) : (
-        <div className="bg-emerald-50 dark:bg-emerald-950/40 rounded-3xl p-4 sm:p-5 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🎉</span>
-            <p className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
-              آفرین قهرمان! هیچ اشتباه حل‌نشده‌ای نداری و همه معماها رو دقیق حل کردی!
-            </p>
-          </div>
           <button
-            onClick={() => onNavigate('mistakes')}
-            className="text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline"
+            id="home-start-daily-mission-btn"
+            onClick={() => {
+              if (appMode === 'child') {
+                onStartChildQuickOperation(adaptivePlan?.primaryOperation || 'addition');
+              } else {
+                onOpenSetup({ mode: 'practice', questionCount: 10 });
+              }
+            }}
+            className="w-full sm:w-auto px-6 py-4 bg-slate-950 hover:bg-slate-900 text-white font-black text-sm lg:text-lg rounded-2xl shadow-xl shadow-slate-950/20 transform hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
           >
-            مشاهده گنجینه
+            <span>🚀</span>
+            <span>شروع ماموریت</span>
           </button>
+        </div>
+
+        {/* Smart Review Entry Point */}
+        <div className="h-full [&>div]:h-full">
+          <SmartReviewHomeCard
+            onStartSmartReview={handleOpenSmartReview}
+            onOpenQuickQuiz={() => onOpenSetup({ mode: 'practice', questionCount: 10 })}
+          />
+        </div>
+      </div>
+
+      {/* Adaptive Teacher Recommendation Banner (Compact & Positive) */}
+      {adaptivePlan && (
+        <div className="pt-2">
+          <AdaptiveRecommendationCard
+            plan={adaptivePlan}
+            onStartRecommended={handleStartAdaptiveRecommendation}
+          />
         </div>
       )}
 
@@ -520,7 +464,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {operations.map((op) => {
             const mastery = opMastery[op.id] || { accuracy: 0, stars: 1 };
             return (
@@ -537,13 +481,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     });
                   }
                 }}
-                className={`bg-white dark:bg-slate-900 rounded-3xl p-6 border ${op.borderLight} shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col justify-between group hover:-translate-y-1`}
+                className={`bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border ${op.borderLight} shadow-lg hover:shadow-2xl transition-all cursor-pointer flex flex-col justify-between group hover:-translate-y-1`}
               >
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {/* Top Bar: Icon & Mastery Stars */}
                   <div className="flex items-center justify-between">
                     <div
-                      className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${op.color} flex items-center justify-center text-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}
+                      className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br ${op.color} flex items-center justify-center text-xl sm:text-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}
                     >
                       {op.symbol}
                     </div>
@@ -552,7 +496,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       {[1, 2, 3].map((starIndex) => (
                         <span
                           key={starIndex}
-                          className={`text-base ${
+                          className={`text-sm sm:text-base ${
                             starIndex <= mastery.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'
                           }`}
                         >
@@ -564,22 +508,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                   {/* Title & Description */}
                   <div>
-                    <h4 className="text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
+                    <h4 className="text-sm sm:text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
                       {op.title}
                     </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                       {op.desc}
                     </p>
                   </div>
                 </div>
 
-                {/* Bottom Action & Stats */}
-                <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                  <span className={`text-xs font-extrabold ${op.textColor}`}>
+                {/* Bottom Stats */}
+                <div className="mt-3 sm:mt-6 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <span className={`text-[10px] sm:text-xs font-extrabold ${op.textColor}`}>
                     دقت: ٪{formatNumber(mastery.accuracy, 'persian')}
-                  </span>
-                  <span className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-600 group-hover:text-white rounded-xl text-xs font-black transition-colors">
-                    {appMode === 'child' ? 'شروع تمرین 🚀' : 'تنظیم چالش ←'}
                   </span>
                 </div>
               </div>
@@ -587,16 +528,86 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           })}
         </div>
 
-        {/* Adaptive Teacher Recommendation Banner (Compact & Positive) */}
-        {adaptivePlan && (
-          <div className="pt-2">
-            <AdaptiveRecommendationCard
-              plan={adaptivePlan}
-              onStartRecommended={handleStartAdaptiveRecommendation}
-            />
+        {/* 2.5 Distinct Combined Quiz Action Banner (Moved Inside) */}
+        <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-3xl p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-indigo-700/50 mt-4">
+          <div className="flex items-center gap-4 text-center sm:text-right">
+            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl shadow-inner shrink-0">
+              🌟
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950">
+                  چالش ترکیبی
+                </span>
+                <h4 className="text-lg font-black">آزمون جامع چهار عمل اصلی</h4>
+              </div>
+              <p className="text-xs text-indigo-200">
+                {appMode === 'child'
+                  ? 'ترکیب هوشمند مهارت‌های باز شده جمع، تفریق، ضرب و تقسیم'
+                  : 'ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه'}
+              </p>
+            </div>
           </div>
-        )}
+
+          <button
+            id="home-start-combined-quiz-btn"
+            onClick={() => {
+              if (appMode === 'child') {
+                onStartChildCombined();
+              } else {
+                onOpenSetup({
+                  selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
+                  mode: 'test',
+                  isAdaptive: true,
+                  questionCount: 20,
+                });
+              }
+            }}
+            className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer shrink-0"
+          >
+            <span>{appMode === 'child' ? 'شروع چالش ترکیبی' : 'تنظیم و شروع آزمون ترکیبی'}</span>
+            <span>⚡</span>
+          </button>
+        </div>
       </div>
+
+      {/* 3. Mistakes Vault Callout Banner (Moved Below Math Operations) */}
+      {unresolvedMistakesCount > 0 ? (
+        <div
+          onClick={() => onNavigate('mistakes')}
+          className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl p-5 sm:p-6 text-white shadow-xl cursor-pointer hover:shadow-2xl transition-all flex flex-col sm:flex-row items-center justify-between gap-4 group"
+        >
+          <div className="flex items-center gap-4 text-center sm:text-right">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shrink-0">
+              💡
+            </div>
+            <div>
+              <h4 className="text-lg font-black">گنجینه اشتباهات قهرمان!</h4>
+              <p className="text-xs sm:text-sm text-rose-100">
+                تو {formatNumber(unresolvedMistakesCount, 'persian')} تا سوال داری که می‌تونی دوباره حل کنی و امتیاز کامل بگیری!
+              </p>
+            </div>
+          </div>
+          <button className="px-5 py-2.5 bg-white text-rose-600 font-black text-xs sm:text-sm rounded-xl shadow-md group-hover:bg-rose-50 transition-colors shrink-0 mt-2 sm:mt-0">
+            تمرین و اصلاح اشتباهات ←
+          </button>
+        </div>
+      ) : (
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 rounded-3xl p-4 sm:p-5 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl shrink-0">🎉</span>
+            <p className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-300">
+              آفرین قهرمان! هیچ اشتباه حل‌نشده‌ای نداری و همه معماها رو دقیق حل کردی!
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate('mistakes')}
+            className="text-xs font-black text-emerald-600 dark:text-emerald-400 hover:underline shrink-0"
+          >
+            مشاهده گنجینه
+          </button>
+        </div>
+      )}
 
       {/* 4.5 Compact Recent/Favorite Saved Test Patterns (Visible in Parent Mode) */}
       {appMode === 'parent' && testPatterns && testPatterns.length > 0 && (

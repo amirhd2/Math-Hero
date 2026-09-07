@@ -59,26 +59,30 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, cl
           </div>
         </div>
       ) : (
-        /* Horizontal Equation Layout (Left to Right: num1 op num2 = ?) */
+        /* Horizontal Equation Layout (Stacked: line 1: num1 op num2, line 2: = ?) */
         <div
           dir="ltr"
-          className="flex items-center justify-center gap-2 sm:gap-4 text-3xl sm:text-5xl md:text-6xl font-black text-slate-800 dark:text-slate-100 tracking-wider py-2"
+          className="flex flex-col items-center justify-center gap-2 sm:gap-4 text-3xl sm:text-5xl md:text-6xl font-black text-slate-800 dark:text-slate-100 tracking-wider py-2"
         >
-          <span className="px-3 sm:px-5 py-2 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-            {toPersianDigits(num1)}
-          </span>
-          <span className="text-indigo-600 dark:text-indigo-400 font-bold px-1 sm:px-2">
-            {symbol}
-          </span>
-          <span className="px-3 sm:px-5 py-2 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
-            {toPersianDigits(num2)}
-          </span>
-          <span className="text-slate-400 dark:text-slate-500 font-light px-1">
-            =
-          </span>
-          <span className="px-3 sm:px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-200 dark:border-indigo-800/60 shadow-xs">
-            ؟
-          </span>
+          <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <span className="px-3 sm:px-5 py-2 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+              {toPersianDigits(num1)}
+            </span>
+            <span className="text-indigo-600 dark:text-indigo-400 font-bold px-1 sm:px-2">
+              {symbol}
+            </span>
+            <span className="px-3 sm:px-5 py-2 bg-slate-50 dark:bg-slate-800/70 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs">
+              {toPersianDigits(num2)}
+            </span>
+          </div>
+          <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2">
+            <span className="text-slate-400 dark:text-slate-500 font-light px-1">
+              =
+            </span>
+            <span className="px-3 sm:px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-200 dark:border-indigo-800/60 shadow-xs">
+              ؟
+            </span>
+          </div>
         </div>
       )}
     </div>
