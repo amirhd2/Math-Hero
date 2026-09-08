@@ -16,6 +16,7 @@
  */
 
 import { LevelInfo } from './gamificationTypes';
+import { getStageIconPath } from '../utils/assetPaths';
 
 export interface LevelEducationalRequirement {
   minMasteredTiers: number;
@@ -30,20 +31,22 @@ export interface LevelDefinition {
   xpThreshold: number;
   title: string;
   icon: string;
+  image: string;
   educationalRequirement?: LevelEducationalRequirement;
 }
 
 export const LEVEL_DEFINITIONS: LevelDefinition[] = [
-  { level: 1, xpThreshold: 0, title: 'نوآموز ریاضی', icon: '🌱' },
-  { level: 2, xpThreshold: 120, title: 'نوآموز کوشا', icon: '🌱' },
-  { level: 3, xpThreshold: 280, title: 'یادگیرنده باهوش', icon: '⭐' },
-  { level: 4, xpThreshold: 500, title: 'حل‌کننده مسائل', icon: '🏅' },
-  { level: 5, xpThreshold: 800, title: 'مهارت‌آموز پرتوان', icon: '🥇' },
+  { level: 1, xpThreshold: 0, title: 'نوآموز ریاضی', icon: '🌱', image: getStageIconPath(1) },
+  { level: 2, xpThreshold: 120, title: 'نوآموز کوشا', icon: '🌱', image: getStageIconPath(2) },
+  { level: 3, xpThreshold: 280, title: 'یادگیرنده باهوش', icon: '⭐', image: getStageIconPath(3) },
+  { level: 4, xpThreshold: 500, title: 'حل‌کننده مسائل', icon: '🏅', image: getStageIconPath(4) },
+  { level: 5, xpThreshold: 800, title: 'مهارت‌آموز پرتوان', icon: '🥇', image: getStageIconPath(5) },
   {
     level: 6,
     xpThreshold: 1200,
     title: 'ستاره درخشان ریاضی',
     icon: '🌟',
+    image: getStageIconPath(6),
     educationalRequirement: {
       minMasteredTiers: 1,
       descriptionFa: 'تسلط بر حداقل ۱ مرحله مهارت',
@@ -55,6 +58,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 1650,
     title: 'ماجراجوی محاسبات',
     icon: '🚀',
+    image: getStageIconPath(7),
     educationalRequirement: {
       minMasteredTiers: 1,
       descriptionFa: 'تسلط بر حداقل ۱ مرحله مهارت',
@@ -66,6 +70,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 2150,
     title: 'ذهن طلایی',
     icon: '💡',
+    image: getStageIconPath(8),
     educationalRequirement: {
       minMasteredTiers: 2,
       descriptionFa: 'تسلط بر حداقل ۲ مرحله مهارت',
@@ -77,6 +82,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 2750,
     title: 'استاد چالش‌ها',
     icon: '⚡',
+    image: getStageIconPath(9),
     educationalRequirement: {
       minMasteredTiers: 2,
       descriptionFa: 'تسلط بر حداقل ۲ مرحله مهارت',
@@ -88,6 +94,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 3450,
     title: 'پیشتاز ریاضی',
     icon: '🎖️',
+    image: getStageIconPath(10),
     educationalRequirement: {
       minMasteredTiers: 3,
       minDistinctOperations: 2,
@@ -100,6 +107,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 4250,
     title: 'قهرمان تیزبین',
     icon: '🛡️',
+    image: getStageIconPath(11),
     educationalRequirement: {
       minMasteredTiers: 4,
       minDistinctOperations: 2,
@@ -112,6 +120,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 5150,
     title: 'استاد عملیات‌ها',
     icon: '🔮',
+    image: getStageIconPath(12),
     educationalRequirement: {
       minMasteredTiers: 5,
       minDistinctOperations: 2,
@@ -124,6 +133,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 6150,
     title: 'فاتح معماها',
     icon: '⚔️',
+    image: getStageIconPath(13),
     educationalRequirement: {
       minMasteredTiers: 6,
       minDistinctOperations: 2,
@@ -136,6 +146,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 7250,
     title: 'قهرمان پیشتاز',
     icon: '🏆',
+    image: getStageIconPath(14),
     educationalRequirement: {
       minMasteredTiers: 7,
       minDistinctOperations: 3,
@@ -148,6 +159,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 8500,
     title: 'قهرمان قهرمانان ریاضی',
     icon: '👑',
+    image: getStageIconPath(15),
     educationalRequirement: {
       minMasteredTiers: 8,
       minDistinctOperations: 3,
@@ -161,6 +173,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 10000,
     title: 'استاد اعظم اعداد',
     icon: '🌌',
+    image: getStageIconPath(16),
     educationalRequirement: {
       minMasteredTiers: 9,
       minDistinctOperations: 3,
@@ -173,6 +186,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 11800,
     title: 'افسانه محاسبات',
     icon: '💎',
+    image: getStageIconPath(17),
     educationalRequirement: {
       minMasteredTiers: 10,
       minDistinctOperations: 4,
@@ -185,6 +199,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 13800,
     title: 'نابغه بی‌مرز',
     icon: '🌠',
+    image: getStageIconPath(18),
     educationalRequirement: {
       minMasteredTiers: 11,
       minDistinctOperations: 4,
@@ -197,6 +212,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 16000,
     title: 'خورشید دانایی',
     icon: '☀️',
+    image: getStageIconPath(19),
     educationalRequirement: {
       minMasteredTiers: 12,
       minDistinctOperations: 4,
@@ -209,6 +225,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     xpThreshold: 18500,
     title: 'قهرمان جاویدان ریاضی',
     icon: '🌟',
+    image: getStageIconPath(20),
     educationalRequirement: {
       minMasteredTiers: 14,
       minDistinctOperations: 4,
@@ -221,12 +238,12 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
 export const LEVEL_THRESHOLDS = LEVEL_DEFINITIONS.map((def) => def.xpThreshold);
 export const MAX_LEVEL = LEVEL_DEFINITIONS.length;
 
-export const LEVEL_METADATA: Record<number, { title: string; icon: string }> = LEVEL_DEFINITIONS.reduce(
+export const LEVEL_METADATA: Record<number, { title: string; icon: string; image: string }> = LEVEL_DEFINITIONS.reduce(
   (acc, def) => {
-    acc[def.level] = { title: def.title, icon: def.icon };
+    acc[def.level] = { title: def.title, icon: def.icon, image: def.image };
     return acc;
   },
-  {} as Record<number, { title: string; icon: string }>
+  {} as Record<number, { title: string; icon: string; image: string }>
 );
 
 /**
@@ -353,6 +370,7 @@ export function getLevelProgress(
     level: currentLevel,
     title: currentLevelDef.title,
     icon: currentLevelDef.icon,
+    stageImage: currentLevelDef.image,
     totalXp: safeXp,
     currentLevelXpFloor,
     nextLevelXpThreshold,

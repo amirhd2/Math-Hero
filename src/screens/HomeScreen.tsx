@@ -10,9 +10,6 @@ import {
   UserProfile,
   QuizPreset,
   ScreenId,
-  QuizResult,
-  MistakeRecord,
-  Achievement,
   TestPattern,
   QuizConfiguration,
 } from '../types';
@@ -31,10 +28,9 @@ import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { AdaptiveRecommendationCard } from '../components/adaptive/AdaptiveRecommendationCard';
 import { PromotionModal } from '../components/adaptive/PromotionModal';
 import { OperationType } from '../types';
-import {
-  extractOperationBreakdownFromQuizResult,
-  PRIMARY_OPERATIONS,
-} from '../utils/operationEvidence';
+import { extractOperationBreakdownFromQuizResult, PRIMARY_OPERATIONS } from '../utils/operationEvidence';
+import { getTrophyCupUrl, getTrophyCupFallbackUrl } from '../utils/assetPaths';
+import { StageIcon } from '../components/common/StageIcon';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -66,11 +62,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [unresolvedMistakesCount, setUnresolvedMistakesCount] = useState(0);
   const [todaySolved, setTodaySolved] = useState(0);
   const [todayXp, setTodayXp] = useState(0);
-  const [nextAchievement, setNextAchievement] = useState<Achievement | null>(null);
   const [isSmartReviewModalOpen, setIsSmartReviewModalOpen] = useState(false);
   const [smartReviewState, setSmartReviewState] = useState<SmartReviewState | null>(null);
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
   const [unlockedBadgesCount, setUnlockedBadgesCount] = useState(0);
+  const [totalBadgesCount, setTotalBadgesCount] = useState(16);
   const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
 
@@ -165,17 +161,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         if (overview) {
           setTrophyInfo(overview.trophyInfo);
           setUnlockedBadgesCount(overview.unlockedBadges.length);
-          const nextLocked = overview.lockedBadges[0] || null;
-          if (nextLocked) {
-            setNextAchievement({
-              id: nextLocked.id,
-              title: nextLocked.name,
-              description: nextLocked.description,
-              icon: nextLocked.icon,
-              unlocked: false,
-              progress: nextLocked.progress || 0,
-              maxProgress: nextLocked.maxProgress || 1,
-            });
+          if (overview.allBadges && overview.allBadges.length > 0) {
+            setTotalBadgesCount(overview.allBadges.length);
           }
         }
 
@@ -187,16 +174,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         const xpToday = todayResults.reduce((sum, r) => sum + (r.xpEarned || 0), 0);
         setTodaySolved(qToday);
         setTodayXp(xpToday);
-
-        // If no next achievement from overview, fallback to storage
-        if (!overview || !overview.lockedBadges.length) {
-          const locked = achievements.find((a) => !a.unlocked);
-          if (locked) {
-            setNextAchievement(locked);
-          } else if (achievements.length > 0) {
-            setNextAchievement(achievements[0]);
-          }
-        }
 
         // Operation mastery calculation
         if (results.length > 0) {
@@ -318,12 +295,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Greeting and Level Info */}
           <div className="space-y-4 text-center md:text-right w-full md:w-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
-              <span>{levelInfo.icon}</span>
+              <StageIcon level={levelInfo.level} size="xs" className="w-5 h-5" />
               <span>{levelInfo.title}</span>
             </div>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">
-              سلام، {profile.name}!
+              {getGreeting()}، {profile.name}!
             </h2>
 
             <p className="text-indigo-100 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium">
@@ -334,7 +311,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 w-full max-w-md mx-auto md:mx-0 space-y-2">
               <div className="flex items-center justify-between text-xs font-extrabold">
                 <span className="flex items-center gap-1.5">
-                  <span>👑</span>
+                  <StageIcon level={levelInfo.level} size="xs" className="w-4 h-4" />
                   <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
                 </span>
                 <span className="text-amber-300">
@@ -380,7 +357,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 className="bg-amber-400 hover:bg-amber-300 text-slate-950 px-3.5 py-1.5 rounded-full shadow-md flex items-center gap-1.5 font-black transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                 title="مشاهده تالار افتخارات و جام‌ها"
               >
-                <span>{trophyInfo?.icon || '🏆'}</span>
+                <img
+                  src={getTrophyCupUrl(trophyInfo?.stage || 1)}
+                  alt="جام"
+                  className="w-5 h-5 object-contain shrink-0 filter drop-shadow"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getTrophyCupFallbackUrl(trophyInfo?.stage || 1);
+                    }
+                  }}
+                />
                 <span>{trophyInfo?.stageNameFa || 'جام قهرمان'}</span>
               </button>
             </div>
@@ -464,6 +452,75 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
         </div>
 
+        {/* 2.5 Distinct Combined Quiz Action Banner (Positioned Above the 4 Operation Cards) */}
+        <div
+          id="home-combined-quiz-card"
+          onClick={() => {
+            if (appMode === 'child') {
+              onStartChildCombined();
+            } else {
+              onOpenSetup({
+                selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
+                mode: 'test',
+                isAdaptive: true,
+                questionCount: 20,
+              });
+            }
+          }}
+          className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-3xl p-4 sm:p-6 text-white shadow-xl flex items-center justify-between gap-4 border border-indigo-700/50 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          title="شروع چالش ترکیبی چهار عمل اصلی"
+        >
+          {/* Right Side: Title & Description */}
+          <div className="flex items-center gap-3.5 sm:gap-4 text-right">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 flex items-center justify-center text-2xl sm:text-3xl shadow-inner shrink-0 group-hover:scale-110 transition-transform">
+              🌟
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">
+                  چالش ترکیبی
+                </span>
+                <span className="text-xs font-bold text-amber-200">
+                  ۲۰ سوال هوشمند
+                </span>
+              </div>
+              <h4 className="text-base sm:text-lg lg:text-xl font-black text-white group-hover:text-amber-200 transition-colors">
+                آزمون جامع چهار عمل اصلی
+              </h4>
+              <p className="text-xs text-indigo-200 line-clamp-2 sm:line-clamp-none font-medium">
+                {appMode === 'child'
+                  ? 'ترکیب هوشمند مهارت‌های باز شده جمع، تفریق، ضرب و تقسیم در یک چالش هیجان‌انگیز'
+                  : 'ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه'}
+              </p>
+            </div>
+          </div>
+
+          {/* Left Side: Combined 4 Operations Visual Icons Cluster (Replacing the button) */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="grid grid-cols-2 gap-1.5 p-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-105 group-hover:bg-white/15 transition-all">
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-xs sm:text-sm font-black text-white shadow-sm" title="جمع اعداد">
+                ➕
+              </div>
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-xs sm:text-sm font-black text-white shadow-sm" title="تفریق اعداد">
+                ➖
+              </div>
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xs sm:text-sm font-black text-white shadow-sm" title="ضرب اعداد">
+                ✖️
+              </div>
+              <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-xs sm:text-sm font-black text-white shadow-sm" title="تقسیم اعداد">
+                ➗
+              </div>
+            </div>
+
+            <div className="hidden sm:flex w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 group-hover:bg-amber-400 group-hover:text-slate-950 text-white items-center justify-center transition-all font-black text-sm sm:text-base shadow-sm">
+              ←
+            </div>
+          </div>
+        </div>
+
+        {/* 4 Core Math Operations Cards Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
           {operations.map((op) => {
             const mastery = opMastery[op.id] || { accuracy: 0, stars: 1 };
@@ -526,48 +583,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
             );
           })}
-        </div>
-
-        {/* 2.5 Distinct Combined Quiz Action Banner (Moved Inside) */}
-        <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-3xl p-6 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 border border-indigo-700/50 mt-4">
-          <div className="flex items-center gap-4 text-center sm:text-right">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-3xl shadow-inner shrink-0">
-              🌟
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-400 text-slate-950">
-                  چالش ترکیبی
-                </span>
-                <h4 className="text-lg font-black">آزمون جامع چهار عمل اصلی</h4>
-              </div>
-              <p className="text-xs text-indigo-200">
-                {appMode === 'child'
-                  ? 'ترکیب هوشمند مهارت‌های باز شده جمع، تفریق، ضرب و تقسیم'
-                  : 'ترکیب هوشمند جمع، تفریق، ضرب و تقسیم با تعیین درصد توزیع دلخواه'}
-              </p>
-            </div>
-          </div>
-
-          <button
-            id="home-start-combined-quiz-btn"
-            onClick={() => {
-              if (appMode === 'child') {
-                onStartChildCombined();
-              } else {
-                onOpenSetup({
-                  selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
-                  mode: 'test',
-                  isAdaptive: true,
-                  questionCount: 20,
-                });
-              }
-            }}
-            className="w-full sm:w-auto px-6 py-3 bg-white text-indigo-900 hover:bg-indigo-50 font-black text-xs sm:text-sm rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer shrink-0"
-          >
-            <span>{appMode === 'child' ? 'شروع چالش ترکیبی' : 'تنظیم و شروع آزمون ترکیبی'}</span>
-            <span>⚡</span>
-          </button>
         </div>
       </div>
 
@@ -705,51 +720,57 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
         </div>
 
-        {/* Motivational Achievement Preview */}
+        {/* Motivational Achievements Overview (Box-by-Box Style Matching Today's Activity) */}
         <div
           onClick={() => onNavigate('achievements')}
           className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-xl space-y-4 cursor-pointer hover:shadow-2xl transition-all group"
+          role="button"
+          tabIndex={0}
+          title="مشاهده تالار افتخارات و جام‌ها"
         >
           <div className="flex items-center justify-between">
             <h4 className="font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
               <span>🏆</span>
-              <span>نشان‌های افتخار</span>
+              <span>افتخارات و نشان‌های من</span>
             </h4>
             <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline">
-              مشاهده همه ←
+              مشاهده تالار افتخارات ←
             </span>
           </div>
 
-          {nextAchievement ? (
-            <div className="bg-indigo-50/60 dark:bg-indigo-950/40 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-900/60 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-400 flex items-center justify-center text-2xl shadow-md">
-                🏆
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-black text-sm text-slate-800 dark:text-slate-100">
-                    {nextAchievement.title}
-                  </p>
-                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">
-                    {formatNumber(nextAchievement.progress, 'persian')} / {formatNumber(nextAchievement.maxProgress, 'persian')}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {nextAchievement.description}
-                </p>
-                <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden mt-2">
-                  <div
-                    className="h-full bg-indigo-600 rounded-full"
-                    style={{
-                      width: `${Math.min(100, Math.round((nextAchievement.progress / nextAchievement.maxProgress) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl text-center space-y-1 group-hover:bg-indigo-50/40 dark:group-hover:bg-indigo-950/20 transition-colors">
+              <span className="text-xl">🎖️</span>
+              <p className="text-xs font-bold text-slate-500">نشان‌های کسب‌شده</p>
+              <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                {formatNumber(unlockedBadgesCount, 'persian')}{' '}
+                <span className="text-xs sm:text-sm font-bold text-slate-400 dark:text-slate-500">
+                  از {formatNumber(totalBadgesCount, 'persian')}
+                </span>
+              </p>
             </div>
-          ) : (
-            <p className="text-xs text-slate-500">در حال بررسی نشان‌های قهرمان...</p>
-          )}
+
+            <div className="bg-slate-50 dark:bg-slate-950/60 p-4 rounded-2xl text-center space-y-1 group-hover:bg-amber-50/40 dark:group-hover:bg-amber-950/20 transition-colors">
+              <div className="w-10 h-10 mx-auto flex items-center justify-center">
+                <img
+                  src={getTrophyCupUrl(trophyInfo?.stage || 1)}
+                  alt={trophyInfo?.stageNameFa || 'جام قهرمانی'}
+                  className="w-full h-full object-contain filter drop-shadow-md"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getTrophyCupFallbackUrl(trophyInfo?.stage || 1);
+                    }
+                  }}
+                />
+              </div>
+              <p className="text-xs font-bold text-slate-500">جام قهرمانی</p>
+              <p className="text-xl sm:text-2xl font-black text-amber-500 truncate px-1">
+                {trophyInfo?.stageNameFa || 'جام برنزی'}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

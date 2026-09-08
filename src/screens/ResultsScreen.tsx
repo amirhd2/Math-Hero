@@ -25,6 +25,7 @@ import { calculateMeasurableImprovement } from '../smartReview/smartReviewPersis
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { PromotionEvent } from '../adaptive/adaptiveTypes';
 import { PromotionModal } from '../components/adaptive/PromotionModal';
+import { BackButton } from '../components/common/BackButton';
 
 interface ResultsScreenProps {
   result: QuizResult;
@@ -117,6 +118,17 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
     <div className="relative min-h-[calc(100dvh-5rem)] pb-12 px-4 md:px-8 max-w-5xl mx-auto space-y-6">
       {/* Confetti celebration for achievements/high-scores */}
       <ConfettiCanvas active={showConfetti} reducedMotion={settings.reducedMotion} />
+
+      {/* Top Header - Title on right, BackButton on left */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="text-right">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100">
+            کارنامه آزمون
+          </h2>
+          <p className="text-xs text-slate-400 font-medium">نتیجه عملکرد و امتیازات کسب‌شده</p>
+        </div>
+        <BackButton onClick={handleGoHome} title="بازگشت به خانه" />
+      </div>
 
       {/* Top Hero Section: Character feedback and outcome badge */}
       <ResultsHero profile={profile} result={result} />

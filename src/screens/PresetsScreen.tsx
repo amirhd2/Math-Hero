@@ -7,6 +7,7 @@
 import React, { useState } from 'react';
 import { TestPattern, ScreenId } from '../types';
 import { toPersianDigits } from '../utils/persian';
+import { BackButton } from '../components/common/BackButton';
 
 interface PresetsScreenProps {
   patterns: TestPattern[];
@@ -52,35 +53,28 @@ export const PresetsScreen: React.FC<PresetsScreenProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 md:py-8 space-y-6 pb-24">
-      {/* Top Header */}
+      {/* Top Header - Title on right, BackButton on left */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer shrink-0"
-            title="بازگشت به خانه"
-            aria-label="بازگشت به خانه"
-          >
-            ←
-          </button>
-          <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">
-              الگوهای آزمون و تمرین ریاضی
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              چیدمان‌های ذخیره‌شده را شروع، ویرایش یا ایجاد کنید
-            </p>
-          </div>
+        <div className="text-right">
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">
+            الگوهای آزمون و تمرین ریاضی
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            چیدمان‌های ذخیره‌شده را شروع، ویرایش یا ایجاد کنید
+          </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onCreateNew}
-          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-xs shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 self-start sm:self-auto"
-        >
-          <span>➕</span>
-          <span>ایجاد الگوی جدید</span>
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={onCreateNew}
+            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-xs shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span>➕</span>
+            <span>ایجاد الگوی جدید</span>
+          </button>
+          <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
+        </div>
       </div>
 
       {/* Search & Filter Bar */}

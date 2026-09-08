@@ -24,6 +24,7 @@ export interface TrophyStageConfig {
   title: string;
   description: string;
   icon: string;
+  cupImage: string;
   levelRequired: number;
   badgesRequired: number;
   masteredTiersRequired: number;
@@ -37,6 +38,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'نخستین جام قهرمانی',
     description: 'آغاز باشکوه مسیر یادگیری و حل معماهای ریاضی',
     icon: '🌱',
+    cupImage: 'assets/cups/wooden 1.webp',
     levelRequired: 1,
     badgesRequired: 0,
     masteredTiersRequired: 0,
@@ -48,6 +50,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام تلاش و پیوستگی',
     description: 'نشانه استمرار در تمرین و تسلط بر نخستین مهارت ریاضی',
     icon: '🥉',
+    cupImage: 'assets/cups/bronze 1.webp',
     levelRequired: 3,
     badgesRequired: 3,
     masteredTiersRequired: 1,
@@ -59,6 +62,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام تیزبینی و هوش',
     description: 'تسلط بر مفاهیم پایه و حل دقیق مسائل در ۲ مرحله مهارت',
     icon: '🥈',
+    cupImage: 'assets/cups/sliver 1.webp',
     levelRequired: 6,
     badgesRequired: 6,
     masteredTiersRequired: 2,
@@ -70,6 +74,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام افتخار و درخشش',
     description: 'تسلط چندجانبه بر ۴ مرحله مهارت در حداقل ۲ عملیات ریاضی',
     icon: '🥇',
+    cupImage: 'assets/cups/gold 1.webp',
     levelRequired: 9,
     badgesRequired: 10,
     masteredTiersRequired: 4,
@@ -81,6 +86,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'جام نبوغ و استادی',
     description: 'پیشتازی بی‌نظیر با ۶ مرحله مسلط‌شده و مرورهای هوشمند هدفمند',
     icon: '💎',
+    cupImage: 'assets/cups/ruby 1.webp',
     levelRequired: 12,
     badgesRequired: 14,
     masteredTiersRequired: 6,
@@ -92,6 +98,7 @@ export const TROPHY_STAGES: TrophyStageConfig[] = [
     title: 'تاج زرین قهرمان ریاضی',
     description: 'بالاترین افتخار جهان ریاضی؛ تسلط عمیق بر ۸ مرحله در ۳ عملیات مختلف',
     icon: '👑',
+    cupImage: 'assets/cups/Dimond 1.webp',
     levelRequired: 15,
     badgesRequired: 15,
     masteredTiersRequired: 8,
@@ -173,6 +180,7 @@ export function getTrophyInfo(
       stageNameFa: currentConfig.stageNameFa,
       description: currentConfig.description,
       icon: currentConfig.icon,
+      cupImage: currentConfig.cupImage,
       badgeRequiredCount: currentConfig.badgesRequired,
       levelRequired: currentConfig.levelRequired,
       masteredTiersRequired: currentConfig.masteredTiersRequired,
@@ -236,6 +244,7 @@ export function getTrophyInfo(
     stageNameFa: currentConfig.stageNameFa,
     description: currentConfig.description,
     icon: currentConfig.icon,
+    cupImage: currentConfig.cupImage,
     badgeRequiredCount: currentConfig.badgesRequired,
     levelRequired: currentConfig.levelRequired,
     masteredTiersRequired: currentConfig.masteredTiersRequired,

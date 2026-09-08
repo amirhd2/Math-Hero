@@ -10,6 +10,7 @@ import { Character } from '../Character';
 import { formatNumber } from '../../utils/persian';
 import { StatisticsSummary } from '../../statistics/statisticsTypes';
 import { getLevelProgress } from '../../gamification/levelCalculator';
+import { StageIcon } from '../common/StageIcon';
 
 interface StatisticsHeroProps {
   profile: UserProfile;
@@ -38,7 +39,7 @@ export const StatisticsHero: React.FC<StatisticsHeroProps> = ({ profile, summary
         {/* Left/Main Column: Title, Level & Stats Overview */}
         <div className="space-y-4 text-center md:text-right w-full md:w-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black">
-            <span>{levelInfo.icon}</span>
+            <StageIcon level={levelInfo.level} size="xs" className="w-5 h-5" />
             <span>{levelInfo.title}</span>
           </div>
 
@@ -55,7 +56,7 @@ export const StatisticsHero: React.FC<StatisticsHeroProps> = ({ profile, summary
           <div className="bg-black/25 backdrop-blur-md p-4 rounded-2xl border border-white/15 max-w-md space-y-2">
             <div className="flex items-center justify-between text-xs font-black">
               <span className="flex items-center gap-1.5">
-                <span>👑</span>
+                <StageIcon level={levelInfo.level} size="xs" className="w-4 h-4" />
                 <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
               </span>
               <span className="text-amber-300">

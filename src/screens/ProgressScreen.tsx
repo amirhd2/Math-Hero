@@ -15,6 +15,7 @@ import { ProgressTrend } from '../components/statistics/ProgressTrend';
 import { PerformanceInsight } from '../components/statistics/PerformanceInsight';
 import { RecentQuizHistory } from '../components/statistics/RecentQuizHistory';
 import { StatisticsEmptyState } from '../components/statistics/StatisticsEmptyState';
+import { BackButton } from '../components/common/BackButton';
 
 interface ProgressScreenProps {
   profile: UserProfile;
@@ -79,24 +80,16 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-8 animate-fade-in">
-      {/* Top Header Navigation Bar */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={() => onNavigate('home')}
-          className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 font-extrabold border border-slate-200/80 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-2xs flex items-center justify-center text-lg cursor-pointer shrink-0"
-          title="بازگشت به خانه"
-          aria-label="بازگشت به خانه"
-        >
-          ←
-        </button>
-
-        <div className="text-left">
+      {/* Top Header Navigation Bar - Title on right, BackButton on left */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-right">
           <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100">
             کارنامه و آمار پیشرفت
           </h2>
           <p className="text-xs text-slate-400 font-medium">سفر یادگیری و بهبود مستمر</p>
         </div>
+
+        <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
       </div>
 
       {isLoading && !summary ? (

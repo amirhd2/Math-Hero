@@ -5,8 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, CharacterGender, CharacterPose, QuizResult, ScreenId } from '../types';
-import { Character } from '../components/Character';
+import { UserProfile, CharacterGender, QuizResult, ScreenId } from '../types';
 import { formatNumber } from '../utils/persian';
 import { storage } from '../utils/storage';
 import { getLevelProgress } from '../gamification/levelCalculator';
@@ -14,7 +13,9 @@ import { getTrophyInfo } from '../gamification/trophyManager';
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { CurrentBadgeCard } from '../components/CurrentBadgeCard';
 import { StarBackgroundWatermark } from '../components/StarBackgroundWatermark';
-import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
+import { getAssetUrl, getFallbackAssetUrl, getTrophyCupUrl, getTrophyCupFallbackUrl } from '../utils/assetPaths';
+import { BackButton } from '../components/common/BackButton';
+import { StageIcon } from '../components/common/StageIcon';
 
 interface ProfileScreenProps {
   profile: UserProfile;
@@ -115,55 +116,49 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
-      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+      {/* Floating Success Toast (Always visible regardless of scroll position) */}
+      {savedSuccess && (
+        <div
+          role="status"
+          className="fixed bottom-8 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 max-w-md w-[90%] sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 text-white font-black text-center shadow-2xl shadow-emerald-900/40 border border-emerald-400/60 flex items-center justify-center gap-2.5 backdrop-blur-md transition-all"
+        >
+          <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-sm font-black shrink-0">✓</span>
+          <span className="text-sm sm:text-base font-extrabold">اطلاعات قهرمان با موفقیت به‌روزرسانی شد!</span>
+        </div>
+      )}
+
+      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8">
         
         {/* Right Column (Cards) */}
         <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
           
-      {/* Top Desktop Header */}
+      {/* Top Desktop Header - Title on right, BackButton on left */}
       <div className="hidden lg:flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer shrink-0"
-          title="بازگشت به داشبورد"
-          aria-label="بازگشت به داشبورد"
-        >
-          ←
-        </button>
         <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
           <span>👤</span>
           <span>پروفایل قهرمان</span>
         </h2>
+        <BackButton
+          onClick={onBack}
+          title="بازگشت به داشبورد"
+        />
       </div>
-
-      {savedSuccess && (
-        <div className="p-4 rounded-2xl bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 font-extrabold text-center border border-emerald-300 dark:border-emerald-800 shadow-lg animate-bounce flex items-center justify-center gap-2">
-          <span>✓</span>
-          <span>اطلاعات قهرمان با موفقیت به‌روزرسانی شد!</span>
-        </div>
-      )}
 
       {/* Mobile & Tablet Portrait Hero Showcase Card (Matching Attached Design) */}
       <div className="lg:hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 bg-gradient-to-b from-[#8E7FF3] via-[#8373ED] to-[#7968E7] rounded-b-[36px] sm:rounded-b-[44px] p-5 sm:p-7 pt-8 sm:pt-10 pb-6 sm:pb-8 text-white shadow-2xl relative space-y-4">
         {/* Dynamic Twinkling & Fading Stars Background Watermark */}
         <StarBackgroundWatermark count={12} className="rounded-b-[36px] sm:rounded-b-[44px]" />
 
-        {/* Top Header inside Purple Card */}
+        {/* Top Header inside Purple Card - Title on right, BackButton on left */}
         <div className="flex items-center justify-between w-full relative z-10 pb-1 px-1">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white font-extrabold text-lg hover:bg-white/30 transition-all flex items-center justify-center shadow-xs cursor-pointer shrink-0"
-            title="بازگشت"
-            aria-label="بازگشت"
-          >
-            ←
-          </button>
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide">
-            پروفایل
+            پروفایل قهرمان
           </h2>
-          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white font-extrabold text-sm flex items-center justify-center shadow-xs cursor-default">
-            ?
-          </div>
+          <BackButton
+            onClick={onBack}
+            variant="whiteGlass"
+            title="بازگشت"
+          />
         </div>
 
         {/* Character & Stats Row - 50/50 Split with 5mm left, 3mm centerline, 5mm top header margins */}
@@ -186,8 +181,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </div>
 
             {/* Level Pill Button */}
-            <div className="inline-flex items-center justify-center px-4 py-1 rounded-full bg-[#5B45B6]/90 text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
-              Level {formatNumber(levelInfo.level, 'persian')}
+            <div className="inline-flex items-center justify-center gap-1.5 px-4 py-1 rounded-full bg-[#5B45B6]/90 text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
+              <StageIcon level={levelInfo.level} size="xs" className="w-4 h-4" />
+              <span>Level {formatNumber(levelInfo.level, 'persian')}</span>
             </div>
 
             {/* Golden Progress Bar Pill - Dynamic XP & conditional text positioning */}
@@ -214,8 +210,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </div>
 
             {/* Next Level Text */}
-            <p className="text-xs sm:text-sm font-extrabold text-white/95 drop-shadow-xs text-center">
-              {formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}
+            <p className="text-xs sm:text-sm font-extrabold text-white/95 drop-shadow-xs text-center flex items-center justify-center gap-1.5">
+              <span>{formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}</span>
+              <StageIcon level={levelInfo.level + 1} size="xs" className="w-4 h-4 inline-block opacity-80" />
             </p>
           </div>
 
@@ -277,8 +274,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Level Pill Button */}
-          <div className="inline-flex items-center justify-center px-4 py-1 rounded-full bg-[#5B45B6] text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
-            Level {formatNumber(levelInfo.level, 'persian')}
+          <div className="inline-flex items-center justify-center gap-1.5 px-4 py-1 rounded-full bg-[#5B45B6] text-white font-extrabold text-xs sm:text-sm shadow-inner border border-white/10 tracking-wide">
+            <StageIcon level={levelInfo.level} size="xs" className="w-4 h-4" />
+            <span>Level {formatNumber(levelInfo.level, 'persian')}</span>
           </div>
 
           {/* Golden Progress Bar Pill */}
@@ -302,8 +300,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           </div>
 
           {/* Next Level Text */}
-          <p className="text-xs sm:text-sm font-extrabold text-slate-600 dark:text-slate-300 text-center">
-            {formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}
+          <p className="text-xs sm:text-sm font-extrabold text-slate-600 dark:text-slate-300 text-center flex items-center justify-center gap-1.5">
+            <span>{formatNumber(remainingXp, 'persian')} XP تا Level {formatNumber(levelInfo.level + 1, 'persian')}</span>
+            <StageIcon level={levelInfo.level + 1} size="xs" className="w-4 h-4 inline-block opacity-80" />
           </p>
         </div>
       </div>
@@ -314,8 +313,19 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         className="bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 text-slate-950 p-5 rounded-3xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer hover:shadow-2xl transition-all group"
       >
         <div className="flex items-center gap-4 text-center sm:text-right">
-          <div className="w-14 h-14 rounded-2xl bg-white/40 flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform">
-            {trophyInfo.icon}
+          <div className="w-16 h-16 rounded-2xl bg-white/40 dark:bg-white/30 p-1.5 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform shrink-0">
+            <img
+              src={getTrophyCupUrl(trophyInfo.stage)}
+              alt={trophyInfo.stageNameFa}
+              className="w-full h-full object-contain filter drop-shadow"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = '1';
+                  target.src = getTrophyCupFallbackUrl(trophyInfo.stage);
+                }
+              }}
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -337,8 +347,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
       {/* Gamification Summary Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-lg text-center space-y-1">
-          <span className="text-2xl">👑</span>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-lg text-center space-y-1 flex flex-col items-center justify-center">
+          <StageIcon level={levelInfo.level} size="md" className="w-8 h-8" />
           <p className="text-xs font-bold text-slate-500">سطح قهرمانی</p>
           <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
             {formatNumber(levelInfo.level, 'persian')}
@@ -429,62 +439,102 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <span>ویرایش اطلاعات و کاراکتر</span>
         </h4>
 
-        {/* Character Selection (Boy / Girl) */}
+        {/* Character Selection (Boy / Girl) - Circular Avatar Selectors */}
         <div className="space-y-3">
           <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">
             تغییر کاراکتر قهرمان
           </label>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center justify-center gap-8 sm:gap-14 py-2">
+            {/* Boy Option */}
             <button
               type="button"
               onClick={() => setGender('boy')}
-              className={`p-4 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
-                gender === 'boy'
-                  ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 font-black shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
-              }`}
+              className="group flex flex-col items-center gap-2.5 focus:outline-none cursor-pointer transition-all"
             >
-              <div className="w-full h-32 sm:h-40 rounded-2xl bg-indigo-100/50 dark:bg-indigo-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                <img
-                  src={getAssetUrl('assets/characters/boy/boy.webp')}
-                  alt="Boy Character"
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.dataset.fallback) {
-                      target.dataset.fallback = '1';
-                      target.src = getFallbackAssetUrl('assets/characters/boy/boy.webp');
-                    }
-                  }}
-                />
+              <div
+                className={`relative w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  gender === 'boy'
+                    ? 'border-4 border-indigo-600 dark:border-indigo-400 bg-gradient-to-b from-indigo-100 via-indigo-50 to-white dark:from-indigo-950 dark:via-indigo-900/60 dark:to-slate-900 shadow-xl shadow-indigo-500/25 ring-4 ring-indigo-200 dark:ring-indigo-900/60 scale-105'
+                    : 'border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 opacity-60 hover:opacity-100 hover:scale-102 hover:border-slate-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <div className="w-full h-full rounded-full overflow-hidden p-2 flex items-center justify-center">
+                  <img
+                    src={getAssetUrl('assets/characters/boy/head.webp')}
+                    alt="پسر قهرمان"
+                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = '1';
+                        target.src = getFallbackAssetUrl('assets/characters/boy/head.webp');
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Selected Checkmark Badge */}
+                {gender === 'boy' && (
+                  <div className="absolute -bottom-1 -left-1 sm:bottom-0 sm:left-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900">
+                    ✓
+                  </div>
+                )}
               </div>
-              <span className="text-sm">پسر قهرمان</span>
+              <span
+                className={`text-sm sm:text-base font-black transition-colors ${
+                  gender === 'boy'
+                    ? 'text-indigo-600 dark:text-indigo-400'
+                    : 'text-slate-600 dark:text-slate-400 font-semibold group-hover:text-slate-800 dark:group-hover:text-slate-200'
+                }`}
+              >
+                پسر قهرمان
+              </span>
             </button>
 
+            {/* Girl Option */}
             <button
               type="button"
               onClick={() => setGender('girl')}
-              className={`p-4 rounded-3xl border-2 flex flex-col items-center justify-center gap-3 transition-all ${
-                gender === 'girl'
-                  ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/40 font-black shadow-md'
-                  : 'border-slate-200 dark:border-slate-800 opacity-60 hover:opacity-100'
-              }`}
+              className="group flex flex-col items-center gap-2.5 focus:outline-none cursor-pointer transition-all"
             >
-              <div className="w-full h-32 sm:h-40 rounded-2xl bg-rose-100/50 dark:bg-rose-900/30 flex items-center justify-center overflow-hidden shadow-inner">
-                <img
-                  src={getAssetUrl('assets/characters/girl/girl.webp')}
-                  alt="Girl Character"
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.dataset.fallback) {
-                      target.dataset.fallback = '1';
-                      target.src = getFallbackAssetUrl('assets/characters/girl/girl.webp');
-                    }
-                  }}
-                />
+              <div
+                className={`relative w-28 h-28 sm:w-36 sm:h-36 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  gender === 'girl'
+                    ? 'border-4 border-rose-500 dark:border-rose-400 bg-gradient-to-b from-rose-100 via-rose-50 to-white dark:from-rose-950 dark:via-rose-900/60 dark:to-slate-900 shadow-xl shadow-rose-500/25 ring-4 ring-rose-200 dark:ring-rose-900/60 scale-105'
+                    : 'border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 opacity-60 hover:opacity-100 hover:scale-102 hover:border-slate-300 dark:hover:border-slate-600'
+                }`}
+              >
+                <div className="w-full h-full rounded-full overflow-hidden p-2 flex items-center justify-center">
+                  <img
+                    src={getAssetUrl('assets/characters/girl/head.webp')}
+                    alt="دختر قهرمان"
+                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      if (!target.dataset.fallback) {
+                        target.dataset.fallback = '1';
+                        target.src = getFallbackAssetUrl('assets/characters/girl/head.webp');
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Selected Checkmark Badge */}
+                {gender === 'girl' && (
+                  <div className="absolute -bottom-1 -left-1 sm:bottom-0 sm:left-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-rose-500 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900">
+                    ✓
+                  </div>
+                )}
               </div>
-              <span className="text-sm">دختر قهرمان</span>
+              <span
+                className={`text-sm sm:text-base font-black transition-colors ${
+                  gender === 'girl'
+                    ? 'text-rose-600 dark:text-rose-400'
+                    : 'text-slate-600 dark:text-slate-400 font-semibold group-hover:text-slate-800 dark:group-hover:text-slate-200'
+                }`}
+              >
+                دختر قهرمان
+              </span>
             </button>
           </div>
         </div>
@@ -533,22 +583,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         </div>
 
-        {/* Left Column (Character Image on Desktop/Large Screens) */}
-        <div className="hidden lg:block w-full lg:w-2/5 xl:w-1/3">
-          <div className="sticky top-0 h-screen m-0 p-0 flex flex-col items-center justify-center">
-            <img 
-              src={getAssetUrl(`assets/characters/${gender}/greeting.webp`)} 
-              alt="Hero Character" 
-              className="w-full h-full max-h-screen object-contain filter drop-shadow-2xl transform hover:scale-105 transition-transform" 
-              onError={(e) => {
-                const target = e.currentTarget;
-                if (!target.dataset.fallback) {
-                  target.dataset.fallback = '1';
-                  target.src = getFallbackAssetUrl(`assets/characters/${gender}/greeting.webp`);
-                }
-              }}
-            />
-          </div>
+        {/* Left Column (Character Image on Desktop/Large Screens - Fixed/sticky in viewport, never scrolls away) */}
+        <div className="hidden lg:flex w-full lg:w-2/5 xl:w-1/3 sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none">
+          <img 
+            src={getAssetUrl(`assets/characters/${gender}/greeting.webp`)} 
+            alt="Hero Character" 
+            className="w-full h-full max-h-[82vh] object-contain filter drop-shadow-2xl pointer-events-auto transform hover:scale-105 transition-transform" 
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = '1';
+                target.src = getFallbackAssetUrl(`assets/characters/${gender}/greeting.webp`);
+              }
+            }}
+          />
         </div>
 
       </div>

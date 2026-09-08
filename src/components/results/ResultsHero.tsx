@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { UserProfile, QuizResult } from '../../types';
+import { UserProfile, QuizResult, CharacterPose } from '../../types';
 import { Character } from '../Character';
 
 interface ResultsHeroProps {
@@ -18,10 +18,10 @@ export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile, result }) => 
   const isGood = result.score >= 60;
 
   // Determine character pose based on score
-  const characterPose = isExcellent
+  const characterPose: CharacterPose = isExcellent
     ? 'celebrating'
     : isGood
-    ? 'happy'
+    ? 'master'
     : 'encouraging';
 
   const badgeText = isPerfect

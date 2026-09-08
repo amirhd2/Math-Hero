@@ -66,6 +66,7 @@ export interface TrophyInfo {
   stageNameFa: string;
   description: string;
   icon: string;
+  cupImage?: string;
   badgeRequiredCount: number;
   levelRequired: number;
   masteredTiersRequired?: number;
@@ -80,6 +81,7 @@ export interface LevelInfo {
   level: number;
   title: string;
   icon: string;
+  stageImage?: string;
   totalXp: number;
   currentLevelXpFloor: number;
   nextLevelXpThreshold: number;

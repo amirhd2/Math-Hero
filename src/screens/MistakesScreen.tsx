@@ -8,6 +8,7 @@ import { MistakeRecord, ScreenId, QuizSession } from '../types';
 import { storage } from '../utils/storage';
 import { formatNumber } from '../utils/persian';
 import { createPracticeMistakesSession } from '../results/reviewSessionGenerator';
+import { BackButton } from '../components/common/BackButton';
 
 interface MistakesScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -31,7 +32,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-8" dir="rtl">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
+        <div className="text-right">
           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">گنجینه اشتباهات و مرور</h2>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
             اشتباهات ثبت‌شده در آزمون‌ها برای تمرین و یادگیری عمیق‌تر
@@ -51,15 +52,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => onNavigate('home')}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer shrink-0"
-            title="بازگشت به خانه"
-            aria-label="بازگشت به خانه"
-          >
-            ←
-          </button>
+          <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
         </div>
       </div>
 

@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Achievement } from '../../types';
+import { getTrophyCupUrl, getTrophyCupFallbackUrl } from '../../utils/assetPaths';
 
 interface AchievementUnlockProps {
   unlockedAchievements?: Achievement[];
@@ -38,8 +39,23 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
             key={ach.id}
             className="bg-white dark:bg-slate-900/90 border border-amber-300 dark:border-amber-700/60 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm"
           >
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 flex items-center justify-center text-2xl shrink-0 shadow-md">
-              {ach.icon || '🏆'}
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 p-1.5 flex items-center justify-center text-2xl shrink-0 shadow-md">
+              {ach.icon === 'trophy' || ach.icon === '🏆' ? (
+                <img
+                  src={getTrophyCupUrl(4)}
+                  alt="جام"
+                  className="w-full h-full object-contain filter drop-shadow"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getTrophyCupFallbackUrl(4);
+                    }
+                  }}
+                />
+              ) : (
+                ach.icon || '🏆'
+              )}
             </div>
             <div className="space-y-0.5">
               <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">
@@ -55,3 +71,4 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
     </div>
   );
 };
+

@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { ScreenId, UserProfile, OperationType } from '../types';
+import { ScreenId, UserProfile, OperationType, TestPattern } from '../types';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
 import { getTierDefinition } from '../adaptive/tierRegistry';
 import { toPersianDigits } from '../utils/persian';
+import { BackButton } from '../components/common/BackButton';
 
 interface ParentDashboardScreenProps {
   profile: UserProfile;
+  testPatterns?: TestPattern[];
   onNavigate: (screen: ScreenId) => void;
   onExitToChildMode: () => void;
-  onOpenSetup: () => void;
+  onOpenSetup: (config?: any) => void;
+  onStartPattern?: (pattern: TestPattern) => void;
 }
 
 export const ParentDashboardScreen: React.FC<ParentDashboardScreenProps> = ({
   profile,
+  testPatterns: _testPatterns,
   onNavigate,
   onExitToChildMode,
   onOpenSetup,
+  onStartPattern: _onStartPattern,
 }) => {
   const [learningPlan, setLearningPlan] = useState<AdaptiveLearningPlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,14 +68,17 @@ export const ParentDashboardScreen: React.FC<ParentDashboardScreenProps> = ({
             </p>
           </div>
 
-          <button
-            id="exit-to-child-mode-btn"
-            onClick={onExitToChildMode}
-            className="shrink-0 flex items-center gap-2.5 px-5 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 cursor-pointer"
-          >
-            <span>👦</span>
-            <span>بازگشت به حالت کودک</span>
-          </button>
+          <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
+            <button
+              id="exit-to-child-mode-btn"
+              onClick={onExitToChildMode}
+              className="flex items-center gap-2.5 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:shadow-emerald-500/30 transition-all active:scale-95 cursor-pointer"
+            >
+              <span>👦</span>
+              <span>بازگشت به حالت کودک</span>
+            </button>
+            <BackButton onClick={onExitToChildMode} variant="whiteGlass" title="بازگشت به کودک" />
+          </div>
         </div>
 
         {/* Ambient background decoration */}

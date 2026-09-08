@@ -63,7 +63,10 @@ export class QuizQuestionBuffer {
       const nextIdx = this.questions.length;
       const fallbackOp: OperationType =
         this.session.config.selectedOperations[nextIdx % this.session.config.selectedOperations.length] || 'addition';
-      const newQuestion = generateSingleQuestion(fallbackOp, this.session.config.operationSettings[fallbackOp]);
+      const newQuestion = generateSingleQuestion(
+        fallbackOp,
+        this.session.config.operationSettings[fallbackOp as keyof typeof this.session.config.operationSettings]
+      );
       this.questions.push({
         ...newQuestion,
         id: newQuestion.id || `buffered_q_${nextIdx}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,

@@ -7,6 +7,7 @@ import React from 'react';
 import { UserProfile, QuizResult } from '../../types';
 import { formatNumber } from '../../utils/persian';
 import { getLevelProgress } from '../../gamification/levelCalculator';
+import { StageIcon } from '../common/StageIcon';
 
 interface XPProgressProps {
   profile: UserProfile;
@@ -26,7 +27,7 @@ export const XPProgress: React.FC<XPProgressProps> = ({ profile, result }) => {
       {leveledUp && (
         <div className="relative overflow-hidden bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 text-slate-950 p-4 rounded-2xl shadow-lg animate-pulse flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">⭐</span>
+            <StageIcon level={levelInfo.level} size="lg" className="w-12 h-12 shrink-0 drop-shadow" />
             <div>
               <h4 className="font-black text-base">ارتقای سطح قهرمان!</h4>
               <p className="text-xs font-bold opacity-90">
@@ -59,8 +60,8 @@ export const XPProgress: React.FC<XPProgressProps> = ({ profile, result }) => {
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">
             سطح فعلی قهرمان
           </span>
-          <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-black">
-            <span>{levelInfo.icon}</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-black">
+            <StageIcon level={levelInfo.level} size="xs" className="w-5 h-5" />
             <span>سطح {formatNumber(levelInfo.level, 'persian')}</span>
             <span className="text-xs font-bold opacity-80 mr-1">({levelInfo.title})</span>
           </div>
@@ -74,7 +75,10 @@ export const XPProgress: React.FC<XPProgressProps> = ({ profile, result }) => {
             {levelInfo.isMaxLevel ? (
               <span>👑 بالاترین سطح قهرمانی</span>
             ) : (
-              <span>پیشرفت تا سطح {formatNumber(levelInfo.level + 1, 'persian')}</span>
+              <span className="flex items-center gap-1.5">
+                <StageIcon level={levelInfo.level + 1} size="xs" className="w-4 h-4 inline-block opacity-80" />
+                <span>پیشرفت تا سطح {formatNumber(levelInfo.level + 1, 'persian')}</span>
+              </span>
             )}
           </span>
           <span>

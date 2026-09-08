@@ -52,6 +52,8 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         return { label: 'ضرب', icon: '✖️', color: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' };
       case 'division':
         return { label: 'تقسیم', icon: '➗', color: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800' };
+      default:
+        return { label: 'عملیات', icon: '🔢', color: 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800' };
     }
   };
 

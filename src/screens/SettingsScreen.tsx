@@ -32,6 +32,7 @@ import {
   MathHeroBackupData,
   APP_VERSION,
 } from '../utils/backupManager';
+import { BackButton } from '../components/common/BackButton';
 import { AccordionSection } from '../components/settings/AccordionSection';
 import { ToggleSwitch } from '../components/settings/ToggleSwitch';
 import { RestoreModal } from '../components/settings/RestoreModal';
@@ -303,29 +304,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6">
-        {/* Top Header & Navigation Entry */}
+        {/* Top Header & Navigation Entry - Title on right, BackButton on left */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-3.5">
-            <button
-              onClick={() => onNavigate('home')}
-              className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-2xs flex items-center justify-center cursor-pointer shrink-0"
-              title={t('back_to_home', lang)}
-              aria-label={t('back_to_home', lang)}
-            >
-              ←
-            </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
-                {t('settings_title', lang)}
-              </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {t('settings_subtitle', lang)}
-              </p>
-            </div>
+          <div className="text-right">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
+              {t('settings_title', lang)}
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              {t('settings_subtitle', lang)}
+            </p>
           </div>
 
-          {/* Quick Stat Pill in Header */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          {/* Quick Stat Pill & Back Button */}
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
             <span className="text-xs font-black px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
               نسخه {APP_VERSION}
             </span>
@@ -339,6 +330,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
               <span>{isOnline ? 'آنلاین' : 'آفلاین پایدار'}</span>
             </span>
+            <BackButton onClick={() => onNavigate('home')} title={t('back_to_home', lang)} />
           </div>
         </div>
 

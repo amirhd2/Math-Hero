@@ -19,14 +19,17 @@ import {
   BadgeCategory,
   LevelInfo,
   TrophyInfo,
-  GamificationStats,
 } from '../gamification/gamificationTypes';
 import { TrophyHeroCard } from '../components/gamification/TrophyHeroCard';
+import { TrophyPathCard } from '../components/gamification/TrophyPathCard';
 import { LevelProgressCard } from '../components/gamification/LevelProgressCard';
+import { BackButton } from '../components/common/BackButton';
 import { BadgeCard } from '../components/gamification/BadgeCard';
 import { RecentlyUnlockedList } from '../components/gamification/RecentlyUnlockedList';
 import { BadgeDetailModal } from '../components/gamification/BadgeDetailModal';
+import { StagesRoadmapModal } from '../components/gamification/StagesRoadmapModal';
 import { sound } from '../utils/sound';
+import { getTrophyCupUrl, getTrophyCupFallbackUrl, getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface AchievementsScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -42,7 +45,6 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   const [trophyInfo, setTrophyInfo] = useState<TrophyInfo | null>(null);
   const [allBadges, setAllBadges] = useState<Badge[]>([]);
   const [recentlyUnlocked, setRecentlyUnlocked] = useState<Badge[]>([]);
-  const [stats, setStats] = useState<GamificationStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Filters & State
@@ -50,6 +52,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [inspectingBadge, setInspectingBadge] = useState<Badge | null>(null);
+  const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
 
   // Load centralized gamification data
   useEffect(() => {
@@ -66,7 +69,6 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
           setTrophyInfo(overview.trophyInfo);
           setAllBadges(overview.allBadges);
           setRecentlyUnlocked(overview.recentlyUnlocked);
-          setStats(overview.stats);
           setLoading(false);
         }
       } catch (err) {
@@ -144,31 +146,14 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     );
   }
 
+  const gender = profile.gender === 'girl' ? 'girl' : 'boy';
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 text-right">
-      {/* 1. Header Navigation Bar */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 text-right">
+      {/* 1. Header Navigation Bar - Title on right, BackButton on left */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center justify-center shadow-2xs cursor-pointer shrink-0"
-            title="بازگشت به خانه"
-            aria-label="بازگشت به خانه"
-          >
-            ←
-          </button>
-
-          <button
-            onClick={() => onNavigate('profile')}
-            className="px-4 py-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 font-bold hover:bg-indigo-100 transition-all text-sm flex items-center gap-1.5"
-          >
-            <span>👤</span>
-            <span>پروفایل من</span>
-          </button>
-        </div>
-
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center justify-start sm:justify-end gap-2.5">
+        <div className="text-right">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
             <span>🏆</span>
             <span>تالار نشان‌ها و جام قهرمانی</span>
           </h1>
@@ -176,189 +161,241 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
             نگاه کن چقدر پیشرفت کردی و چقدر افتخار آفریدی!
           </p>
         </div>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
+        </div>
       </div>
 
-      {/* 2. Top Hero: Evolving Math Hero Trophy */}
-      <TrophyHeroCard
-        profile={profile}
-        trophyInfo={trophyInfo}
-        levelInfo={levelInfo}
-        unlockedBadgesCount={unlockedCount}
-        totalBadgesCount={allBadges.length}
-      />
+      {/* 2. Two-Column Layout (Tablet Landscape & Desktop): Cards on Right, Full-body Character on Left */}
+      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8">
+        {/* Right Column: Hero Card, Trophy Path Card, Level Progression Card, Recently Unlocked */}
+        <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
+          {/* Top Hero: Colored Trophy Hero Card */}
+          <TrophyHeroCard
+            profile={profile}
+            trophyInfo={trophyInfo}
+            levelInfo={levelInfo}
+            unlockedBadgesCount={unlockedCount}
+            totalBadgesCount={allBadges.length}
+          />
 
-      {/* 3. Level Progression & Streak Card */}
-      <LevelProgressCard
-        levelInfo={levelInfo}
-        currentStreak={profile.streakDays}
-      />
+          {/* Dedicated Trophy Path Card (White background, 3x2 grid, next cup progress) */}
+          <TrophyPathCard
+            trophyInfo={trophyInfo}
+          />
 
-      {/* 4. Recently Unlocked Highlights */}
-      <RecentlyUnlockedList
-        badges={recentlyUnlocked}
-        onSelectBadge={handleSelectBadge}
-      />
+          {/* Level Progression Card (RTL scrolling stage medals, hollow/filled connecting rods, roadmap button) */}
+          <LevelProgressCard
+            levelInfo={levelInfo}
+          />
 
-      {/* 5. Filter & Search Controls */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
-        {/* Top Controls: Search and Status Segmented Control */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="جستجوی نشان یا عنوان..."
-              className="w-full px-4 py-2.5 pl-10 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
-            />
-            <span className="absolute left-3.5 top-3 text-slate-400 text-sm">
-              🔍
+          {/* Recently Unlocked Highlights */}
+          <RecentlyUnlockedList
+            badges={recentlyUnlocked}
+            onSelectBadge={handleSelectBadge}
+          />
+        </div>
+
+        {/* Left Column (Character Image on Desktop/Large Screens - Sticky, full body) */}
+        <div className="hidden lg:flex w-full lg:w-2/5 xl:w-1/3 sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none">
+          <img
+            src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
+            alt="Hero Character"
+            className="w-full h-full max-h-[82vh] object-contain filter drop-shadow-2xl pointer-events-auto transform hover:scale-105 transition-transform"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = '1';
+                target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      {/* 3. Full-Width Section: Starts from Filter & Search Controls and scrolls up naturally */}
+      <div className="space-y-8 w-full pt-2">
+        {/* Filter & Search Controls */}
+        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
+          {/* Top Controls: Search and Status Segmented Control */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Search Box */}
+            <div className="relative w-full sm:w-72">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="جستجوی نشان یا عنوان..."
+                className="w-full px-4 py-2.5 pl-10 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500"
+              />
+              <span className="absolute left-3.5 top-3 text-slate-400 text-sm">
+                🔍
+              </span>
+            </div>
+
+            {/* Status Filter Chips */}
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 w-full sm:w-auto justify-center">
+              <button
+                onClick={() => setStatusFilter('all')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  statusFilter === 'all'
+                    ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                همه ({formatNumber(allBadges.length, 'persian')})
+              </button>
+
+              <button
+                onClick={() => setStatusFilter('unlocked')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  statusFilter === 'unlocked'
+                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                ✓ باز شده ({formatNumber(unlockedCount, 'persian')})
+              </button>
+
+              <button
+                onClick={() => setStatusFilter('locked')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                  statusFilter === 'locked'
+                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                🔒 در حال تلاش ({formatNumber(allBadges.length - unlockedCount, 'persian')})
+              </button>
+            </div>
+          </div>
+
+          {/* Category Horizontal Scroll Chips */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${
+                  selectedCategory === cat.id
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105'
+                    : 'bg-slate-50 dark:bg-slate-950/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100'
+                }`}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Badges Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+            <span>
+              نمایش {formatNumber(filteredBadges.length, 'persian')} نشان افتخار
             </span>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="text-indigo-600 hover:underline"
+              >
+                پاک کردن جستجو ✕
+              </button>
+            )}
           </div>
 
-          {/* Status Filter Chips */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 w-full sm:w-auto justify-center">
-            <button
-              onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                statusFilter === 'all'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              همه ({formatNumber(allBadges.length, 'persian')})
-            </button>
-
-            <button
-              onClick={() => setStatusFilter('unlocked')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                statusFilter === 'unlocked'
-                  ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              ✓ باز شده ({formatNumber(unlockedCount, 'persian')})
-            </button>
-
-            <button
-              onClick={() => setStatusFilter('locked')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                statusFilter === 'locked'
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-            >
-              🔒 در حال تلاش ({formatNumber(allBadges.length - unlockedCount, 'persian')})
-            </button>
-          </div>
-        </div>
-
-        {/* Category Horizontal Scroll Chips */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1.5 border shrink-0 ${
-                selectedCategory === cat.id
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/20 scale-105'
-                  : 'bg-slate-50 dark:bg-slate-950/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100'
-              }`}
-            >
-              <span>{cat.icon}</span>
-              <span>{cat.title}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 6. Badges Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-          <span>
-            نمایش {formatNumber(filteredBadges.length, 'persian')} نشان افتخار
-          </span>
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="text-indigo-600 hover:underline"
-            >
-              پاک کردن جستجو ✕
-            </button>
+          {filteredBadges.length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 space-y-3">
+              <span className="text-4xl">🔍</span>
+              <h4 className="text-base font-black text-slate-800 dark:text-slate-100">
+                هیچ نشانی با این فیلترها پیدا نشد!
+              </h4>
+              <p className="text-xs text-slate-500">
+                می‌توانی فیلترها یا عبارت جستجو را تغییر دهی تا نشان‌های دیگر را ببینی.
+              </p>
+              <button
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setStatusFilter('all');
+                  setSearchQuery('');
+                }}
+                className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl text-xs"
+              >
+                مشاهده همه نشان‌ها
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {filteredBadges.map((badge) => (
+                <BadgeCard
+                  key={badge.id}
+                  badge={badge}
+                  onClick={handleSelectBadge}
+                />
+              ))}
+            </div>
           )}
         </div>
 
-        {filteredBadges.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 space-y-3">
-            <span className="text-4xl">🔍</span>
-            <h4 className="text-base font-black text-slate-800 dark:text-slate-100">
-              هیچ نشانی با این فیلترها پیدا نشد!
-            </h4>
-            <p className="text-xs text-slate-500">
-              می‌توانی فیلترها یا عبارت جستجو را تغییر دهی تا نشان‌های دیگر را ببینی.
-            </p>
+        {/* Grand Math Hero Supreme Milestone Banner */}
+        <div
+          id="grand-math-hero-milestone"
+          className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-500 text-slate-950 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-3"
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-center sm:text-right">
+              <div className="w-16 h-16 rounded-2xl bg-white/40 p-1.5 flex items-center justify-center shadow-md shrink-0">
+                <img
+                  src={getTrophyCupUrl(6)}
+                  alt="جام الماسین قهرمان قهرمانان"
+                  className="w-full h-full object-contain filter drop-shadow animate-pulse"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (!target.dataset.fallback) {
+                      target.dataset.fallback = '1';
+                      target.src = getTrophyCupFallbackUrl(6);
+                    }
+                  }}
+                />
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-300 px-3 py-1 rounded-xl">
+                  اوج شکوه و قهرمانی
+                </span>
+                <h3 className="text-xl sm:text-2xl font-black mt-1">
+                  قله افتخار: قهرمان قهرمانان ریاضی!
+                </h3>
+                <p className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">
+                  با رسیدن به سطح ۱۵ و کسب ۱۵ نشان افتخار، تاج زرین قهرمان ریاضی را بر سر می‌گذاری!
+                </p>
+              </div>
+            </div>
+
             <button
-              onClick={() => {
-                setSelectedCategory('all');
-                setStatusFilter('all');
-                setSearchQuery('');
-              }}
-              className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold rounded-xl text-xs"
+              onClick={() => onNavigate('quiz_setup')}
+              className="px-6 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black text-sm rounded-2xl shadow-xl transition-all shrink-0 hover:scale-105"
             >
-              مشاهده همه نشان‌ها
+              ادامه تمرین برای قهرمانی 🚀
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredBadges.map((badge) => (
-              <BadgeCard
-                key={badge.id}
-                badge={badge}
-                onClick={handleSelectBadge}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 7. Math Hero Supreme Milestone Banner */}
-      <div
-        id="grand-math-hero-milestone"
-        className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-500 text-slate-950 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-3"
-      >
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4 text-center sm:text-right">
-            <div className="w-16 h-16 rounded-2xl bg-white/40 flex items-center justify-center text-4xl shadow-md shrink-0 animate-bounce">
-              👑
-            </div>
-            <div>
-              <span className="text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-300 px-3 py-1 rounded-xl">
-                اوج شکوه و قهرمانی
-              </span>
-              <h3 className="text-xl sm:text-2xl font-black mt-1">
-                قله افتخار: قهرمان قهرمانان ریاضی!
-              </h3>
-              <p className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">
-                با رسیدن به سطح ۱۵ و کسب ۱۵ نشان افتخار، تاج زرین قهرمان ریاضی را بر سر می‌گذاری!
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => onNavigate('quiz_setup')}
-            className="px-6 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black text-sm rounded-2xl shadow-xl transition-all shrink-0 hover:scale-105"
-          >
-            ادامه تمرین برای قهرمانی 🚀
-          </button>
         </div>
       </div>
 
-      {/* 8. Badge Detail Modal */}
+      {/* 4. Badge Detail Modal */}
       <BadgeDetailModal
         badge={inspectingBadge}
         onClose={() => setInspectingBadge(null)}
       />
+
+      {/* 5. 20 Stages Roadmap Modal */}
+      <StagesRoadmapModal
+        isOpen={isRoadmapOpen}
+        onClose={() => setIsRoadmapOpen(false)}
+        currentLevel={levelInfo.level}
+      />
     </div>
   );
 };
+

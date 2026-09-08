@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   UserProfile,
   AppSettings,
@@ -380,11 +380,6 @@ export default function App() {
     setCurrentScreen('quiz_results');
   };
 
-  const handleToggleTheme = () => {
-    const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
-    handleUpdateSettings({ ...settings, theme: newTheme });
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
@@ -426,7 +421,7 @@ export default function App() {
           <ParentDashboardScreen
             profile={profile}
             testPatterns={testPatterns}
-            onOpenSetup={(cfg) => handleOpenQuizSetup(cfg)}
+            onOpenSetup={(cfg?: any) => handleOpenQuizSetup(cfg)}
             onStartPattern={handleStartPattern}
             onNavigate={setCurrentScreen}
             onExitToChildMode={handleExitToChildMode}
@@ -511,35 +506,35 @@ export default function App() {
       {/* Floating Bottom Quick Nav for non-quiz screens (Settings does NOT use persistent bottom nav) */}
       {currentScreen !== 'quiz_active' && currentScreen !== 'onboarding' && currentScreen !== 'quiz_setup' && currentScreen !== 'settings' && (
         <nav 
-          className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pt-2.5 px-6 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-3xl shadow-lg"
-          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
+          className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1 px-4 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-2xl shadow-lg"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)' }}
         >
-          <button onClick={() => setCurrentScreen('home')} className={`flex flex-col items-center gap-1 ${currentScreen === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-            <span className="text-xl">🏠</span>
-            <span className="text-[10px]">خانه</span>
+          <button onClick={() => setCurrentScreen('home')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+            <span className="text-lg leading-none">🏠</span>
+            <span className="text-[10px] font-medium leading-tight">خانه</span>
           </button>
           {appMode === 'parent' ? (
-            <button onClick={() => setCurrentScreen('parent_dashboard')} className={`flex flex-col items-center gap-1 ${currentScreen === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-              <span className="text-xl">👨‍🏫</span>
-              <span className="text-[10px]">میز مربی</span>
+            <button onClick={() => setCurrentScreen('parent_dashboard')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+              <span className="text-lg leading-none">👨‍🏫</span>
+              <span className="text-[10px] font-medium leading-tight">میز مربی</span>
             </button>
           ) : (
-            <button onClick={() => setCurrentScreen('mistakes')} className={`flex flex-col items-center gap-1 ${currentScreen === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-              <span className="text-xl">💡</span>
-              <span className="text-[10px]">گنجینه</span>
+            <button onClick={() => setCurrentScreen('mistakes')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+              <span className="text-lg leading-none">💡</span>
+              <span className="text-[10px] font-medium leading-tight">گنجینه</span>
             </button>
           )}
-          <button onClick={() => setCurrentScreen('progress')} className={`flex flex-col items-center gap-1 ${currentScreen === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-            <span className="text-xl">📊</span>
-            <span className="text-[10px]">آمار</span>
+          <button onClick={() => setCurrentScreen('progress')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+            <span className="text-lg leading-none">📊</span>
+            <span className="text-[10px] font-medium leading-tight">آمار</span>
           </button>
-          <button onClick={() => setCurrentScreen('achievements')} className={`flex flex-col items-center gap-1 ${currentScreen === 'achievements' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-            <span className="text-xl">🏆</span>
-            <span className="text-[10px]">نشان‌ها</span>
+          <button onClick={() => setCurrentScreen('achievements')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'achievements' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+            <span className="text-lg leading-none">🏆</span>
+            <span className="text-[10px] font-medium leading-tight">نشان‌ها</span>
           </button>
-          <button onClick={() => setCurrentScreen('settings')} className={`flex flex-col items-center gap-1 ${currentScreen === 'settings' ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400'}`}>
-            <span className="text-xl">⚙️</span>
-            <span className="text-[10px]">تنظیمات</span>
+          <button onClick={() => setCurrentScreen('settings')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${(currentScreen as string) === 'settings' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
+            <span className="text-lg leading-none">⚙️</span>
+            <span className="text-[10px] font-medium leading-tight">تنظیمات</span>
           </button>
         </nav>
       )}
