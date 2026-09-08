@@ -53,6 +53,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [inspectingBadge, setInspectingBadge] = useState<Badge | null>(null);
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
+  const [streak, setStreak] = useState<number>(1);
 
   // Load centralized gamification data
   useEffect(() => {
@@ -69,6 +70,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
           setTrophyInfo(overview.trophyInfo);
           setAllBadges(overview.allBadges);
           setRecentlyUnlocked(overview.recentlyUnlocked);
+          setStreak(overview.state.currentStreak || userProfile.streakDays || 1);
           setLoading(false);
         }
       } catch (err) {
@@ -149,26 +151,26 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
   const gender = profile.gender === 'girl' ? 'girl' : 'boy';
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 text-right">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 text-right">
       {/* 1. Header Navigation Bar - Title on right, BackButton on left */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="text-right">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2.5">
+      <div className="flex flex-row items-center justify-between gap-3 w-full">
+        <div className="text-right flex-1 min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 sm:gap-2.5 truncate">
             <span>🏆</span>
             <span>تالار نشان‌ها و جام قهرمانی</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 truncate">
             نگاه کن چقدر پیشرفت کردی و چقدر افتخار آفریدی!
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        <div className="shrink-0">
           <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
         </div>
       </div>
 
       {/* 2. Two-Column Layout (Tablet Landscape & Desktop): Cards on Right, Full-body Character on Left */}
-      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8">
+      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8 mt-1.5 sm:mt-2">
         {/* Right Column: Hero Card, Trophy Path Card, Level Progression Card, Recently Unlocked */}
         <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
           {/* Top Hero: Colored Trophy Hero Card */}
@@ -178,6 +180,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
             levelInfo={levelInfo}
             unlockedBadgesCount={unlockedCount}
             totalBadgesCount={allBadges.length}
+            streak={streak}
           />
 
           {/* Dedicated Trophy Path Card (White background, 3x2 grid, next cup progress) */}
@@ -215,7 +218,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
       </div>
 
       {/* 3. Full-Width Section: Starts from Filter & Search Controls and scrolls up naturally */}
-      <div className="space-y-8 w-full pt-2">
+      <div className="space-y-8 w-full mt-8 sm:mt-10 pt-2">
         {/* Filter & Search Controls */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
           {/* Top Controls: Search and Status Segmented Control */}

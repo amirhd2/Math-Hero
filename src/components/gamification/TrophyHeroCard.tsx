@@ -16,6 +16,7 @@ interface TrophyHeroCardProps {
   levelInfo: LevelInfo;
   unlockedBadgesCount: number;
   totalBadgesCount: number;
+  streak?: number;
 }
 
 export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
@@ -24,8 +25,14 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
   levelInfo,
   unlockedBadgesCount,
   totalBadgesCount,
+  streak,
 }) => {
   const gender = profile.gender === 'girl' ? 'girl' : 'boy';
+  const streakDays = streak ?? profile.streakDays ?? 1;
+  const nextThreshold =
+    levelInfo.nextLevelXpThreshold ||
+    levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel;
+  const remainingXp = Math.max(0, nextThreshold - (levelInfo.totalXp || profile.xp || 0));
 
   // Trophy styling theme per stage
   const getStageTheme = (stage: number) => {
@@ -81,57 +88,104 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
   return (
     <div
       id="trophy-hero-card"
-      className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${theme.gradient} text-white p-5 sm:p-7 shadow-2xl ${theme.glow} border border-white/15 transition-all`}
+      className="relative select-none"
     >
-      {/* Background Decorative Blur Orbs */}
-      <div className="absolute -top-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Card Container with Rounded Corners & Shadows */}
+      <div
+        className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${theme.gradient} shadow-2xl ${theme.glow} border border-white/15 overflow-hidden pointer-events-none`}
+      >
+        {/* Background Decorative Blur Orbs */}
+        <div className="absolute -top-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+      </div>
 
       {/* Main Content Layout */}
-      <div className="relative z-10 flex flex-row items-center justify-between gap-4 sm:gap-6">
+      <div className="relative z-10 flex flex-row items-center justify-between gap-3 sm:gap-6 p-5 sm:p-7 min-h-[145px] sm:min-h-[165px]">
         {/* Right Content (Persian RTL) */}
-        <div className="flex-1 space-y-3 sm:space-y-4 text-right">
-          {/* Trophy Title & Description */}
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
-              <span>{trophyInfo.title}</span>
-              {trophyInfo.isMax && <span>👑</span>}
-            </h2>
-            <p className="text-white/90 text-xs sm:text-sm font-medium mt-1 leading-relaxed">
-              {trophyInfo.description}
-            </p>
+        <div className="flex-1 space-y-2.5 sm:space-y-3.5 text-right min-w-0">
+          {/* Current Level Capsule (Top & Center above Progress Bar) */}
+          <div className="flex justify-center w-full">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-1 rounded-full bg-white/20 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white shadow-md select-none transition-all">
+              <span className="text-amber-300 text-sm">⭐</span>
+              <span className="text-xs sm:text-sm font-black tracking-wide">
+                سطح {formatNumber(levelInfo.level, 'persian')}
+              </span>
+              <span className="text-white/40 text-xs">•</span>
+              <span className="text-yellow-200 text-xs sm:text-sm font-black">
+                {levelInfo.title}
+              </span>
+            </div>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-black pt-1">
-            <div className="px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center gap-1.5">
+          {/* Golden Progress Bar Pill */}
+          <div className="w-full bg-white/20 backdrop-blur-md p-1 rounded-full border border-white/25 shadow-inner relative h-8 sm:h-9 flex items-center justify-between overflow-hidden">
+            {/* Dynamic Yellow Fill Bar */}
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 rounded-full shadow-md transition-all duration-500 flex items-center justify-center relative overflow-hidden"
+              style={{ width: `${Math.max(8, Math.min(100, levelInfo.progressPercent))}%` }}
+            >
+              {/* If yellow bar >= 38% wide, place text centered inside yellow bar */}
+              {levelInfo.progressPercent >= 38 && (
+                <span className="font-black text-amber-950 text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-xs">
+                  {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(nextThreshold, 'persian')} XP
+                </span>
+              )}
+            </div>
+
+            {/* If yellow bar < 38% wide, place text outside yellow bar to its left */}
+            {levelInfo.progressPercent < 38 && (
+              <div className="flex-1 flex items-center justify-center font-black text-white text-xs sm:text-sm whitespace-nowrap px-2 drop-shadow-md z-10">
+                {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(nextThreshold, 'persian')} XP
+              </div>
+            )}
+          </div>
+
+          {/* Remaining XP until Next Level under Progress Bar */}
+          <div className="flex justify-center items-center w-full text-center">
+            <span className="text-xs sm:text-sm font-black text-amber-100 drop-shadow-sm flex items-center gap-1.5">
+              <span>✨</span>
+              <span>
+                {levelInfo.isMaxLevel
+                  ? 'به بالاترین سطح رسیدی! 🎉'
+                  : `${formatNumber(remainingXp, 'persian')} XP مانده تا سطح بعدی`}
+              </span>
+            </span>
+          </div>
+
+          {/* Quick Metrics Bar: Unlocked Badges Count + Consecutive Days Streak (Centered at Bottom) */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-black pt-1 w-full">
+            <div className="px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center gap-1.5 text-white shadow-sm">
               <span>🏅</span>
               <span>
                 {formatNumber(unlockedBadgesCount, 'persian')} از {formatNumber(totalBadgesCount, 'persian')} نشان باز شده
               </span>
             </div>
 
-            <div className="px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center gap-1.5 text-amber-200">
-              <span>⭐</span>
-              <span>{formatNumber(levelInfo.totalXp, 'persian')} XP کل</span>
+            {/* Consecutive Days Streak Capsule */}
+            <div className="px-3 py-1.5 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center gap-1.5 text-amber-200 shadow-sm">
+              <span className="text-sm">🔥</span>
+              <span>{formatNumber(streakDays, 'persian')} روز متوالی</span>
             </div>
           </div>
         </div>
 
-        {/* Left on Mobile: Proud Character sticking flush to the bottom card edge */}
-        <div className="lg:hidden flex items-end justify-center w-28 sm:w-36 -mb-5 sm:-mb-7 -ml-5 sm:-ml-7 relative shrink-0 z-20 self-end overflow-hidden">
-          <img
-            src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
-            alt="Hero Character"
-            className="w-full h-auto max-h-[180px] sm:max-h-[210px] object-contain object-bottom filter drop-shadow-2xl pointer-events-none block"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.dataset.fallback) {
-                target.dataset.fallback = '1';
-                target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
-              }
-            }}
-          />
+        {/* Left on Mobile: Character Box - bottom flush to card bottom */}
+        {/* Zooms into abdomen-up (شکم به بالا) region and scales image to fill box width as much as possible */}
+        <div className="lg:hidden relative w-32 min-[420px]:w-36 sm:w-44 md:w-52 self-stretch -mb-5 sm:-mb-7 -ml-5 sm:-ml-7 shrink-0 z-20 pointer-events-none">
+          <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden rounded-bl-3xl flex items-start justify-center">
+            <img
+              src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
+              alt="Hero Character"
+              className="w-full min-w-full h-auto object-cover object-top filter drop-shadow-2xl block select-none origin-top scale-[1.12] translate-y-[-1%]"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.dataset.fallback) {
+                  target.dataset.fallback = '1';
+                  target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Left on Desktop: Current Trophy Showcase Widget */}
