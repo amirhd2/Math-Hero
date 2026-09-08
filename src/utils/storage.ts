@@ -167,19 +167,58 @@ export const INITIAL_ACHIEVEMENTS: Achievement[] = [
 
 class StorageService {
   private dbPromise: Promise<IDBDatabase> | null = null;
+  private currentDb: IDBDatabase | null = null;
 
-  private getDB(): Promise<IDBDatabase> {
-    if (this.dbPromise) return this.dbPromise;
+  private async getDB(): Promise<IDBDatabase> {
+    if (this.currentDb) {
+      return this.currentDb;
+    }
+
+    if (this.dbPromise) {
+      return this.dbPromise;
+    }
 
     this.dbPromise = new Promise((resolve, reject) => {
-      if (!('indexedDB' in window)) {
-        return reject(new Error('IndexedDB is not supported in this browser.'));
+      if (typeof window === 'undefined' || !('indexedDB' in window)) {
+        return reject(new Error('IndexedDB is not supported in this environment.'));
       }
 
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => {
+        this.dbPromise = null;
+        this.currentDb = null;
+        reject(request.error || new Error('Failed to open IndexedDB'));
+      };
+
+      request.onblocked = () => {
+        console.warn('IndexedDB open request was blocked');
+      };
+
+      request.onsuccess = () => {
+        const db = request.result;
+        this.currentDb = db;
+
+        db.onversionchange = () => {
+          try {
+            db.close();
+          } catch {}
+          this.currentDb = null;
+          this.dbPromise = null;
+        };
+
+        db.onclose = () => {
+          this.currentDb = null;
+          this.dbPromise = null;
+        };
+
+        db.onerror = () => {
+          this.currentDb = null;
+          this.dbPromise = null;
+        };
+
+        resolve(db);
+      };
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
@@ -208,53 +247,124 @@ class StorageService {
     return this.dbPromise;
   }
 
+  private async executeTx<T>(
+    storeName: string,
+    mode: IDBTransactionMode,
+    operation: (store: IDBObjectStore, tx: IDBTransaction) => Promise<T> | T
+  ): Promise<T> {
+    const run = async (): Promise<T> => {
+      const db = await this.getDB();
+      return new Promise<T>((resolve, reject) => {
+        let tx: IDBTransaction;
+        try {
+          tx = db.transaction(storeName, mode);
+        } catch (err: any) {
+          this.currentDb = null;
+          this.dbPromise = null;
+          return reject(err);
+        }
+
+        const store = tx.objectStore(storeName);
+
+        let opResult: any;
+        try {
+          opResult = operation(store, tx);
+        } catch (opErr) {
+          return reject(opErr);
+        }
+
+        if (opResult && typeof opResult.then === 'function') {
+          opResult.then(
+            (val: T) => {
+              if (mode === 'readonly') {
+                resolve(val);
+              } else {
+                tx.oncomplete = () => resolve(val);
+              }
+            },
+            (err: any) => reject(err)
+          );
+        } else {
+          if (mode === 'readwrite') {
+            tx.oncomplete = () => resolve(opResult as T);
+          } else {
+            resolve(opResult as T);
+          }
+        }
+
+        tx.onerror = () => {
+          this.currentDb = null;
+          this.dbPromise = null;
+          reject(tx.error || new Error('Transaction failed'));
+        };
+
+        tx.onabort = () => {
+          this.currentDb = null;
+          this.dbPromise = null;
+          reject(tx.error || new Error('Transaction aborted'));
+        };
+      });
+    };
+
+    try {
+      return await run();
+    } catch (firstErr: any) {
+      const msg = String(firstErr?.message || firstErr || '');
+      if (
+        msg.includes('closing') ||
+        msg.includes('closed') ||
+        msg.includes('InvalidStateError') ||
+        msg.includes('connection')
+      ) {
+        this.currentDb = null;
+        this.dbPromise = null;
+        return await run();
+      }
+      throw firstErr;
+    }
+  }
+
   async getProfile(): Promise<UserProfile> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('profile', 'readonly');
-        const store = tx.objectStore('profile');
-        const req = store.get('default_user');
-        req.onsuccess = () => {
-          if (req.result) {
-            resolve({
-              ...DEFAULT_PROFILE,
-              ...req.result,
-              onboardingCompleted: req.result.onboardingCompleted ?? Boolean(req.result.name && req.result.name !== ''),
-            });
-          } else {
-            resolve({ ...DEFAULT_PROFILE, onboardingCompleted: false });
-          }
-        };
-        req.onerror = () => resolve({ ...DEFAULT_PROFILE, onboardingCompleted: false });
+      const result = await this.executeTx('profile', 'readonly', (store) => {
+        return new Promise<any>((resolve, reject) => {
+          const req = store.get('default_user');
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
       });
-    } catch {
-      const local = localStorage.getItem('math_hero_profile');
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          return {
-            ...DEFAULT_PROFILE,
-            ...parsed,
-            onboardingCompleted: parsed.onboardingCompleted ?? Boolean(parsed.name && parsed.name !== ''),
-          };
-        } catch {
-          return { ...DEFAULT_PROFILE, onboardingCompleted: false };
-        }
+
+      if (result) {
+        return {
+          ...DEFAULT_PROFILE,
+          ...result,
+          onboardingCompleted: result.onboardingCompleted ?? Boolean(result.name && result.name !== ''),
+        };
       }
-      return { ...DEFAULT_PROFILE, onboardingCompleted: false };
+    } catch {
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_profile');
+    if (local) {
+      try {
+        const parsed = JSON.parse(local);
+        return {
+          ...DEFAULT_PROFILE,
+          ...parsed,
+          onboardingCompleted: parsed.onboardingCompleted ?? Boolean(parsed.name && parsed.name !== ''),
+        };
+      } catch {
+        return { ...DEFAULT_PROFILE, onboardingCompleted: false };
+      }
+    }
+    return { ...DEFAULT_PROFILE, onboardingCompleted: false };
   }
 
   async resetProfile(): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('profile', 'readwrite');
-        const store = tx.objectStore('profile');
-        const req = store.delete('default_user');
-        req.onsuccess = () => resolve();
-        req.onerror = () => resolve();
+      await this.executeTx('profile', 'readwrite', (store) => {
+        store.delete('default_user');
       });
     } catch {
       // fallback
@@ -265,224 +375,238 @@ class StorageService {
 
   async saveProfile(profile: UserProfile): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('profile', 'readwrite');
-        const store = tx.objectStore('profile');
-        const req = store.put(profile);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('profile', 'readwrite', (store) => {
+        store.put(profile);
       });
     } catch {
-      localStorage.setItem('math_hero_profile', JSON.stringify(profile));
+      // fallback
     }
+    try {
+      localStorage.setItem('math_hero_profile', JSON.stringify(profile));
+    } catch {}
   }
 
   async getSettings(): Promise<AppSettings> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('settings', 'readonly');
-        const store = tx.objectStore('settings');
-        const req = store.get('app_settings');
-        req.onsuccess = () => {
-          if (req.result) {
-            resolve({ ...DEFAULT_SETTINGS, ...req.result });
-          } else {
-            resolve(DEFAULT_SETTINGS);
-          }
-        };
-        req.onerror = () => resolve(DEFAULT_SETTINGS);
+      const result = await this.executeTx('settings', 'readonly', (store) => {
+        return new Promise<any>((resolve, reject) => {
+          const req = store.get('app_settings');
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
       });
+      if (result) {
+        return { ...DEFAULT_SETTINGS, ...result };
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_settings');
-      return local ? { ...DEFAULT_SETTINGS, ...JSON.parse(local) } : DEFAULT_SETTINGS;
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_settings');
+    if (local) {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(local) };
+      } catch {}
+    }
+    return DEFAULT_SETTINGS;
   }
 
   async saveSettings(settings: AppSettings): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('settings', 'readwrite');
-        const store = tx.objectStore('settings');
-        const req = store.put({ ...settings, id: 'app_settings' });
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('settings', 'readwrite', (store) => {
+        store.put({ ...settings, id: 'app_settings' });
       });
     } catch {
-      localStorage.setItem('math_hero_settings', JSON.stringify(settings));
+      // fallback
     }
+    try {
+      localStorage.setItem('math_hero_settings', JSON.stringify(settings));
+    } catch {}
   }
 
   async getResults(): Promise<QuizResult[]> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('results', 'readonly');
-        const store = tx.objectStore('results');
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
+      const result = await this.executeTx('results', 'readonly', (store) => {
+        return new Promise<QuizResult[]>((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       });
+      if (result && Array.isArray(result)) {
+        return result;
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_results');
-      return local ? JSON.parse(local) : [];
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_results');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch {}
+    }
+    return [];
   }
 
   async saveResult(result: QuizResult): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('results', 'readwrite');
-        const store = tx.objectStore('results');
-        const req = store.put(result);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('results', 'readwrite', (store) => {
+        store.put(result);
       });
     } catch {
-      const results = await this.getResults();
-      results.unshift(result);
-      localStorage.setItem('math_hero_results', JSON.stringify(results));
+      // fallback
     }
+    try {
+      const results = await this.getResults();
+      const idx = results.findIndex(r => r.id === result.id);
+      if (idx >= 0) {
+        results[idx] = result;
+      } else {
+        results.unshift(result);
+      }
+      localStorage.setItem('math_hero_results', JSON.stringify(results));
+    } catch {}
   }
 
   async getMistakes(): Promise<MistakeRecord[]> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('mistakes', 'readonly');
-        const store = tx.objectStore('mistakes');
-        const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
+      const result = await this.executeTx('mistakes', 'readonly', (store) => {
+        return new Promise<MistakeRecord[]>((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       });
+      if (result && Array.isArray(result)) {
+        return result;
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_mistakes');
-      return local ? JSON.parse(local) : [];
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_mistakes');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch {}
+    }
+    return [];
   }
 
   async saveMistake(mistake: MistakeRecord): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('mistakes', 'readwrite');
-        const store = tx.objectStore('mistakes');
-        const req = store.put(mistake);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('mistakes', 'readwrite', (store) => {
+        store.put(mistake);
       });
     } catch {
-      const mistakes = await this.getMistakes();
-      mistakes.unshift(mistake);
-      localStorage.setItem('math_hero_mistakes', JSON.stringify(mistakes));
+      // fallback
     }
+    try {
+      const mistakes = await this.getMistakes();
+      const idx = mistakes.findIndex(m => m.id === mistake.id);
+      if (idx >= 0) {
+        mistakes[idx] = mistake;
+      } else {
+        mistakes.unshift(mistake);
+      }
+      localStorage.setItem('math_hero_mistakes', JSON.stringify(mistakes));
+    } catch {}
   }
 
   async getAchievements(): Promise<Achievement[]> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('achievements', 'readonly');
-        const store = tx.objectStore('achievements');
-        const req = store.getAll();
-        req.onsuccess = () => {
-          if (req.result && req.result.length > 0) {
-            resolve(req.result);
-          } else {
-            resolve(INITIAL_ACHIEVEMENTS);
-          }
-        };
-        req.onerror = () => resolve(INITIAL_ACHIEVEMENTS);
+      const result = await this.executeTx('achievements', 'readonly', (store) => {
+        return new Promise<Achievement[]>((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       });
+      if (result && result.length > 0) {
+        return result;
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_achievements');
-      return local ? JSON.parse(local) : INITIAL_ACHIEVEMENTS;
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_achievements');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch {}
+    }
+    return INITIAL_ACHIEVEMENTS;
   }
 
   async saveAchievements(achievements: Achievement[]): Promise<void> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve, reject) => {
-        const tx = db.transaction('achievements', 'readwrite');
-        const store = tx.objectStore('achievements');
+      await this.executeTx('achievements', 'readwrite', (store) => {
         achievements.forEach(ach => store.put(ach));
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
       });
     } catch {
-      localStorage.setItem('math_hero_achievements', JSON.stringify(achievements));
+      // fallback
     }
+    try {
+      localStorage.setItem('math_hero_achievements', JSON.stringify(achievements));
+    } catch {}
   }
 
   async getPresets(): Promise<QuizPreset[]> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('presets', 'readonly');
-        const store = tx.objectStore('presets');
-        const req = store.getAll();
-        req.onsuccess = () => {
-          if (req.result && req.result.length > 0) {
-            resolve(req.result);
-          } else {
-            resolve(DEFAULT_PRESETS);
-          }
-        };
-        req.onerror = () => resolve(DEFAULT_PRESETS);
+      const result = await this.executeTx('presets', 'readonly', (store) => {
+        return new Promise<QuizPreset[]>((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       });
+      if (result && result.length > 0) {
+        return result;
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_presets');
-      return local ? JSON.parse(local) : DEFAULT_PRESETS;
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_presets');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch {}
+    }
+    return DEFAULT_PRESETS;
   }
 
   async getTestPatterns(): Promise<TestPattern[]> {
     try {
-      const db = await this.getDB();
-      return new Promise((resolve) => {
-        const tx = db.transaction('presets', 'readonly');
-        const store = tx.objectStore('presets');
-        const req = store.getAll();
-        req.onsuccess = () => {
-          // Filter or combine with default test patterns
-          const loaded: any[] = req.result || [];
-          const patternsOnly = loaded.filter((item) => item.config && item.config.selectedOperations);
-          if (patternsOnly.length > 0) {
-            resolve(patternsOnly as TestPattern[]);
-          } else {
-            // Check localStorage
-            const local = localStorage.getItem('math_hero_test_patterns');
-            if (local) {
-              resolve(JSON.parse(local));
-            } else {
-              resolve(DEFAULT_TEST_PATTERNS);
-            }
-          }
-        };
-        req.onerror = () => {
-          const local = localStorage.getItem('math_hero_test_patterns');
-          resolve(local ? JSON.parse(local) : DEFAULT_TEST_PATTERNS);
-        };
+      const result = await this.executeTx('presets', 'readonly', (store) => {
+        return new Promise<any[]>((resolve, reject) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
       });
+      const patternsOnly = (result || []).filter((item: any) => item && item.config && item.config.selectedOperations);
+      if (patternsOnly.length > 0) {
+        return patternsOnly as TestPattern[];
+      }
     } catch {
-      const local = localStorage.getItem('math_hero_test_patterns');
-      return local ? JSON.parse(local) : DEFAULT_TEST_PATTERNS;
+      // fallback
     }
+
+    const local = localStorage.getItem('math_hero_test_patterns');
+    if (local) {
+      try {
+        return JSON.parse(local);
+      } catch {}
+    }
+    return DEFAULT_TEST_PATTERNS;
   }
 
   async saveTestPattern(pattern: TestPattern): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('presets', 'readwrite');
-        const store = tx.objectStore('presets');
-        const req = store.put(pattern);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('presets', 'readwrite', (store) => {
+        store.put(pattern);
       });
     } catch {
       // Fallback to localStorage
@@ -504,13 +628,8 @@ class StorageService {
 
   async deleteTestPattern(id: string): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('presets', 'readwrite');
-        const store = tx.objectStore('presets');
-        const req = store.delete(id);
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('presets', 'readwrite', (store) => {
+        store.delete(id);
       });
     } catch {
       // Fallback
@@ -526,13 +645,8 @@ class StorageService {
 
   async clearResults(): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('results', 'readwrite');
-        const store = tx.objectStore('results');
-        const req = store.clear();
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('results', 'readwrite', (store) => {
+        store.clear();
       });
     } catch {
       // Fallback
@@ -543,13 +657,8 @@ class StorageService {
 
   async clearMistakes(): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('mistakes', 'readwrite');
-        const store = tx.objectStore('mistakes');
-        const req = store.clear();
-        req.onsuccess = () => resolve();
-        req.onerror = () => reject(req.error);
+      await this.executeTx('mistakes', 'readwrite', (store) => {
+        store.clear();
       });
     } catch {
       // Fallback
@@ -560,14 +669,9 @@ class StorageService {
 
   async saveResultsBulk(results: QuizResult[]): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('results', 'readwrite');
-        const store = tx.objectStore('results');
+      await this.executeTx('results', 'readwrite', (store) => {
         store.clear();
         results.forEach((item) => store.put(item));
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
       });
     } catch {
       // Fallback
@@ -578,14 +682,9 @@ class StorageService {
 
   async saveMistakesBulk(mistakes: MistakeRecord[]): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('mistakes', 'readwrite');
-        const store = tx.objectStore('mistakes');
+      await this.executeTx('mistakes', 'readwrite', (store) => {
         store.clear();
         mistakes.forEach((item) => store.put(item));
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
       });
     } catch {
       // Fallback
@@ -596,13 +695,8 @@ class StorageService {
 
   async saveTestPatternsBulk(patterns: TestPattern[]): Promise<void> {
     try {
-      const db = await this.getDB();
-      await new Promise<void>((resolve, reject) => {
-        const tx = db.transaction('presets', 'readwrite');
-        const store = tx.objectStore('presets');
+      await this.executeTx('presets', 'readwrite', (store) => {
         patterns.forEach((item) => store.put(item));
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
       });
     } catch {
       // Fallback

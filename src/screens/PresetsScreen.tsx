@@ -54,24 +54,25 @@ export const PresetsScreen: React.FC<PresetsScreenProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 md:py-8 space-y-6 pb-24">
       {/* Top Header - Title on right, BackButton on left */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="text-right">
-          <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">
+      <div className="flex flex-row items-center justify-between gap-3 w-full">
+        <div className="text-right flex-1 min-w-0">
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100 truncate">
             الگوهای آزمون و تمرین ریاضی
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
             چیدمان‌های ذخیره‌شده را شروع، ویرایش یا ایجاد کنید
           </p>
         </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={onCreateNew}
-            className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-xs shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="px-3.5 py-2 sm:px-5 sm:py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-black text-xs shadow-md hover:shadow-lg active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <span>➕</span>
-            <span>ایجاد الگوی جدید</span>
+            <span className="hidden sm:inline">ایجاد الگوی جدید</span>
+            <span className="sm:hidden">الگوی جدید</span>
           </button>
           <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
         </div>

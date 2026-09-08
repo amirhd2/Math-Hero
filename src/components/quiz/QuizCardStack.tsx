@@ -8,11 +8,9 @@
  * - Synchronized forward promotion when active card departs (falling-leaf / tear-off).
  * - Stable geometry, zero layout shifts, zero blank frames, persistent focus.
  */
-import React, { useMemo } from 'react';
+import React from 'react';
 import { QuizQuestion, CharacterGender, CharacterPose } from '../../types';
-import { QuestionRenderer } from './QuestionRenderer';
 import { QuizCardContent } from './QuizCardContent';
-import { toPersianDigits } from '../../utils/persian';
 
 interface QuizCardStackProps {
   currentQuestion: QuizQuestion;
@@ -38,6 +36,7 @@ interface BackCardLayerProps {
   characterGender?: CharacterGender;
   isPractice?: boolean;
   maxAttempts?: number;
+  streak?: number;
 }
 
 const BackCardLayer: React.FC<BackCardLayerProps> = ({
@@ -47,47 +46,47 @@ const BackCardLayer: React.FC<BackCardLayerProps> = ({
   characterGender,
   isPractice,
   maxAttempts,
+  streak,
 }) => {
-  // Tight physical stack transforms (subtle 3px step bottom protrusion bringing cards UP close under card 1)
+  // Physical stack layers with synchronized keyframe promotion
   let transformClasses = '';
   let bgClasses = '';
 
   if (layer === 1) {
     // Card N+1 (Immediately behind active card)
     transformClasses = isAdvancing
-      ? 'translate-y-0 scale-x-100 opacity-100 shadow-xl z-30'
-      : 'translate-y-[3px] scale-x-[0.985] opacity-100 z-20 shadow-xs';
-    bgClasses = 'bg-slate-50 dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/80';
+      ? 'animate-card-promote-up z-30'
+      : 'translate-y-[10px] scale-[0.975] z-20 shadow-md';
+    bgClasses = 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800';
   } else if (layer === 2) {
     // Card N+2 (Third card in stack)
     transformClasses = isAdvancing
-      ? 'translate-y-[3px] scale-x-[0.985] opacity-100 z-20 shadow-xs'
-      : 'translate-y-[6px] scale-x-[0.97] opacity-90 z-10 shadow-2xs';
-    bgClasses = 'bg-slate-100 dark:bg-slate-800/70 border-slate-200/70 dark:border-slate-700/60';
+      ? 'animate-card-step-2-to-1 z-20'
+      : 'translate-y-[20px] scale-[0.95] opacity-80 z-10 shadow-sm';
+    bgClasses = 'bg-slate-50 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/70';
   } else {
     // Card N+3 (Fourth card in stack)
     transformClasses = isAdvancing
-      ? 'translate-y-[6px] scale-x-[0.97] opacity-90 z-10 shadow-2xs'
-      : 'translate-y-[9px] scale-x-[0.955] opacity-75 z-0 shadow-2xs';
-    bgClasses = 'bg-slate-200 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-700/40';
+      ? 'animate-card-step-3-to-2 z-10'
+      : 'translate-y-[30px] scale-[0.925] opacity-60 z-0 shadow-xs';
+    bgClasses = 'bg-slate-100 dark:bg-slate-800/70 border-slate-200/60 dark:border-slate-700/50';
   }
 
   return (
     <div
       key={`back-card-${layer}-${question.id}`}
       aria-hidden="true"
-      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none transition-all duration-300 cubic-bezier(0.3, 0, 0.2, 1) flex flex-col justify-between p-4 sm:p-6 overflow-hidden border h-full ${bgClasses} ${transformClasses}`}
+      dir="rtl"
+      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none flex flex-col h-full p-0 overflow-hidden border border-slate-200/90 dark:border-slate-800 ${bgClasses} ${transformClasses}`}
     >
-      <div className="w-full h-full flex flex-col overflow-hidden pointer-events-none opacity-80" dir="rtl">
-        <QuizCardContent 
-          question={question}
-          characterGender={characterGender}
-          isPractice={isPractice}
-          currentAttempts={0}
-          maxAttempts={maxAttempts}
-          streak={0}
-        />
-      </div>
+      <QuizCardContent 
+        question={question}
+        characterGender={characterGender}
+        isPractice={isPractice}
+        currentAttempts={0}
+        maxAttempts={maxAttempts}
+        streak={streak}
+      />
     </div>
   );
 };
@@ -135,6 +134,9 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           layer={3}
           isAdvancing={isAdvancing}
           characterGender={characterGender}
+          isPractice={isPractice}
+          maxAttempts={maxAttempts}
+          streak={streak}
         />
       )}
 
@@ -145,6 +147,9 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           layer={2}
           isAdvancing={isAdvancing}
           characterGender={characterGender}
+          isPractice={isPractice}
+          maxAttempts={maxAttempts}
+          streak={streak}
         />
       )}
 
@@ -155,6 +160,9 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           layer={1}
           isAdvancing={isAdvancing}
           characterGender={characterGender}
+          isPractice={isPractice}
+          maxAttempts={maxAttempts}
+          streak={streak}
         />
       )}
 
@@ -166,8 +174,8 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
         key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
         dir="rtl"
-        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 transition-all duration-300 cursor-text flex flex-col h-full overflow-hidden ${feedbackRingClass} ${
-          isAdvancing ? 'animate-calendar-tear-fall pointer-events-none' : 'scale-100 opacity-100'
+        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 cursor-text flex flex-col h-full overflow-hidden ${feedbackRingClass} ${
+          isAdvancing ? 'animate-card-slide-down-fade pointer-events-none' : 'scale-100 opacity-100 transition-shadow duration-200'
         }`}
       >
 

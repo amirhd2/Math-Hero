@@ -29,53 +29,87 @@
 }
 
 /* ==========================================================================
-   Calendar Page Tear-Off & Smooth Downward Drop Animation
-   (انیمیشن کنده شدن برگه تقویم و فرود روان و یکنواخت به پایین صفحه)
-   Simulates a calendar page tearing off smoothly from the top binder,
-   tilting forward gracefully in 3D, gliding down cleanly to the bottom
-   without erratic lateral wobble, and fading out seamlessly.
+   Ultra-Smooth Quiz Card Animations (انیمیشن‌های فوق‌العاده روان و پیوسته کارت آزمون)
+   1. Active front card: Gently detaches, slides down, shrinks gradually, and fades out in a single continuous Bezier curve.
+   2. Back card: Synchronously rises up from behind in a continuous, physical motion, landing smoothly in the foreground with zero jump or flicker.
    ========================================================================== */
-@keyframes calendarTearOffAndDrop {
+
+/* Active Front Card: Smooth downward acceleration with gentle shrink and dissolve */
+@keyframes cardSlideDownFade {
   0% {
-    transform: perspective(1200px) translateY(0) rotateX(0deg) scale(1);
-    transform-origin: top center;
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
-  }
-  20% {
-    /* Stage 1: The top edge peels off and gently arches forward */
-    transform: perspective(1200px) translateY(22px) rotateX(24deg) scale(0.99);
-    transform-origin: top center;
-    opacity: 0.98;
-    box-shadow: 0 25px 35px -5px rgba(0, 0, 0, 0.16);
-  }
-  50% {
-    /* Stage 2: Glides straight down with natural forward pitch */
-    transform: perspective(1200px) translateY(125px) rotateX(46deg) scale(0.96);
-    transform-origin: center center;
-    opacity: 0.85;
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12);
-  }
-  80% {
-    /* Stage 3: Smoothly accelerating towards bottom of screen while dissolving */
-    transform: perspective(1200px) translateY(290px) rotateX(62deg) scale(0.92);
-    transform-origin: center center;
-    opacity: 0.35;
   }
   100% {
-    /* Stage 4: Reaches bottom of screen and fully dissolves */
-    transform: perspective(1200px) translateY(460px) rotateX(72deg) scale(0.88);
-    transform-origin: center center;
+    transform: translate3d(0, 160px, 0) scale(0.85);
     opacity: 0;
-    box-shadow: none;
   }
 }
 
+/* Layer 1 (Back Card): Smoothly and seamlessly glides up to take the active place */
+@keyframes cardPromoteUp {
+  0% {
+    transform: translate3d(0, 10px, 0) scale(0.975);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+}
+
+/* Layer 2 (3rd card in stack): Advances smoothly to Layer 1 */
+@keyframes cardStepLayer2To1 {
+  0% {
+    transform: translate3d(0, 20px, 0) scale(0.95);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate3d(0, 10px, 0) scale(0.975);
+    opacity: 1;
+  }
+}
+
+/* Layer 3 (4th card in stack): Advances smoothly to Layer 2 */
+@keyframes cardStepLayer3To2 {
+  0% {
+    transform: translate3d(0, 30px, 0) scale(0.925);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate3d(0, 20px, 0) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.animate-card-slide-down-fade,
 .animate-calendar-tear-fall,
 .animate-falling-leaf {
-  animation: calendarTearOffAndDrop 0.58s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  animation: cardSlideDownFade 0.38s cubic-bezier(0.38, 0, 0.65, 0.1) forwards;
   will-change: transform, opacity;
   backface-visibility: hidden;
+  transform-style: flat;
+}
+
+.animate-card-promote-up {
+  animation: cardPromoteUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, box-shadow;
+  backface-visibility: hidden;
+  transform-style: flat;
+}
+
+.animate-card-step-2-to-1 {
+  animation: cardStepLayer2To1 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform-style: flat;
+}
+
+.animate-card-step-3-to-2 {
+  animation: cardStepLayer3To2 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform-style: flat;
 }
 
 /* Shake Animation for Incorrect Attempts */
@@ -190,17 +224,17 @@
   100% { opacity: 0.3; transform: scale(0.8) rotate(270deg); }
 }
 
-/* Safe area padding utilities for iOS / iPad / Android */
+/* Safe area padding utilities for iOS / iPad / Android Web App / PWA */
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
 }
 .pt-safe {
-  padding-top: max(env(safe-area-inset-top, 0px), 1rem);
+  padding-top: env(safe-area-inset-top, 0px);
 }
 .pl-safe {
-  padding-left: max(env(safe-area-inset-left, 0px), 0.5rem);
+  padding-left: env(safe-area-inset-left, 0px);
 }
 .pr-safe {
-  padding-right: max(env(safe-area-inset-right, 0px), 0.5rem);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 

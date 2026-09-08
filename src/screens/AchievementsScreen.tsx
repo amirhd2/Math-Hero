@@ -29,7 +29,7 @@ import { RecentlyUnlockedList } from '../components/gamification/RecentlyUnlocke
 import { BadgeDetailModal } from '../components/gamification/BadgeDetailModal';
 import { StagesRoadmapModal } from '../components/gamification/StagesRoadmapModal';
 import { sound } from '../utils/sound';
-import { getTrophyCupUrl, getTrophyCupFallbackUrl, getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
+import { getTrophyCupUrl, getTrophyCupFallbackUrl } from '../utils/assetPaths';
 
 interface AchievementsScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -148,10 +148,8 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     );
   }
 
-  const gender = profile.gender === 'girl' ? 'girl' : 'boy';
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6 text-right">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 text-right">
       {/* 1. Header Navigation Bar - Title on right, BackButton on left */}
       <div className="flex flex-row items-center justify-between gap-3 w-full">
         <div className="text-right flex-1 min-w-0">
@@ -169,52 +167,33 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         </div>
       </div>
 
-      {/* 2. Two-Column Layout (Tablet Landscape & Desktop): Cards on Right, Full-body Character on Left */}
-      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8 mt-1.5 sm:mt-2">
-        {/* Right Column: Hero Card, Trophy Path Card, Level Progression Card, Recently Unlocked */}
-        <div className="w-full lg:w-3/5 xl:w-2/3 space-y-6 md:space-y-8">
-          {/* Top Hero: Colored Trophy Hero Card */}
-          <TrophyHeroCard
-            profile={profile}
-            trophyInfo={trophyInfo}
-            levelInfo={levelInfo}
-            unlockedBadgesCount={unlockedCount}
-            totalBadgesCount={allBadges.length}
-            streak={streak}
-          />
+      {/* 2. Main Hero Cards Section */}
+      <div className="space-y-6 md:space-y-8 mt-1.5 sm:mt-2 w-full">
+        {/* Top Hero: Colored Trophy Hero Card (Character sits seamlessly directly on the card) */}
+        <TrophyHeroCard
+          profile={profile}
+          trophyInfo={trophyInfo}
+          levelInfo={levelInfo}
+          unlockedBadgesCount={unlockedCount}
+          totalBadgesCount={allBadges.length}
+          streak={streak}
+        />
 
-          {/* Dedicated Trophy Path Card (White background, 3x2 grid, next cup progress) */}
-          <TrophyPathCard
-            trophyInfo={trophyInfo}
-          />
+        {/* Dedicated Trophy Path Card (White background, 3x2 grid, next cup progress) */}
+        <TrophyPathCard
+          trophyInfo={trophyInfo}
+        />
 
-          {/* Level Progression Card (RTL scrolling stage medals, hollow/filled connecting rods, roadmap button) */}
-          <LevelProgressCard
-            levelInfo={levelInfo}
-          />
+        {/* Level Progression Card (RTL scrolling stage medals, hollow/filled connecting rods, roadmap button) */}
+        <LevelProgressCard
+          levelInfo={levelInfo}
+        />
 
-          {/* Recently Unlocked Highlights */}
-          <RecentlyUnlockedList
-            badges={recentlyUnlocked}
-            onSelectBadge={handleSelectBadge}
-          />
-        </div>
-
-        {/* Left Column (Character Image on Desktop/Large Screens - Sticky, full body) */}
-        <div className="hidden lg:flex w-full lg:w-2/5 xl:w-1/3 sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none">
-          <img
-            src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
-            alt="Hero Character"
-            className="w-full h-full max-h-[82vh] object-contain filter drop-shadow-2xl pointer-events-auto transform hover:scale-105 transition-transform"
-            onError={(e) => {
-              const target = e.currentTarget;
-              if (!target.dataset.fallback) {
-                target.dataset.fallback = '1';
-                target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
-              }
-            }}
-          />
-        </div>
+        {/* Recently Unlocked Highlights */}
+        <RecentlyUnlockedList
+          badges={recentlyUnlocked}
+          onSelectBadge={handleSelectBadge}
+        />
       </div>
 
       {/* 3. Full-Width Section: Starts from Filter & Search Controls and scrolls up naturally */}

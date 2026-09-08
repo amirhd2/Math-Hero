@@ -114,7 +114,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-clip">
       {/* Floating Success Toast (Always visible regardless of scroll position) */}
       {savedSuccess && (
         <div
@@ -126,10 +126,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row items-start gap-6 md:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start w-full">
         
         {/* Right Column (Cards) */}
-        <div className="w-full lg:w-3/5 xl:w-2/3">
+        <div className="col-span-1 lg:col-span-7 xl:col-span-8 w-full min-w-0">
           
       {/* Top Desktop Header - Title on right, BackButton on left */}
       <div className="hidden lg:flex items-center justify-between mb-6">
@@ -146,7 +146,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       {/* Hero Showcase + Current Badge Card Section (4mm overlap on mobile and tablet portrait) */}
       <div className="relative">
         {/* Mobile & Tablet Portrait Hero Showcase Card (1cm shorter on mobile/small screens) */}
-        <div className="lg:hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 bg-gradient-to-b from-[#8E7FF3] via-[#8373ED] to-[#7968E7] rounded-b-[36px] sm:rounded-b-[44px] px-4 sm:px-6 pt-3.5 sm:pt-4 pb-2 sm:pb-2.5 text-white shadow-2xl relative z-10 space-y-1.5 sm:space-y-2">
+        <div className="lg:hidden -mx-4 -mt-6 sm:-mx-6 sm:-mt-8 bg-gradient-to-b from-[#8E7FF3] via-[#8373ED] to-[#7968E7] rounded-b-[36px] sm:rounded-b-[44px] px-4 sm:px-6 pt-3.5 sm:pt-4 pb-2 sm:pb-2.5 text-white shadow-2xl relative z-10 space-y-1.5 sm:space-y-2 overflow-hidden">
           {/* Dynamic Twinkling & Fading Stars Background Watermark */}
           <StarBackgroundWatermark count={12} className="rounded-b-[36px] sm:rounded-b-[44px]" />
 
@@ -182,7 +182,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
             </div>
 
             {/* Left Side in RTL (5/12 on mobile, 6/12 on tablet/desktop): Character Container */}
-            <div className="col-span-5 sm:col-span-6 flex items-end justify-center w-full relative -ml-4 sm:-ml-7 pl-[1mm] pr-[2mm] sm:pr-[3mm] z-30 -mt-4 sm:-mt-6 translate-y-2 sm:translate-y-3 -mb-3 sm:-mb-5 h-[calc(100%+24px)] sm:h-[calc(100%+32px)]">
+            <div className="col-span-5 sm:col-span-6 flex items-end justify-center w-full relative z-30 -mt-4 sm:-mt-6 translate-y-2 sm:translate-y-3 -mb-3 sm:-mb-5 h-[calc(100%+24px)] sm:h-[calc(100%+32px)]">
               <img
                 src={getAssetUrl(`assets/characters/${gender}/half-body/greeting.webp`)}
                 alt="Hero Character"
@@ -531,11 +531,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       </div>
 
         {/* Left Column (Character Image on Desktop/Large Screens - Fixed/sticky in viewport, never scrolls away) */}
-        <div className="hidden lg:flex w-full lg:w-2/5 xl:w-1/3 sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none">
+        <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 w-full sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none min-w-0 overflow-hidden">
           <img 
             src={getAssetUrl(`assets/characters/${gender}/greeting.webp`)} 
             alt="Hero Character" 
-            className="w-full h-full max-h-[82vh] object-contain filter drop-shadow-2xl pointer-events-auto transform hover:scale-105 transition-transform" 
+            className="w-full h-full max-h-[82vh] object-contain filter drop-shadow-2xl pointer-events-auto select-none" 
             onError={(e) => {
               const target = e.currentTarget;
               if (!target.dataset.fallback) {

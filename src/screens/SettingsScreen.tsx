@@ -284,7 +284,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const hasVibration = sound.hasVibrationSupport();
 
   return (
-    <div className="w-full min-h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors pb-16 pt-safe">
+    <div className="w-full min-h-[100dvh] bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors pb-16">
       {/* Hidden File Input for Backup JSON */}
       <input
         ref={fileInputRef}
@@ -304,32 +304,36 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6">
-        {/* Top Header & Navigation Entry - Title on right, BackButton on left */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
-          <div className="text-right">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100">
-              {t('settings_title', lang)}
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        {/* Top Header & Navigation Bar - Title on right, BackButton on left (Top-Left on Mobile & Desktop) */}
+        <div className="flex flex-row items-center justify-between gap-3 w-full pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div className="text-right flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-100 truncate">
+                {t('settings_title', lang)}
+              </h1>
+              <div className="inline-flex items-center gap-1.5 mr-1">
+                <span className="text-[11px] sm:text-xs font-black px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
+                  نسخه {APP_VERSION}
+                </span>
+                <span
+                  className={`text-[11px] sm:text-xs font-bold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-xl border flex items-center gap-1.5 ${
+                    isOnline
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+                  <span>{isOnline ? 'آنلاین' : 'آفلاین'}</span>
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
               {t('settings_subtitle', lang)}
             </p>
           </div>
 
-          {/* Quick Stat Pill & Back Button */}
-          <div className="flex items-center gap-2.5 self-start sm:self-auto">
-            <span className="text-xs font-black px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/70">
-              نسخه {APP_VERSION}
-            </span>
-            <span
-              className={`text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${
-                isOnline
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
-                  : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
-              <span>{isOnline ? 'آنلاین' : 'آفلاین پایدار'}</span>
-            </span>
+          {/* Quick Back Button - Always pinned to Left Corner in RTL */}
+          <div className="shrink-0">
             <BackButton onClick={() => onNavigate('home')} title={t('back_to_home', lang)} />
           </div>
         </div>

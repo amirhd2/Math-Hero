@@ -8,7 +8,7 @@ import React from 'react';
 import { TrophyInfo, LevelInfo } from '../../gamification/gamificationTypes';
 import { UserProfile } from '../../types';
 import { formatNumber } from '../../utils/persian';
-import { getAssetUrl, getFallbackAssetUrl, getTrophyCupUrl, getTrophyCupFallbackUrl } from '../../utils/assetPaths';
+import { getAssetUrl, getFallbackAssetUrl } from '../../utils/assetPaths';
 
 interface TrophyHeroCardProps {
   profile: UserProfile;
@@ -88,19 +88,13 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
   return (
     <div
       id="trophy-hero-card"
-      className="relative select-none"
+      className={`relative rounded-3xl overflow-hidden select-none bg-gradient-to-br ${theme.gradient} shadow-2xl ${theme.glow} border border-white/15`}
     >
-      {/* Background Card Container with Rounded Corners & Shadows */}
-      <div
-        className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${theme.gradient} shadow-2xl ${theme.glow} border border-white/15 overflow-hidden pointer-events-none`}
-      >
-        {/* Background Decorative Blur Orbs */}
-        <div className="absolute -top-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
-      </div>
+      {/* Subtle Background Ambience (Bottom Right Only - Never behind character) */}
+      <div className="absolute -bottom-14 -right-14 w-60 h-60 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Content Layout */}
-      <div className="relative z-10 flex flex-row items-center justify-between gap-3 sm:gap-6 p-5 sm:p-7 min-h-[145px] sm:min-h-[165px]">
+      <div className="relative z-10 flex flex-row items-stretch justify-between gap-3 sm:gap-6 p-4 sm:p-6 md:p-7 min-h-[155px] sm:min-h-[175px]">
         {/* Right Content (Persian RTL) */}
         <div className="flex-1 space-y-2.5 sm:space-y-3.5 text-right min-w-0">
           {/* Current Level Capsule (Top & Center above Progress Bar) */}
@@ -169,47 +163,20 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
           </div>
         </div>
 
-        {/* Left on Mobile: Character Box - bottom flush to card bottom */}
-        {/* Zooms into abdomen-up (شکم به بالا) region and scales image to fill box width as much as possible */}
-        <div className="lg:hidden relative w-32 min-[420px]:w-36 sm:w-44 md:w-52 self-stretch -mb-5 sm:-mb-7 -ml-5 sm:-ml-7 shrink-0 z-20 pointer-events-none">
-          <div className="absolute inset-x-0 bottom-0 top-0 overflow-hidden rounded-bl-3xl flex items-start justify-center">
-            <img
-              src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
-              alt="Hero Character"
-              className="w-full min-w-full h-auto object-cover object-top filter drop-shadow-2xl block select-none origin-top scale-[1.12] translate-y-[-1%]"
-              onError={(e) => {
-                const target = e.currentTarget;
-                if (!target.dataset.fallback) {
-                  target.dataset.fallback = '1';
-                  target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Left on Desktop: Current Trophy Showcase Widget */}
-        <div className="hidden lg:flex flex-col items-center shrink-0">
-          <div
-            className={`relative w-32 h-32 xl:w-36 xl:h-36 rounded-3xl bg-gradient-to-br ${theme.trophyColor} flex items-center justify-center p-3 shadow-2xl border-4 border-white/30 transform hover:scale-105 transition-transform overflow-hidden`}
-          >
-            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-white/20 pointer-events-none" />
-            <img
-              src={getTrophyCupUrl(trophyInfo.stage)}
-              alt={trophyInfo.stageNameFa}
-              className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)] hover:scale-110 transition-transform duration-300"
-              onError={(e) => {
-                const target = e.currentTarget;
-                if (!target.dataset.fallback) {
-                  target.dataset.fallback = '1';
-                  target.src = getTrophyCupFallbackUrl(trophyInfo.stage);
-                }
-              }}
-            />
-          </div>
-          <span className="text-xs font-black text-white/95 mt-2 bg-black/35 px-3 py-1 rounded-full border border-white/15 shadow-sm">
-            {trophyInfo.stageNameFa}
-          </span>
+        {/* Left Side: Character zoomed into abdomen-up region, filling box width as much as possible */}
+        <div className="relative w-32 min-[390px]:w-36 min-[430px]:w-40 sm:w-48 md:w-56 lg:w-60 -mb-4 sm:-mb-6 md:-mb-7 -ml-4 sm:-ml-6 md:-ml-7 -mt-1 sm:-mt-2 self-stretch shrink-0 z-10 pointer-events-none flex items-start justify-center">
+          <img
+            src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
+            alt="Hero Character"
+            className="w-full min-w-full h-auto object-cover object-top block select-none pointer-events-none"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = '1';
+                target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
+              }
+            }}
+          />
         </div>
       </div>
     </div>

@@ -34,6 +34,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { ParentDashboardScreen } from './screens/ParentDashboardScreen';
 import { ParentGateModal } from './components/parent/ParentGateModal';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
+import { IOSSwipeBackContainer } from './components/navigation/IOSSwipeBackContainer';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -46,6 +47,60 @@ export default function App() {
   const [isParentGateOpen, setIsParentGateOpen] = useState(false);
 
   const [currentScreen, setCurrentScreen] = useState<ScreenId>('home');
+  const [navigationHistory, setNavigationHistory] = useState<ScreenId[]>(['home']);
+
+  const getDefaultPreviousScreen = (screen: ScreenId, mode: AppMode): ScreenId | null => {
+    if (screen === 'home' || screen === 'onboarding') return null;
+    if (screen === 'quiz_setup') return mode === 'parent' ? 'parent_dashboard' : 'home';
+    if (screen === 'presets') return mode === 'parent' ? 'parent_dashboard' : 'home';
+    if (screen === 'parent_dashboard') return 'home';
+    return 'home';
+  };
+
+  const getPreviousScreen = (): ScreenId | null => {
+    if (currentScreen === 'home' || currentScreen === 'onboarding') {
+      return null;
+    }
+    if (navigationHistory.length > 1) {
+      return navigationHistory[navigationHistory.length - 2];
+    }
+    return getDefaultPreviousScreen(currentScreen, appMode);
+  };
+
+  const handleNavigate = (targetScreen: ScreenId) => {
+    if (targetScreen === currentScreen) return;
+
+    if (targetScreen === 'home') {
+      setNavigationHistory(['home']);
+      setCurrentScreen('home');
+      return;
+    }
+
+    const existingIndex = navigationHistory.lastIndexOf(targetScreen);
+    if (existingIndex !== -1 && existingIndex === navigationHistory.length - 2) {
+      setNavigationHistory(prev => prev.slice(0, -1));
+      setCurrentScreen(targetScreen);
+      return;
+    }
+
+    setNavigationHistory(prev => [...prev, targetScreen]);
+    setCurrentScreen(targetScreen);
+  };
+
+  const handleGoBack = () => {
+    if (navigationHistory.length > 1) {
+      const nextHistory = navigationHistory.slice(0, -1);
+      const prevScreen = nextHistory[nextHistory.length - 1];
+      setNavigationHistory(nextHistory);
+      setCurrentScreen(prevScreen);
+    } else {
+      const defaultPrev = getDefaultPreviousScreen(currentScreen, appMode);
+      if (defaultPrev) {
+        setNavigationHistory([defaultPrev]);
+        setCurrentScreen(defaultPrev);
+      }
+    }
+  };
 
   useEffect(() => {
     const scrollToTop = () => {
@@ -158,7 +213,7 @@ export default function App() {
   ) => {
     setActiveQuizConfig(config);
     setEditingPattern(patternToEdit || null);
-    setCurrentScreen('quiz_setup');
+    handleNavigate('quiz_setup');
   };
 
   // Start Quiz directly from generated Quiz Configuration (Parent Manual Setup)
@@ -185,7 +240,7 @@ export default function App() {
           },
         };
         setActiveSession(session);
-        setCurrentScreen('quiz_active');
+        handleNavigate('quiz_active');
         return;
       }
 
@@ -193,7 +248,7 @@ export default function App() {
       session.source = 'parent-manual';
       session.isParentOverride = true;
       setActiveSession(session);
-      setCurrentScreen('quiz_active');
+      handleNavigate('quiz_active');
     } catch (err) {
       console.error('Failed to create quiz session:', err);
     }
@@ -206,7 +261,7 @@ export default function App() {
       session.source = 'test-pattern';
       session.isParentOverride = true;
       setActiveSession(session);
-      setCurrentScreen('quiz_active');
+      handleNavigate('quiz_active');
     } catch (err) {
       console.error('Failed to start pattern quiz:', err);
     }
@@ -254,7 +309,7 @@ export default function App() {
         },
       };
       setActiveSession(session);
-      setCurrentScreen('quiz_active');
+      handleNavigate('quiz_active');
     } catch (err) {
       console.error('Failed to start child quick operation:', err);
     }
@@ -301,7 +356,7 @@ export default function App() {
         },
       };
       setActiveSession(session);
-      setCurrentScreen('quiz_active');
+      handleNavigate('quiz_active');
     } catch (err) {
       console.error('Failed to start child combined quiz:', err);
     }
@@ -315,13 +370,13 @@ export default function App() {
   const handleParentGateSuccess = () => {
     setIsParentGateOpen(false);
     setAppMode('parent');
-    setCurrentScreen('parent_dashboard');
+    handleNavigate('parent_dashboard');
   };
 
   const handleExitToChildMode = () => {
     setAppMode('child');
     if (currentScreen === 'parent_dashboard' || currentScreen === 'quiz_setup' || currentScreen === 'presets') {
-      setCurrentScreen('home');
+      handleNavigate('home');
     }
   };
 
@@ -345,13 +400,13 @@ export default function App() {
       setActivePreset(presets[0]);
     }
     setActiveSession(null);
-    setCurrentScreen('quiz_active');
+    handleNavigate('quiz_active');
   };
 
   // Start Quiz directly with pre-built QuizSession (e.g. from Results Retry or Practice Mistakes)
   const handleStartSession = (session: QuizSession) => {
     setActiveSession(session);
-    setCurrentScreen('quiz_active');
+    handleNavigate('quiz_active');
   };
 
   // Start Adaptive Smart Review Quiz
@@ -360,7 +415,7 @@ export default function App() {
       const { session } = await createSmartReviewSession();
       if (session) {
         setActiveSession(session);
-        setCurrentScreen('quiz_active');
+        handleNavigate('quiz_active');
       } else {
         handleOpenQuizSetup({ mode: 'practice', questionCount: 10 });
       }
@@ -377,7 +432,7 @@ export default function App() {
     } catch (err) {
       console.warn('Failed to refresh profile after quiz:', err);
     }
-    setCurrentScreen('quiz_results');
+    handleNavigate('quiz_results');
   };
 
   if (isLoading) {
@@ -393,16 +448,13 @@ export default function App() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-['Vazirmatn',sans-serif] selection:bg-amber-400 selection:text-slate-900 transition-colors">
-
-
-      {/* Main Screen Content */}
-      <main className={`flex-1 ${currentScreen === 'quiz_active' ? '' : 'pb-16'}`}>
-        {currentScreen === 'onboarding' && (
-          <OnboardingScreen onComplete={handleCompleteOnboarding} />
-        )}
-        {currentScreen === 'home' && (
+  // Render individual screen component
+  const renderScreen = (screenId: ScreenId) => {
+    switch (screenId) {
+      case 'onboarding':
+        return <OnboardingScreen onComplete={handleCompleteOnboarding} />;
+      case 'home':
+        return (
           <HomeScreen
             profile={profile}
             presets={presets}
@@ -411,50 +463,55 @@ export default function App() {
             onOpenSetup={handleOpenQuizSetup}
             onStartPattern={handleStartPattern}
             onStartQuiz={handleStartQuiz}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onStartSmartReview={handleStartSmartReview}
             onStartChildQuickOperation={handleStartChildQuickOperation}
             onStartChildCombined={handleStartChildCombined}
           />
-        )}
-        {currentScreen === 'parent_dashboard' && (
+        );
+      case 'parent_dashboard':
+        return (
           <ParentDashboardScreen
             profile={profile}
             testPatterns={testPatterns}
             onOpenSetup={(cfg?: any) => handleOpenQuizSetup(cfg)}
             onStartPattern={handleStartPattern}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onExitToChildMode={handleExitToChildMode}
           />
-        )}
-        {currentScreen === 'quiz_setup' && (
+        );
+      case 'quiz_setup':
+        return (
           <QuizSetupScreen
             initialConfig={activeQuizConfig}
             editingPattern={editingPattern}
             onStartQuiz={handleStartQuizWithConfig}
-            onBack={() => setCurrentScreen(appMode === 'parent' ? 'parent_dashboard' : 'home')}
-            onNavigate={setCurrentScreen}
+            onBack={handleGoBack}
+            onNavigate={handleNavigate}
           />
-        )}
-        {currentScreen === 'presets' && (
+        );
+      case 'presets':
+        return (
           <PresetsScreen
             patterns={testPatterns}
             onStartPattern={handleStartPattern}
             onEditPattern={handleEditPattern}
             onDeletePattern={handleDeletePattern}
             onCreateNew={() => handleOpenQuizSetup()}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
           />
-        )}
-        {currentScreen === 'profile' && (
+        );
+      case 'profile':
+        return (
           <ProfileScreen
             profile={profile}
             onUpdateProfile={handleUpdateProfile}
-            onBack={() => setCurrentScreen('home')}
-            onNavigate={setCurrentScreen}
+            onBack={handleGoBack}
+            onNavigate={handleNavigate}
           />
-        )}
-        {currentScreen === 'quiz_active' && (
+        );
+      case 'quiz_active':
+        return (
           <QuizActiveScreen
             session={activeSession || undefined}
             preset={activePreset}
@@ -462,82 +519,143 @@ export default function App() {
             settings={settings}
             soundEnabled={settings.soundEnabled}
             onFinishQuiz={handleFinishQuiz}
-            onCancelQuiz={() => setCurrentScreen(appMode === 'parent' ? 'parent_dashboard' : 'home')}
+            onCancelQuiz={handleGoBack}
           />
-        )}
-        {currentScreen === 'quiz_results' && lastResult && (
+        );
+      case 'quiz_results':
+        return lastResult ? (
           <ResultsScreen
             result={lastResult}
             profile={profile}
             settings={settings}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onStartSession={handleStartSession}
           />
-        )}
-        {currentScreen === 'mistakes' && (
+        ) : null;
+      case 'mistakes':
+        return (
           <MistakesScreen
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onStartSession={handleStartSession}
           />
-        )}
-        {currentScreen === 'progress' && (
+        );
+      case 'progress':
+        return (
           <ProgressScreen
             profile={profile}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onOpenSetup={handleOpenQuizSetup}
           />
-        )}
-        {currentScreen === 'achievements' && (
-          <AchievementsScreen onNavigate={setCurrentScreen} settings={settings} />
-        )}
-        {currentScreen === 'settings' && (
+        );
+      case 'achievements':
+        return (
+          <AchievementsScreen
+            onNavigate={handleNavigate}
+            settings={settings}
+          />
+        );
+      case 'settings':
+        return (
           <SettingsScreen
             settings={settings}
             profile={profile}
             appMode={appMode}
             onUpdateSettings={handleUpdateSettings}
-            onNavigate={setCurrentScreen}
+            onNavigate={handleNavigate}
             onOpenParentGate={handleOpenParentGate}
             onExitToChildMode={handleExitToChildMode}
           />
-        )}
-      </main>
+        );
+      default:
+        return null;
+    }
+  };
 
-      {/* Floating Bottom Quick Nav for non-quiz screens (Settings does NOT use persistent bottom nav) */}
-      {currentScreen !== 'quiz_active' && currentScreen !== 'onboarding' && currentScreen !== 'quiz_setup' && currentScreen !== 'settings' && (
-        <nav 
-          className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1 px-4 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-2xl shadow-lg"
-          style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)' }}
+  const hasBottomNav = (screenId: ScreenId) =>
+    screenId !== 'quiz_active' &&
+    screenId !== 'onboarding' &&
+    screenId !== 'quiz_setup' &&
+    screenId !== 'settings';
+
+  // Render the full screen view with its main container and persistent bottom nav
+  const renderScreenView = (screenId: ScreenId, isBackground: boolean = false) => {
+    return (
+      <div className="w-full min-h-screen flex flex-col justify-between">
+        <main
+          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' ? '' : 'pb-16 pt-safe'}`}
+          style={{
+            paddingTop: screenId === 'quiz_active' ? undefined : 'env(safe-area-inset-top, 0px)',
+          }}
         >
-          <button onClick={() => setCurrentScreen('home')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-            <span className="text-lg leading-none">🏠</span>
-            <span className="text-[10px] font-medium leading-tight">خانه</span>
-          </button>
-          {appMode === 'parent' ? (
-            <button onClick={() => setCurrentScreen('parent_dashboard')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-              <span className="text-lg leading-none">👨‍🏫</span>
-              <span className="text-[10px] font-medium leading-tight">میز مربی</span>
+          {renderScreen(screenId)}
+        </main>
+
+        {hasBottomNav(screenId) && (
+          <nav 
+            className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1 px-4 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-2xl shadow-lg ${isBackground ? 'pointer-events-none' : ''}`}
+            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)' }}
+          >
+            <button
+              onClick={() => !isBackground && handleNavigate('home')}
+              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <span className="text-lg leading-none">🏠</span>
+              <span className="text-[10px] font-medium leading-tight">خانه</span>
             </button>
-          ) : (
-            <button onClick={() => setCurrentScreen('mistakes')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-              <span className="text-lg leading-none">💡</span>
-              <span className="text-[10px] font-medium leading-tight">گنجینه</span>
+            {appMode === 'parent' ? (
+              <button
+                onClick={() => !isBackground && handleNavigate('parent_dashboard')}
+                className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <span className="text-lg leading-none">👨‍🏫</span>
+                <span className="text-[10px] font-medium leading-tight">میز مربی</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => !isBackground && handleNavigate('mistakes')}
+                className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <span className="text-lg leading-none">💡</span>
+                <span className="text-[10px] font-medium leading-tight">گنجینه</span>
+              </button>
+            )}
+            <button
+              onClick={() => !isBackground && handleNavigate('progress')}
+              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <span className="text-lg leading-none">📊</span>
+              <span className="text-[10px] font-medium leading-tight">آمار</span>
             </button>
-          )}
-          <button onClick={() => setCurrentScreen('progress')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-            <span className="text-lg leading-none">📊</span>
-            <span className="text-[10px] font-medium leading-tight">آمار</span>
-          </button>
-          <button onClick={() => setCurrentScreen('achievements')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${currentScreen === 'achievements' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-            <span className="text-lg leading-none">🏆</span>
-            <span className="text-[10px] font-medium leading-tight">نشان‌ها</span>
-          </button>
-          <button onClick={() => setCurrentScreen('settings')} className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${(currentScreen as string) === 'settings' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}>
-            <span className="text-lg leading-none">⚙️</span>
-            <span className="text-[10px] font-medium leading-tight">تنظیمات</span>
-          </button>
-        </nav>
-      )}
+            <button
+              onClick={() => !isBackground && handleNavigate('achievements')}
+              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'achievements' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <span className="text-lg leading-none">🏆</span>
+              <span className="text-[10px] font-medium leading-tight">نشان‌ها</span>
+            </button>
+            <button
+              onClick={() => !isBackground && handleNavigate('settings')}
+              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${(screenId as string) === 'settings' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
+            >
+              <span className="text-lg leading-none">⚙️</span>
+              <span className="text-[10px] font-medium leading-tight">تنظیمات</span>
+            </button>
+          </nav>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-['Vazirmatn',sans-serif] selection:bg-amber-400 selection:text-slate-900 transition-colors">
+      {/* iOS Interactive Swipe-Back Navigation View */}
+      <IOSSwipeBackContainer
+        currentScreenId={currentScreen}
+        previousScreenId={getPreviousScreen()}
+        canGoBack={getPreviousScreen() !== null}
+        onBack={handleGoBack}
+        renderScreenView={renderScreenView}
+      />
 
       {/* Parent Security Gate Modal */}
       <ParentGateModal

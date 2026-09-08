@@ -139,7 +139,7 @@ export function useQuizEngine({
       setIsAdvancing(true);
       sound.playCardSlide(soundEnabled);
 
-      // Duration matches calendarPageTearFall animation (580ms)
+      // Duration matches synchronized 380ms card promotion and slide-down animation (400ms)
       setTimeout(async () => {
         if (updatedSession.currentIndex + 1 < updatedSession.questions.length) {
           const advanced = advanceSessionToNext(updatedSession);
@@ -176,7 +176,7 @@ export function useQuizEngine({
 
           onFinishQuiz(savedResult);
         }
-      }, 580);
+      }, 400);
     },
     [soundEnabled, profile, onFinishQuiz, focusInput]
   );

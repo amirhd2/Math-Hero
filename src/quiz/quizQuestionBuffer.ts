@@ -65,7 +65,7 @@ export class QuizQuestionBuffer {
         this.session.config.selectedOperations[nextIdx % this.session.config.selectedOperations.length] || 'addition';
       const newQuestion = generateSingleQuestion(
         fallbackOp,
-        this.session.config.operationSettings[fallbackOp as keyof typeof this.session.config.operationSettings]
+        this.session.config.operationSettings
       );
       this.questions.push({
         ...newQuestion,
