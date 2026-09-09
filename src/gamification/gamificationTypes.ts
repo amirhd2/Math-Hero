@@ -50,6 +50,7 @@ export interface Badge {
   description: string;
   category: BadgeCategory;
   icon: string;
+  imageUrl?: string;
   requirement: BadgeRequirement;
   xpReward: number;
   rarity: BadgeRarity;

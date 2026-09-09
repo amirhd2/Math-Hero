@@ -114,7 +114,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount);
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 overflow-x-clip">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 overflow-x-clip lg:h-[calc(100vh-5rem)] lg:overflow-hidden lg:flex lg:flex-col">
       {/* Floating Success Toast (Always visible regardless of scroll position) */}
       {savedSuccess && (
         <div
@@ -126,10 +126,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start w-full lg:flex-1 lg:overflow-hidden">
         
         {/* Right Column (Cards) */}
-        <div className="col-span-1 lg:col-span-7 xl:col-span-8 w-full min-w-0">
+        <div className="col-span-1 lg:col-span-7 xl:col-span-8 w-full min-w-0 lg:h-full lg:overflow-y-auto lg:pr-4 pb-20">
           
       {/* Top Desktop Header - Title on right, BackButton on left */}
       <div className="hidden lg:flex items-center justify-between mb-6">
@@ -530,8 +530,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         </div>
       </div>
 
-        {/* Left Column (Character Image on Desktop/Large Screens - Fixed/sticky in viewport, never scrolls away) */}
-        <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 w-full sticky top-6 self-start h-[calc(100vh-3rem)] items-center justify-center pointer-events-none min-w-0 overflow-hidden">
+        {/* Left Column (Character Image on Desktop/Large Screens) */}
+        <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 w-full h-full items-center justify-center pointer-events-none min-w-0 overflow-hidden">
           <img 
             src={getAssetUrl(`assets/characters/${gender}/greeting.webp`)} 
             alt="Hero Character" 

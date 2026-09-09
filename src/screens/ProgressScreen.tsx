@@ -79,7 +79,7 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-8 animate-fade-in">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 space-y-8 animate-fade-in">
       {/* Top Header Navigation Bar - Title on right, BackButton on left */}
       <div className="flex items-center justify-between gap-4">
         <div className="text-right">
@@ -111,27 +111,29 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
           {/* 2. Key Numbers Grid */}
           <KeyStatsGrid summary={summary} />
 
-          {/* 3. Four Core Operations Performance */}
-          <OperationPerformance
-            operations={summary.operationsList}
-            onPractice={handlePracticeOperation}
-          />
+          {/* 3 & 4. Operations Performance & Progress Trend (2-Column on Tablet/Desktop) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            <OperationPerformance
+              operations={summary.operationsList}
+              onPractice={handlePracticeOperation}
+            />
 
-          {/* 4. Visual Progress Trend Over Time */}
-          <ProgressTrend
-            trendPoints={summary.trendPoints}
-            timeRange={timeRange}
-            onTimeRangeChange={setTimeRange}
-          />
+            <ProgressTrend
+              trendPoints={summary.trendPoints}
+              timeRange={timeRange}
+              onTimeRangeChange={setTimeRange}
+            />
+          </div>
 
-          {/* 5. Learning Insights & Suggestions */}
-          <PerformanceInsight
-            insights={summary.insights}
-            onPractice={handlePracticeOperation}
-          />
+          {/* 5 & 6. Learning Insights & Recent History (2-Column on Tablet/Desktop) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            <PerformanceInsight
+              insights={summary.insights}
+              onPractice={handlePracticeOperation}
+            />
 
-          {/* 6. Recent Quiz History */}
-          <RecentQuizHistory results={summary.recentResults} />
+            <RecentQuizHistory results={summary.recentResults} />
+          </div>
         </div>
       )}
     </div>

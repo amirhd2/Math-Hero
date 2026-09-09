@@ -303,7 +303,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       )}
 
       {/* Main Container */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6">
+      <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 pt-4 sm:pt-6 space-y-6">
         {/* Top Header & Navigation Bar - Title on right, BackButton on left (Top-Left on Mobile & Desktop) */}
         <div className="flex flex-row items-center justify-between gap-3 w-full pb-3 border-b border-slate-200 dark:border-slate-800">
           <div className="text-right flex-1 min-w-0">

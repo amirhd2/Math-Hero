@@ -88,13 +88,17 @@ export const BadgeCard: React.FC<BadgeCardProps> = ({ badge, onClick }) => {
       <div className="flex items-start gap-4">
         {/* Icon Container */}
         <div
-          className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-md transition-transform duration-300 ${
+          className={`w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center text-4xl shrink-0 transition-transform duration-300 ${
             isUnlocked
-              ? `bg-gradient-to-br ${rarityMeta.iconBg} group-hover:scale-110`
-              : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+              ? 'group-hover:scale-110 group-hover:-rotate-3'
+              : 'opacity-70 group-hover:scale-105'
           }`}
         >
-          {isUnlocked ? badge.icon : '🔒'}
+          {isUnlocked ? (
+            badge.imageUrl ? <img src={badge.imageUrl} alt={badge.name} className="w-full h-full object-contain drop-shadow-xl" /> : badge.icon
+          ) : (
+            badge.imageUrl ? <img src={badge.imageUrl} alt={badge.name} className="w-full h-full object-contain grayscale opacity-50 drop-shadow-sm" /> : '🔒'
+          )}
         </div>
 
         {/* Text Details */}

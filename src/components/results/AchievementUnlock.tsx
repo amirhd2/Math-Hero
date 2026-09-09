@@ -33,11 +33,11 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="flex flex-col gap-3">
         {unlockedAchievements.map((ach) => (
           <div
             key={ach.id}
-            className="bg-white dark:bg-slate-900/90 border border-amber-300 dark:border-amber-700/60 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm"
+            className="bg-white dark:bg-slate-900/90 border border-amber-300 dark:border-amber-700/60 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm overflow-hidden"
           >
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 p-1.5 flex items-center justify-center text-2xl shrink-0 shadow-md">
               {ach.icon === 'trophy' || ach.icon === '🏆' ? (
@@ -57,11 +57,11 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
                 ach.icon || '🏆'
               )}
             </div>
-            <div className="space-y-0.5">
-              <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">
+            <div className="flex-1 min-w-0 space-y-0.5">
+              <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">
                 {ach.title}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+              <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
                 {ach.description}
               </p>
             </div>

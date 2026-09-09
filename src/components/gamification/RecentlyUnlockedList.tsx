@@ -49,8 +49,8 @@ export const RecentlyUnlockedList: React.FC<RecentlyUnlockedListProps> = ({
             onClick={() => onSelectBadge && onSelectBadge(b)}
             className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-300/80 dark:border-amber-700/60 shadow-md hover:shadow-lg transition-all cursor-pointer flex items-center gap-3.5 group hover:-translate-y-0.5"
           >
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-2xl shadow-md shrink-0 group-hover:scale-105 transition-transform">
-              {b.icon}
+            <div className="w-16 h-16 flex items-center justify-center text-4xl shrink-0 group-hover:scale-110 group-hover:-rotate-3 transition-transform">
+              {b.imageUrl ? <img src={b.imageUrl} alt={b.name} className="w-full h-full object-contain drop-shadow-md" /> : b.icon}
             </div>
             <div className="min-w-0 space-y-0.5">
               <h4 className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">

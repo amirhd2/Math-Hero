@@ -41,11 +41,11 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({ question, cl
           className="inline-flex flex-col items-end text-3xl sm:text-5xl md:text-6xl font-black text-slate-800 dark:text-slate-100 tracking-wider px-6 py-2"
         >
           {/* Top operand */}
-          <div className="w-full text-right px-2 py-1 leading-none font-mono">
+          <div className="w-full text-right px-2 py-1 leading-none">
             {toPersianDigits(num1)}
           </div>
           {/* Bottom operand with operator on the left */}
-          <div className="flex items-center justify-between w-full gap-6 px-2 py-1 leading-none font-mono">
+          <div className="flex items-center justify-between w-full gap-6 px-2 py-1 leading-none">
             <span className="text-indigo-600 dark:text-indigo-400 text-2xl sm:text-4xl select-none">
               {symbol}
             </span>

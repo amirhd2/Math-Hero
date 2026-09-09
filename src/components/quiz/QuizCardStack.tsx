@@ -24,6 +24,8 @@ interface QuizCardStackProps {
   currentAttempts?: number;
   maxAttempts?: number;
   streak?: number;
+  userAnswer?: string;
+  revealedAnswer?: number | null;
 }
 
 /**
@@ -101,6 +103,8 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   currentAttempts = 0,
   maxAttempts = 3,
   streak = 0,
+  userAnswer,
+  revealedAnswer,
 }) => {
   // Visual border feedback state for active card
   let feedbackRingClass = '';
@@ -187,6 +191,8 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           currentAttempts={currentAttempts}
           maxAttempts={maxAttempts}
           streak={streak}
+          feedbackStatus={feedbackStatus}
+          userAnswer={userAnswer}
         />
       </div>
     </div>

@@ -51,7 +51,7 @@ export const ScoreSummary: React.FC<ScoreSummaryProps> = ({ result }) => {
       className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6"
     >
       {/* Top row: Mode badge & Operation */}
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400">عملیات:</span>
           <span className="px-3 py-1 rounded-xl text-xs font-black bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
@@ -73,7 +73,7 @@ export const ScoreSummary: React.FC<ScoreSummaryProps> = ({ result }) => {
       </div>
 
       {/* Primary Score Ring / Stat Highlights */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 flex-wrap">
         {/* Big percentage callout */}
         <div className="flex items-center gap-4">
           <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-3xl bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center border-2 border-indigo-500/20 dark:border-indigo-500/30 shadow-inner">

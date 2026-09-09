@@ -155,6 +155,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           currentAttempts={currentAttempts}
           maxAttempts={maxAttempts}
           streak={streak}
+          userAnswer={userAnswer}
         />
       </div>
 

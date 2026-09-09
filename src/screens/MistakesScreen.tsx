@@ -30,7 +30,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8" dir="rtl">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 space-y-8" dir="rtl">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-right">
           <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">گنجینه اشتباهات و مرور</h2>
@@ -63,7 +63,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
           <p className="text-sm text-slate-500">شما همه سوالات را به درستی پاسخ داده‌اید.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
           {mistakes.map((m) => {
             const getOpBadge = (op: string) => {
               switch (op) {

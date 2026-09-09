@@ -23,7 +23,7 @@ export const ResultsActions: React.FC<ResultsActionsProps> = ({
   return (
     <nav
       aria-label="عملیات پایان آزمون"
-      className="sticky bottom-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col sm:flex-row items-center gap-3"
+      className="sticky bottom-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-wrap items-center justify-center gap-3"
     >
       {/* Primary Action */}
       {hasMistakes ? (

@@ -160,7 +160,7 @@ export const QuizSetupScreen: React.FC<QuizSetupScreenProps> = ({
   const isCombinedSource = initialConfig?.selectedOperations && initialConfig.selectedOperations.length > 1;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 md:py-8 space-y-6 pb-24">
+    <div className="w-full max-w-5xl 2xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-6 pb-24">
       <div className="flex items-center justify-between gap-4">
         <div className="text-right">
           <h1 className="text-xl md:text-2xl font-black text-slate-800 dark:text-slate-100">

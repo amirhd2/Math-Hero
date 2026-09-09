@@ -32,8 +32,8 @@ export const TrophyPathCard: React.FC<TrophyPathCardProps> = ({
         </div>
       </div>
 
-      {/* 3x2 Grid (Two rows of 3 cups) with Maximum Image Size */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4.5">
+      {/* 3x2 Grid on mobile/tablet portrait, 6-col single row on tablet landscape and desktop (lg+) */}
+      <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {[1, 2, 3, 4, 5, 6].map((stageNum) => {
           const cup = TROPHY_CUPS[stageNum];
           const isUnlocked = stageNum <= trophyInfo.stage;

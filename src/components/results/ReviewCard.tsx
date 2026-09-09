@@ -104,7 +104,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         {/* The Equation */}
         <div
           dir="ltr"
-          className="flex items-center justify-center gap-3 text-2xl md:text-3xl font-black text-slate-800 dark:text-slate-100 tracking-wider"
+          className="flex flex-wrap items-center justify-center gap-3 text-2xl md:text-3xl font-black text-slate-800 dark:text-slate-100 tracking-wider"
         >
           <span>{formatNumber(question.num1, 'persian')}</span>
           <span className="text-indigo-600 dark:text-indigo-400 text-3xl">{getSymbol()}</span>
@@ -116,7 +116,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         </div>
 
         {/* Answer comparison tags */}
-        <div className="flex items-center gap-3 text-xs md:text-sm font-bold w-full md:w-auto justify-center">
+        <div className="flex flex-wrap items-center gap-3 text-xs md:text-sm font-bold w-full md:w-auto justify-center">
           {/* User's Answer */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/50 border border-rose-300 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300">
             <span className="text-xs">پاسخ شما:</span>

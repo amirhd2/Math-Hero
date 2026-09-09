@@ -1,3 +1,4 @@
+import { getAssetUrl } from "../utils/assetPaths";
 /**
  * Centralized Badge Registry for Math Hero.
  * Defines all 35 data-driven Badges across the 7 core categories:
@@ -12,6 +13,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'first_step',
+    imageUrl: getAssetUrl('assets/medals/1.png'),
     name: 'اولین قدم قهرمانی',
     description: 'تکمیل اولین آزمون ریاضی و شروع سفر ماجراجویی',
     category: 'practice',
@@ -26,6 +28,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'practice_5',
+    imageUrl: getAssetUrl('assets/medals/2.png'),
     name: 'هم‌مسیر ریاضی',
     description: 'تکمیل ۵ آزمون ریاضی با اراده و پشتکار عالی',
     category: 'practice',
@@ -40,6 +43,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'practice_15',
+    imageUrl: getAssetUrl('assets/medals/3.png'),
     name: 'دوستدار یادگیری',
     description: 'تکمیل ۱۵ آزمون ریاضی؛ تمرین مداوم کلید موفقیت است',
     category: 'practice',
@@ -54,6 +58,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'practice_30',
+    imageUrl: getAssetUrl('assets/medals/4.png'),
     name: 'قهرمان خستگی‌ناپذیر',
     description: 'تکمیل ۳۰ چالش محاسباتی؛ تو یک قهرمان واقعی هستی',
     category: 'practice',
@@ -68,6 +73,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'practice_50',
+    imageUrl: getAssetUrl('assets/medals/5.png'),
     name: 'افسانه تمرین',
     description: '۵۰ آزمون کامل شده؛ نام تو در تاریخ قهرمانان ثبت شد',
     category: 'practice',
@@ -86,6 +92,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'first_perfect',
+    imageUrl: getAssetUrl('assets/medals/6.png'),
     name: 'ذهن تیزبین',
     description: 'کسب نمره کامل ۱۰۰٪ در یک آزمون بدون حتی یک اشتباه',
     category: 'accuracy',
@@ -101,6 +108,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'perfect_5',
+    imageUrl: getAssetUrl('assets/medals/7.png'),
     name: 'پنج ستاره طلایی',
     description: 'کسب نمره ۱۰۰٪ در ۵ آزمون مختلف؛ دقت بی‌نظیر!',
     category: 'accuracy',
@@ -116,6 +124,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'perfect_10',
+    imageUrl: getAssetUrl('assets/medals/8.png'),
     name: 'استاد بی‌خطا',
     description: 'کسب نمره ۱۰۰٪ در ۱۰ آزمون؛ تمرکز فوق‌العاده قهرمان',
     category: 'accuracy',
@@ -131,6 +140,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'correct_20',
+    imageUrl: getAssetUrl('assets/medals/9.png'),
     name: 'بیست بیست',
     description: 'پاسخ درست به ۲۰ سوال ریاضی در طول تمرین‌ها',
     category: 'accuracy',
@@ -145,6 +155,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'correct_100',
+    imageUrl: getAssetUrl('assets/medals/10.png'),
     name: 'باشگاه صدتایی‌ها',
     description: 'رسیدن به ۱۰۰ پاسخ درست؛ محاسبات در دستان توست',
     category: 'accuracy',
@@ -159,6 +170,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'correct_300',
+    imageUrl: getAssetUrl('assets/medals/11.png'),
     name: 'شکارچی معماها',
     description: 'حل صحیح ۳۰۰ سوال ریاضی با افتخار',
     category: 'accuracy',
@@ -173,6 +185,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'correct_500',
+    imageUrl: getAssetUrl('assets/medals/12.png'),
     name: 'گنجینه دانش',
     description: 'پاسخ صحیح به ۵۰۰ معما؛ تسلط کامل بر جهان اعداد',
     category: 'accuracy',
@@ -191,6 +204,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'comeback_kid',
+    imageUrl: getAssetUrl('assets/medals/13.png'),
     name: 'بازگشت طلایی',
     description: 'پیشرفت چشمگیر و افزایش حداقل ۲۰٪ دقت نسبت به آزمون قبلی',
     category: 'improvement',
@@ -205,6 +219,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'getting_stronger',
+    imageUrl: getAssetUrl('assets/medals/14.png'),
     name: 'روزبه‌روز قوی‌تر',
     description: '۳ آزمون متوالی با ارتقای نمره یا حفظ دقت بالای ۸۵٪',
     category: 'improvement',
@@ -219,6 +234,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'never_give_up',
+    imageUrl: getAssetUrl('assets/medals/15.png'),
     name: 'پشتکار قهرمانانه',
     description: 'تمرین دوباره روی سوالات اشتباه و حل موفقیت‌آمیز آن‌ها',
     category: 'improvement',
@@ -238,6 +254,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // Addition
   {
     id: 'add_starter',
+    imageUrl: getAssetUrl('assets/medals/16.png'),
     name: 'شروع با جمع',
     description: 'حل صحیح ۱۵ سوال عمل جمع و ساخت پایه‌های محکم',
     category: 'operations',
@@ -253,6 +270,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'add_pro',
+    imageUrl: getAssetUrl('assets/medals/17.png'),
     name: 'حرفه‌ای جمع',
     description: 'حل ۵۰ سوال جمع با دقت بالای ۸۰٪',
     category: 'operations',
@@ -269,6 +287,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'add_master',
+    imageUrl: getAssetUrl('assets/medals/18.png'),
     name: 'استاد جمع پیشرفته',
     description: 'تسلط کامل و پایدار بر عمل جمع با بیش از ۱۰۰ پاسخ درست',
     category: 'operations',
@@ -287,6 +306,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // Subtraction
   {
     id: 'sub_starter',
+    imageUrl: getAssetUrl('assets/medals/19.png'),
     name: 'شروع با تفریق',
     description: 'حل صحیح ۱۵ سوال تفریق و تسلط بر کم کردن اعداد',
     category: 'operations',
@@ -302,6 +322,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'sub_pro',
+    imageUrl: getAssetUrl('assets/medals/20.png'),
     name: 'حرفه‌ای تفریق',
     description: 'حل ۵۰ سوال تفریق با دقت بالای ۸۰٪',
     category: 'operations',
@@ -318,6 +339,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'sub_master',
+    imageUrl: getAssetUrl('assets/medals/21.png'),
     name: 'استاد تفریق پیشرفته',
     description: 'تسلط کامل بر تفریق با بیش از ۱۰۰ پاسخ درست و دقیق',
     category: 'operations',
@@ -336,6 +358,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // Multiplication
   {
     id: 'mul_starter',
+    imageUrl: getAssetUrl('assets/medals/22.png'),
     name: 'شروع با ضرب',
     description: 'حل صحیح ۱۵ سوال جدول ضرب و کشف الگوی شگفت‌انگیز اعداد',
     category: 'operations',
@@ -351,6 +374,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'mul_pro',
+    imageUrl: getAssetUrl('assets/medals/23.png'),
     name: 'حرفه‌ای جدول ضرب',
     description: 'حل ۵۰ سوال ضرب با دقت بالای ۸۰٪ بدون مکث',
     category: 'operations',
@@ -367,6 +391,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'mul_master',
+    imageUrl: getAssetUrl('assets/medals/24.png'),
     name: 'استاد بی‌رقیب ضرب',
     description: 'تسلط برق‌آسا بر جدول ضرب با ۱۰۰ پاسخ درست و دقیق',
     category: 'operations',
@@ -385,6 +410,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // Division
   {
     id: 'div_starter',
+    imageUrl: getAssetUrl('assets/medals/25.png'),
     name: 'شروع با تقسیم',
     description: 'حل صحیح ۱۵ سوال تقسیم عادلانه و بخش‌پذیری',
     category: 'operations',
@@ -400,6 +426,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'div_pro',
+    imageUrl: getAssetUrl('assets/medals/26.png'),
     name: 'حرفه‌ای تقسیم',
     description: 'حل ۵۰ سوال تقسیم با دقت بالای ۸۰٪',
     category: 'operations',
@@ -416,6 +443,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'div_master',
+    imageUrl: getAssetUrl('assets/medals/27.png'),
     name: 'استاد تقسیم عادلانه',
     description: 'تسلط بی‌نقص بر تقسیم اعداد با بیش از ۱۰۰ پاسخ درست',
     category: 'operations',
@@ -436,6 +464,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'streak_3',
+    imageUrl: getAssetUrl('assets/medals/28.png'),
     name: '۳ روز با ریاضی',
     description: '۳ روز متوالی تمرین ریاضی؛ اراده عالی برای شروع',
     category: 'streak',
@@ -450,6 +479,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'streak_7',
+    imageUrl: getAssetUrl('assets/medals/29.png'),
     name: 'یک هفته طلایی',
     description: '۷ روز پیوسته تمرین؛ تبدیل ریاضی به عادتی لذت‌بخش',
     category: 'streak',
@@ -464,6 +494,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'streak_14',
+    imageUrl: getAssetUrl('assets/medals/30.png'),
     name: 'دو هفته اراده',
     description: '۱۴ روز زنجیره تمرین بدون وقفه؛ پشتکار تحسین‌برانگیز',
     category: 'streak',
@@ -478,6 +509,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'streak_30',
+    imageUrl: getAssetUrl('assets/medals/31.png'),
     name: 'یک ماه قهرمانی',
     description: '۳۰ روز تمرین پیوسته؛ وفاداری به مسیر رشد دانایی',
     category: 'streak',
@@ -496,6 +528,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'smart_first',
+    imageUrl: getAssetUrl('assets/medals/32.png'),
     name: 'اولین گام هوشمند',
     description: 'تکمیل اولین جلسه مرور هوشمند و تمرین روی نقاط نیازمند تمرین',
     category: 'smartReview',
@@ -510,6 +543,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'smart_reviewer',
+    imageUrl: getAssetUrl('assets/medals/33.png'),
     name: 'کاشف نقاط عطف',
     description: 'تکمیل ۵ آزمون مرور هوشمند و تقویت هدفمند مهارت‌ها',
     category: 'smartReview',
@@ -524,6 +558,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'smart_champion',
+    imageUrl: getAssetUrl('assets/medals/34.png'),
     name: 'قهرمان یادگیری هدفمند',
     description: 'تکمیل ۱۵ جلسه مرور هوشمند با ارتقای چشمگیر تسلط',
     category: 'smartReview',
@@ -542,6 +577,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // ==========================================
   {
     id: 'all_round_hero',
+    imageUrl: getAssetUrl('assets/medals/35.png'),
     name: 'همه‌فن‌حریف',
     description: 'تمرین در هر ۴ عملیات اصلی جمع، تفریق، ضرب و تقسیم',
     category: 'mastery',
@@ -556,6 +592,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'speed_accuracy',
+    imageUrl: getAssetUrl('assets/medals/36.png'),
     name: 'سریع و تیزبین',
     description: 'تکمیل یک آزمون حداقل ۱۰ سوالی با دقت بالای ۹۰٪',
     category: 'mastery',
@@ -571,6 +608,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'level_5_milestone',
+    imageUrl: getAssetUrl('assets/medals/37.png'),
     name: 'ستاره سطح ۵',
     description: 'رسیدن به سطح ۵ قهرمانی و ارتقای چشمگیر مهارت‌ها',
     category: 'mastery',
@@ -585,6 +623,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'level_10_milestone',
+    imageUrl: getAssetUrl('assets/medals/38.png'),
     name: 'پیشتاز سطح ۱۰',
     description: 'رسیدن به سطح ۱۰ قهرمانی با تجربه فراوان در حل مسئله',
     category: 'mastery',
@@ -600,6 +639,7 @@ export const BADGE_REGISTRY: Badge[] = [
   // Educational Tier Mastery Badges
   {
     id: 'add_tier1_master',
+    imageUrl: getAssetUrl('assets/medals/39.png'),
     name: 'تسلط بر جمع پایه',
     description: 'اثبات علمی تسلط کامل بر جمع یک‌رقمی در یادگیری تطبیقی',
     category: 'mastery',
@@ -616,6 +656,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'sub_tier1_master',
+    imageUrl: getAssetUrl('assets/medals/40.png'),
     name: 'تسلط بر تفریق پایه',
     description: 'اثبات علمی تسلط کامل بر تفریق یک‌رقمی در یادگیری تطبیقی',
     category: 'mastery',
@@ -632,6 +673,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'mul_tier1_master',
+    imageUrl: getAssetUrl('assets/medals/41.png'),
     name: 'استاد جدول ضرب پایه',
     description: 'اثبات علمی تسلط بر جدول ضرب‌های ۱ تا ۵ در یادگیری تطبیقی',
     category: 'mastery',
@@ -648,6 +690,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'div_tier1_master',
+    imageUrl: getAssetUrl('assets/medals/42.png'),
     name: 'استاد تقسیم پایه',
     description: 'اثبات علمی تسلط بر تقسیم‌های دقیق پایه در یادگیری تطبیقی',
     category: 'mastery',
@@ -664,6 +707,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'two_digit_hero',
+    imageUrl: getAssetUrl('assets/medals/43.png'),
     name: 'قهرمان محاسبات دورقمی',
     description: 'تسلط بر مراحل پیشرفته دو‌رقمی (مرحله ۲ یا ۳) در هر یک از عملیات‌ها',
     category: 'mastery',
@@ -679,6 +723,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'quad_master',
+    imageUrl: getAssetUrl('assets/medals/44.png'),
     name: 'قهرمان چهارگانه',
     description: 'یادگیری متعادل و همه‌جانبه: تسلط بر حداقل یک مرحله در هر ۴ عملیات ریاضی',
     category: 'mastery',
@@ -693,6 +738,7 @@ export const BADGE_REGISTRY: Badge[] = [
   },
   {
     id: 'math_hero_grand',
+    imageUrl: getAssetUrl('assets/medals/45.png'),
     name: 'قهرمان قهرمانان ریاضی',
     description: 'تاج زرین قهرمانی ریاضی: اثبات تسلط در ۳ عملیات، ۸ مرحله مهارت، سطح ۱۵ و ۱۵ نشان افتخار!',
     category: 'mastery',

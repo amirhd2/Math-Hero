@@ -4,22 +4,14 @@
  */
 
 import { useState, useEffect } from 'react';
-import {
-  UserProfile,
-  AppSettings,
-  QuizPreset,
-  QuizResult,
-  ScreenId,
-  TestPattern,
-  QuizConfiguration,
-  QuizSession,
-  AppMode,
-  OperationType,
-} from './types';
+import { UserProfile, AppSettings, QuizPreset, QuizResult, ScreenId, TestPattern, QuizConfiguration, QuizSession, AppMode, OperationType } from './types';
 import { storage, DEFAULT_PROFILE, DEFAULT_SETTINGS, DEFAULT_PRESETS, DEFAULT_TEST_PATTERNS } from './utils/storage';
 import { createQuizSession, DEFAULT_OPERATION_SETTINGS } from './utils/questionGenerator';
 import { createSmartReviewSession } from './smartReview/smartReviewEngine';
 import { SmartTeacherEngine } from './adaptive/smartTeacherEngine';
+import { getLevelProgress } from './gamification/levelCalculator';
+import { formatNumber } from './utils/persian';
+import { getAssetUrl, getFallbackAssetUrl } from './utils/assetPaths';
 import { OnboardingScreen } from './screens/OnboardingScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { ProfileScreen } from './screens/ProfileScreen';
@@ -577,12 +569,139 @@ export default function App() {
     screenId !== 'quiz_setup' &&
     screenId !== 'settings';
 
-  // Render the full screen view with its main container and persistent bottom nav
+  // Render the full screen view with its main container, desktop header, and mobile bottom nav
   const renderScreenView = (screenId: ScreenId, isBackground: boolean = false) => {
+    const showDesktopNav = screenId !== 'quiz_active' && screenId !== 'onboarding';
+    const levelInfo = getLevelProgress(profile.xp);
+    const gender = profile.gender === 'girl' ? 'girl' : 'boy';
+
     return (
       <div className="w-full min-h-screen flex flex-col justify-between">
+        {/* Desktop & Tablet Top Navigation Header */}
+        {showDesktopNav && (
+          <header className={`hidden md:flex sticky top-0 z-40 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors ${isBackground ? 'pointer-events-none' : ''}`}>
+            <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-16 flex items-center justify-between gap-4">
+              
+              {/* Brand & Logo (Removed as requested) */}
+
+              {/* Navigation Links */}
+              <nav className="flex items-center gap-1 lg:gap-2">
+                <button
+                  onClick={() => !isBackground && handleNavigate('home')}
+                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
+                    screenId === 'home'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>🏠</span>
+                  <span>خانه</span>
+                </button>
+
+                {/* Removed میز مربی (Parent Dashboard) as requested */}
+                
+                {appMode !== 'parent' && (
+                  <button
+                    onClick={() => !isBackground && handleNavigate('mistakes')}
+                    className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
+                      screenId === 'mistakes'
+                        ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <span>💡</span>
+                    <span>گنجینه اشتباهات</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => !isBackground && handleNavigate('progress')}
+                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
+                    screenId === 'progress'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>📊</span>
+                  <span>کارنامه و آمار</span>
+                </button>
+
+                {/* Removed نشان‌ها و افتخارات (Level/Badges button) as requested */}
+                
+                <button
+                  onClick={() => !isBackground && handleNavigate('presets')}
+                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
+                    screenId === 'presets'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>⭐</span>
+                  <span>الگوها</span>
+                </button>
+
+                <button
+                  onClick={() => !isBackground && handleNavigate('settings')}
+                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
+                    screenId === 'settings'
+                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <span>⚙️</span>
+                  <span>تنظیمات</span>
+                </button>
+              </nav>
+
+              {/* Right Side Stats & Profile Button */}
+              <div className="flex items-center gap-2.5 lg:gap-3 shrink-0">
+                {/* Streak */}
+                <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs font-black text-amber-700 dark:text-amber-300">
+                  <span>🔥</span>
+                  <span>{formatNumber(profile.streakDays, 'persian')} روز</span>
+                </div>
+
+                {/* Coins */}
+                <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-yellow-50 dark:bg-yellow-950/40 border border-yellow-200 dark:border-yellow-800/60 text-xs font-black text-yellow-700 dark:text-yellow-300">
+                  <span>🪙</span>
+                  <span>{formatNumber(profile.coins, 'persian')}</span>
+                </div>
+
+                {/* Profile Avatar Button */}
+                <button
+                  onClick={() => !isBackground && handleNavigate('profile')}
+                  className={`flex items-center gap-2 p-1 pl-3 rounded-2xl border transition-all cursor-pointer ${
+                    screenId === 'profile'
+                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 shadow-xs'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900'
+                  }`}
+                  title="مشاهده و ویرایش پروفایل"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                    <img
+                      src={getAssetUrl(`assets/characters/${gender}/head.webp`)}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.dataset.fallback) {
+                          target.dataset.fallback = '1';
+                          target.src = getFallbackAssetUrl(`assets/characters/${gender}/head.webp`);
+                        }
+                      }}
+                    />
+                  </div>
+                  <span className="text-xs font-black text-slate-800 dark:text-slate-100 max-w-[80px] truncate">
+                    {profile.name}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </header>
+        )}
+
         <main
-          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' ? '' : 'pb-16 pt-safe'}`}
+          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' ? '' : 'pb-16 md:pb-8 pt-safe'}`}
           style={{
             paddingTop: screenId === 'quiz_active' ? undefined : 'env(safe-area-inset-top, 0px)',
           }}

@@ -21,6 +21,7 @@ import {
   TrophyInfo,
 } from '../gamification/gamificationTypes';
 import { TrophyHeroCard } from '../components/gamification/TrophyHeroCard';
+import { CurrentBadgeCard } from '../components/CurrentBadgeCard';
 import { TrophyPathCard } from '../components/gamification/TrophyPathCard';
 import { LevelProgressCard } from '../components/gamification/LevelProgressCard';
 import { BackButton } from '../components/common/BackButton';
@@ -29,7 +30,7 @@ import { RecentlyUnlockedList } from '../components/gamification/RecentlyUnlocke
 import { BadgeDetailModal } from '../components/gamification/BadgeDetailModal';
 import { StagesRoadmapModal } from '../components/gamification/StagesRoadmapModal';
 import { sound } from '../utils/sound';
-import { getTrophyCupUrl, getTrophyCupFallbackUrl } from '../utils/assetPaths';
+import { getTrophyCupUrl, getTrophyCupFallbackUrl, getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface AchievementsScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -148,10 +149,12 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
     );
   }
 
+  const gender = profile.gender === 'girl' ? 'girl' : 'boy';
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 text-right">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 overflow-x-clip text-right">
       {/* 1. Header Navigation Bar - Title on right, BackButton on left */}
-      <div className="flex flex-row items-center justify-between gap-3 w-full">
+      <div className="flex flex-row items-center justify-between gap-3 w-full mb-6">
         <div className="text-right flex-1 min-w-0">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2 sm:gap-2.5 truncate">
             <span>🏆</span>
@@ -167,43 +170,70 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
         </div>
       </div>
 
-      {/* 2. Main Hero Cards Section */}
-      <div className="space-y-6 md:space-y-8 mt-1.5 sm:mt-2 w-full">
-        {/* Top Hero: Colored Trophy Hero Card (Character sits seamlessly directly on the card) */}
-        <TrophyHeroCard
-          profile={profile}
-          trophyInfo={trophyInfo}
-          levelInfo={levelInfo}
-          unlockedBadgesCount={unlockedCount}
-          totalBadgesCount={allBadges.length}
-          streak={streak}
-        />
+      {/* 2. Main Hero Section - 2-Column Grid on Tablet Landscape & Desktop (lg+) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start w-full">
+        {/* Right Column (Hero Card + Trophy Path) in RTL */}
+        <div className="col-span-1 lg:col-span-7 xl:col-span-8 w-full min-w-0 flex flex-col space-y-6 md:space-y-8">
+          {/* Top Hero: Colored Trophy Hero Card */}
+          <TrophyHeroCard
+            profile={profile}
+            trophyInfo={trophyInfo}
+            levelInfo={levelInfo}
+            unlockedBadgesCount={unlockedCount}
+            totalBadgesCount={allBadges.length}
+            streak={streak}
+            className="w-full"
+          />
+          {/* Current Honor Badges & Cups Card */}
+          <CurrentBadgeCard
+            trophyInfo={trophyInfo}
+            levelTitle={levelInfo.title}
+            level={levelInfo.level}
+            onNavigate={onNavigate}
+            className="hidden lg:block w-full"
+          />
+        </div>
+        {/* Left Column (Character Image on Desktop/Tablet Landscape - Sticky to viewport until LevelProgressCard) */}
+        <div className="hidden lg:flex lg:col-span-5 xl:col-span-4 w-full sticky top-6 self-start items-center justify-center pointer-events-none min-w-0 overflow-hidden">
+          <img
+            src={getAssetUrl(`assets/characters/${gender}/proud.webp`)}
+            alt="Hero Character"
+            className="w-auto max-h-[calc(100vh-8rem)] object-contain object-top filter drop-shadow-2xl pointer-events-auto select-none"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = '1';
+                target.src = getFallbackAssetUrl(`assets/characters/${gender}/proud.webp`);
+              }
+            }}
+          />
+        </div>
+      </div>
 
-        {/* Dedicated Trophy Path Card (White background, 3x2 grid, next cup progress) */}
+      {/* 3. Full-Width Section: Trophy Path, Level Progression, Recent Unlocks, Search/Filter, and Badges Grid */}
+      <div className="space-y-8 w-full mt-8 sm:mt-10 pt-2">
+        {/* Dedicated Trophy Path Card (Full width - single row of 6 medals on lg+, next cup progress below) */}
         <TrophyPathCard
           trophyInfo={trophyInfo}
         />
 
-        {/* Level Progression Card (RTL scrolling stage medals, hollow/filled connecting rods, roadmap button) */}
+        {/* Level Progression Card (Full width - RTL scrolling stage medals, hollow/filled connecting rods, roadmap button) */}
         <LevelProgressCard
           levelInfo={levelInfo}
         />
 
-        {/* Recently Unlocked Highlights */}
+        {/* Recently Unlocked Highlights (Full width) */}
         <RecentlyUnlockedList
           badges={recentlyUnlocked}
           onSelectBadge={handleSelectBadge}
         />
-      </div>
 
-      {/* 3. Full-Width Section: Starts from Filter & Search Controls and scrolls up naturally */}
-      <div className="space-y-8 w-full mt-8 sm:mt-10 pt-2">
         {/* Filter & Search Controls */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-4">
           {/* Top Controls: Search and Status Segmented Control */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Search Box */}
-            <div className="relative w-full sm:w-72">
+            <div className="relative w-full sm:w-80 md:w-96">
               <input
                 type="text"
                 value={searchQuery}
@@ -272,7 +302,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
           </div>
         </div>
 
-        {/* Badges Grid */}
+        {/* Badges Grid (Full Width) */}
         <div className="space-y-4">
           <div className="flex items-center justify-between text-xs font-bold text-slate-500">
             <span>
@@ -309,7 +339,7 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredBadges.map((badge) => (
                 <BadgeCard
                   key={badge.id}

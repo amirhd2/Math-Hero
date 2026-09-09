@@ -42,7 +42,7 @@ export const XPProgress: React.FC<XPProgressProps> = ({ profile, result }) => {
       )}
 
       {/* Main XP row */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-1">
             امتیاز کسب‌شده در این آزمون

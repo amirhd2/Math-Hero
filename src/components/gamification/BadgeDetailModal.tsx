@@ -51,13 +51,17 @@ export const BadgeDetailModal: React.FC<BadgeDetailModalProps> = ({ badge, onClo
         {/* Large Badge Icon */}
         <div className="flex justify-center">
           <div
-            className={`w-24 h-24 rounded-3xl flex items-center justify-center text-5xl shadow-2xl transition-transform ${
+            className={`w-32 h-32 flex items-center justify-center text-6xl transition-transform ${
               isUnlocked
-                ? 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-slate-950 scale-105 ring-4 ring-amber-400/30'
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                ? 'scale-105'
+                : 'opacity-70'
             }`}
           >
-            {isUnlocked ? badge.icon : '🔒'}
+            {isUnlocked ? (
+              badge.imageUrl ? <img src={badge.imageUrl} alt={badge.name} className="w-full h-full object-contain drop-shadow-2xl" /> : badge.icon
+            ) : (
+              badge.imageUrl ? <img src={badge.imageUrl} alt={badge.name} className="w-full h-full object-contain grayscale opacity-50 drop-shadow-sm" /> : '🔒'
+            )}
           </div>
         </div>
 

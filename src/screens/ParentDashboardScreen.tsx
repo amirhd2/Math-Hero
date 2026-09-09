@@ -51,7 +51,7 @@ export const ParentDashboardScreen: React.FC<ParentDashboardScreenProps> = ({
   const operations: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 md:py-8 space-y-8 pb-28 select-none" dir="rtl">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-8 pb-28 select-none" dir="rtl">
       {/* Top Banner: Mode Indicator & Exit */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 shadow-xl border border-indigo-700/40">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

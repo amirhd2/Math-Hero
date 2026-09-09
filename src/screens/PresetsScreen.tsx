@@ -52,7 +52,7 @@ export const PresetsScreen: React.FC<PresetsScreenProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 md:py-8 space-y-6 pb-24">
+    <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8 space-y-6 pb-24">
       {/* Top Header - Title on right, BackButton on left */}
       <div className="flex flex-row items-center justify-between gap-3 w-full">
         <div className="text-right flex-1 min-w-0">
@@ -142,7 +142,7 @@ export const PresetsScreen: React.FC<PresetsScreenProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredPatterns.map((pattern) => {
             const isPractice = pattern.config.mode === 'practice';
             const ops = pattern.config.selectedOperations || [];

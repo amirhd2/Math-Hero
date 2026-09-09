@@ -1,11 +1,10 @@
 /**
  * ResultsHero component.
- * Displays character feedback pose, celebration badge, and top-level outcome.
+ * Displays celebration badge, and top-level outcome.
  */
 
 import React from 'react';
-import { UserProfile, QuizResult, CharacterPose } from '../../types';
-import { Character } from '../Character';
+import { UserProfile, QuizResult } from '../../types';
 
 interface ResultsHeroProps {
   profile: UserProfile;
@@ -16,13 +15,6 @@ export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile, result }) => 
   const isPerfect = result.score === 100;
   const isExcellent = result.score >= 80;
   const isGood = result.score >= 60;
-
-  // Determine character pose based on score
-  const characterPose: CharacterPose = isExcellent
-    ? 'celebrating'
-    : isGood
-    ? 'master'
-    : 'encouraging';
 
   const badgeText = isPerfect
     ? '🏆 امتیاز ۱۰۰٪ کامل! شاهکار کردی!'
@@ -40,17 +32,6 @@ export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile, result }) => 
 
   return (
     <header className="flex flex-col items-center text-center space-y-4 pt-2">
-      {/* Dynamic Character Companion */}
-      <div className="relative inline-block">
-        <div className="absolute -inset-4 rounded-full bg-radial from-amber-400/20 to-transparent blur-xl pointer-events-none" />
-        <Character
-          character={profile.gender}
-          pose={characterPose}
-          size="lg"
-          className="relative drop-shadow-xl"
-        />
-      </div>
-
       {/* Motivational outcome badge */}
       <div className="space-y-2">
         <div
