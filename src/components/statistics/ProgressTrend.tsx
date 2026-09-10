@@ -31,7 +31,6 @@ export const ProgressTrend: React.FC<ProgressTrendProps> = ({
 
   // Calculate SVG line points
   const pointsCount = trendPoints.length;
-  const stepX = pointsCount > 1 ? (100 - (paddingX * 2) / 6) / (pointsCount - 1) : 50;
 
   const svgPoints = trendPoints.map((pt, idx) => {
     const x = pointsCount === 1 ? 50 : (idx / (pointsCount - 1)) * 100;

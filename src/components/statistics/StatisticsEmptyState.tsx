@@ -18,7 +18,7 @@ export const StatisticsEmptyState: React.FC<StatisticsEmptyStateProps> = ({
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-12 text-center border border-slate-100 dark:border-slate-800 shadow-xl max-w-xl mx-auto space-y-6">
       <div className="flex justify-center">
-        <Character character={gender} pose="master" size="xl" className="animate-bounce" />
+        <Character character={gender} pose="master" size="xl" noBackground className="animate-bounce" />
       </div>
 
       <div className="space-y-2">

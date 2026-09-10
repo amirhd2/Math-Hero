@@ -14,6 +14,7 @@ interface CharacterProps {
   showBadge?: boolean;
   onClick?: () => void;
   fullBody?: boolean;
+  noBackground?: boolean;
 }
 
 export const Character: React.FC<CharacterProps> = ({
@@ -24,6 +25,7 @@ export const Character: React.FC<CharacterProps> = ({
   showBadge = false,
   onClick,
   fullBody = false,
+  noBackground = false,
 }) => {
   const [loadFailed, setLoadFailed] = useState(false);
   const [triedFallback, setTriedFallback] = useState(false);
@@ -87,14 +89,22 @@ export const Character: React.FC<CharacterProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative inline-flex items-center justify-center rounded-3xl shadow-xl transition-transform duration-300 hover:scale-105 cursor-pointer ${bgGradient} ${sizeClasses[size]} ${className}`}
+      className={`relative inline-flex items-center justify-center transition-transform duration-300 ${
+        noBackground
+          ? onClick ? 'cursor-pointer' : ''
+          : `rounded-3xl shadow-xl hover:scale-105 cursor-pointer ${bgGradient}`
+      } ${sizeClasses[size]} ${className}`}
       aria-label={`شخصیت ${character === 'boy' ? 'پسر' : 'دختر'} در حالت ${pose}`}
     >
       {!loadFailed ? (
         <img 
           src={triedFallback ? fallbackSrc : primarySrc} 
           alt={`Character ${character}`} 
-          className="w-full h-full object-contain filter drop-shadow-sm p-1"
+          className={`w-full h-full object-contain ${
+            noBackground
+              ? 'filter drop-shadow-xl sm:drop-shadow-2xl'
+              : 'filter drop-shadow-sm p-1'
+          }`}
           onError={() => {
             if (!triedFallback) {
               setTriedFallback(true);
@@ -105,10 +115,12 @@ export const Character: React.FC<CharacterProps> = ({
         />
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center select-none">
-          <span className="text-3xl sm:text-4xl">{isBoy ? '👦' : '👧'}</span>
-          <span className="text-[10px] font-black mt-1 text-slate-700 dark:text-slate-300">
-            {isBoy ? 'قهرمان' : 'قهرمان'}
-          </span>
+          <span className="text-4xl sm:text-5xl filter drop-shadow-md">{isBoy ? '👦' : '👧'}</span>
+          {!noBackground && (
+            <span className="text-[10px] font-black mt-1 text-slate-700 dark:text-slate-300">
+              {isBoy ? 'قهرمان' : 'قهرمان'}
+            </span>
+          )}
         </div>
       )}
       {showBadge && (

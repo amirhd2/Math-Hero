@@ -11,7 +11,7 @@ interface ResultsHeroProps {
   result: QuizResult;
 }
 
-export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile, result }) => {
+export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile: _profile, result }) => {
   const isPerfect = result.score === 100;
   const isExcellent = result.score >= 80;
   const isGood = result.score >= 60;

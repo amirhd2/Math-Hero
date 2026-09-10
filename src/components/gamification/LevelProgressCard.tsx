@@ -79,10 +79,6 @@ export const LevelProgressCard: React.FC<LevelProgressCardProps> = ({
               const isCompleted = def.level < levelInfo.level;
               const hasNext = idx < LEVEL_DEFINITIONS.length - 1;
 
-              // Connecting rod fill status: filled if the next level is unlocked
-              const isRodFilled = levelInfo.level > def.level;
-              const isRodActive = levelInfo.level === def.level;
-
               return (
                 <React.Fragment key={def.level}>
                   {/* Stage Medal Card */}
@@ -155,22 +151,55 @@ export const LevelProgressCard: React.FC<LevelProgressCardProps> = ({
                     </div>
                   </div>
 
-                  {/* Connecting Rod (میله توخالی یا پر شده) */}
+                  {/* 3 Connecting Dots (سه نقطه توخالی یا پر شده بین سطوح) */}
                   {hasNext && (
-                    <div className="w-6 sm:w-10 md:w-12 shrink-0 flex items-center justify-center px-1">
-                      <div
-                        className={`w-full h-2.5 rounded-full transition-all duration-500 relative ${
-                          isRodFilled
-                            ? 'bg-gradient-to-l from-indigo-500 to-indigo-600 shadow-sm border border-indigo-400/40'
-                            : isRodActive
-                            ? 'bg-gradient-to-l from-indigo-500/50 via-slate-200 to-slate-200 dark:from-indigo-600/50 dark:via-slate-800 dark:to-slate-800 border border-dashed border-indigo-300 dark:border-indigo-800'
-                            : 'bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700'
-                        }`}
-                      >
-                        {/* Little pulsing indicator on active rod */}
-                        {isRodActive && (
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-amber-400 shadow animate-ping" />
-                        )}
+                    <div
+                      className="w-8 sm:w-11 md:w-14 shrink-0 flex items-center justify-center px-1"
+                      title={
+                        levelInfo.level > def.level
+                          ? 'مسیر کامل شده است'
+                          : levelInfo.level === def.level
+                          ? `پیشرفت تا سطح بعدی: ${formatNumber(levelInfo.progressPercent, 'persian')}٪`
+                          : 'سطح قفل شده'
+                      }
+                    >
+                      <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                        {[0, 1, 2].map((dotIdx) => {
+                          // In RTL, dot 0 is rightmost (closest to current level), dot 2 is leftmost (closest to next level)
+                          const isCompletedStep = levelInfo.level > def.level;
+                          const isCurrentStep = levelInfo.level === def.level;
+
+                          let isFilled = false;
+                          let isActive = false;
+
+                          if (isCompletedStep) {
+                            isFilled = true;
+                          } else if (isCurrentStep) {
+                            const thresholds = [25, 55, 85];
+                            if (levelInfo.progressPercent >= thresholds[dotIdx]) {
+                              isFilled = true;
+                            } else if (
+                              (dotIdx === 0 && levelInfo.progressPercent < 25) ||
+                              (dotIdx === 1 && levelInfo.progressPercent >= 25 && levelInfo.progressPercent < 55) ||
+                              (dotIdx === 2 && levelInfo.progressPercent >= 55 && levelInfo.progressPercent < 85)
+                            ) {
+                              isActive = true; // currently targeted dot
+                            }
+                          }
+
+                          return (
+                            <div
+                              key={dotIdx}
+                              className={`transition-all duration-300 rounded-full ${
+                                isFilled
+                                  ? 'w-2.5 h-2.5 sm:w-3 sm:h-3 bg-gradient-to-r from-indigo-500 to-indigo-600 border border-indigo-400 dark:border-indigo-300 shadow-xs shadow-indigo-500/40 scale-105'
+                                  : isActive
+                                  ? 'w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-amber-400 bg-amber-200/50 dark:bg-amber-900/40 animate-pulse'
+                                  : 'w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-850'
+                              }`}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   )}

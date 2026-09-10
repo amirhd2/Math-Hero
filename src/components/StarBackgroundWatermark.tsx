@@ -20,7 +20,6 @@ interface StarItem {
   initialRotate: number;
 }
 
-const STAR_TYPES: ('4point' | '5point' | '8point' | 'dot')[] = ['4point', '5point', '4point', '8point', '5point', 'dot'];
 const STAR_COLORS = [
   'text-white',
   'text-amber-200',
@@ -28,13 +27,6 @@ const STAR_COLORS = [
   'text-indigo-100',
   'text-white',
   'text-amber-100',
-];
-const STAR_ANIMATIONS = [
-  'starTwinkleFade1',
-  'starTwinkleFade2',
-  'starTwinkleFade3',
-  'starTwinkleFade4',
-  'starTwinkleFade5',
 ];
 
 // Predefined balanced star layouts for natural starry sky look inside the card

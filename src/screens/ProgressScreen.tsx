@@ -16,6 +16,8 @@ import { PerformanceInsight } from '../components/statistics/PerformanceInsight'
 import { RecentQuizHistory } from '../components/statistics/RecentQuizHistory';
 import { StatisticsEmptyState } from '../components/statistics/StatisticsEmptyState';
 import { BackButton } from '../components/common/BackButton';
+import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
+import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 
 interface ProgressScreenProps {
   profile: UserProfile;
@@ -30,7 +32,13 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
 }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
   const [summary, setSummary] = useState<StatisticsSummary | null>(null);
+  const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Load adaptive learning plan for teacher recommendations
+  useEffect(() => {
+    SmartTeacherEngine.getLearningPlan().then((plan) => setAdaptivePlan(plan));
+  }, []);
 
   // Load and calculate statistics
   const loadStats = useCallback(
@@ -129,6 +137,7 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-start">
             <PerformanceInsight
               insights={summary.insights}
+              plan={adaptivePlan}
               onPractice={handlePracticeOperation}
             />
 
