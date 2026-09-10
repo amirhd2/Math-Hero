@@ -224,6 +224,89 @@
   100% { opacity: 0.3; transform: scale(0.8) rotate(270deg); }
 }
 
+/* Statistics Hero Twinkling & Floating Stars (ستاره‌های متحرک و چشمک‌زن کارت آمار) */
+@keyframes starTwinkleFloat1 {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate3d(0, 0, 0) scale(0.75) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(2px, -8px, 0) scale(1.2) rotate(20deg);
+  }
+}
+
+@keyframes starTwinkleFloat2 {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translate3d(0, 0, 0) scale(0.85) rotate(0deg);
+  }
+  50% {
+    opacity: 0.95;
+    transform: translate3d(-5px, -11px, 0) scale(1.3) rotate(-25deg);
+  }
+}
+
+@keyframes starTwinkleFloat3 {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translate3d(0, 0, 0) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(6px, -6px, 0) scale(1.25);
+  }
+}
+
+@keyframes starTwinkleFloat4 {
+  0%, 100% {
+    opacity: 0.15;
+    transform: translate3d(0, 0, 0) scale(0.65) rotate(0deg);
+  }
+  50% {
+    opacity: 0.9;
+    transform: translate3d(-3px, -14px, 0) scale(1.15) rotate(35deg);
+  }
+}
+
+@keyframes shootingStarGlide1 {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-32deg) scale(0.4);
+  }
+  4% {
+    opacity: 1;
+    transform: translate3d(-30px, 20px, 0) rotate(-32deg) scale(1);
+  }
+  16% {
+    opacity: 0;
+    transform: translate3d(-180px, 115px, 0) rotate(-32deg) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-180px, 115px, 0) rotate(-32deg) scale(0);
+  }
+}
+
+@keyframes shootingStarGlide2 {
+  0%, 45% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(-28deg) scale(0.4);
+  }
+  49% {
+    opacity: 1;
+    transform: translate3d(-25px, 15px, 0) rotate(-28deg) scale(1);
+  }
+  59% {
+    opacity: 0;
+    transform: translate3d(-160px, 95px, 0) rotate(-28deg) scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-160px, 95px, 0) rotate(-28deg) scale(0);
+  }
+}
+
 /* Safe area padding utilities for iOS / iPad / Android Web App / PWA */
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 1rem);
