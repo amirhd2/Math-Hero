@@ -566,8 +566,10 @@ export default function App() {
         return (
           <ProgressScreen
             profile={profile}
+            appMode={appMode}
             onNavigate={handleNavigate}
             onOpenSetup={handleOpenQuizSetup}
+            onStartChildQuickOperation={handleStartChildQuickOperation}
           />
         );
       case 'achievements':

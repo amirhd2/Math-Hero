@@ -129,6 +129,7 @@ export class SmartTeacherEngine {
       console.error('Error bootstrapping learning plan:', e);
     }
 
+    this.balanceAndRotatePrimaryOperation(plan);
     await this.saveLearningPlan(plan);
     return plan;
   }
@@ -501,6 +502,7 @@ export class SmartTeacherEngine {
 
     // Update neglected operations list dynamically
     this.updateNeglectedOperations(plan);
+    this.balanceAndRotatePrimaryOperation(plan);
     await this.saveLearningPlan(plan);
 
     return { plan, newPromotion: latestPromotion };
@@ -514,15 +516,54 @@ export class SmartTeacherEngine {
     const sessions = ops.map((op) => ({
       op,
       count: plan.operations[op]?.tiers[plan.operations[op]?.currentTier || 1]?.sessionsCount || 0,
+      accuracy: plan.operations[op]?.tiers[plan.operations[op]?.currentTier || 1]?.recentAccuracy || 0,
     }));
 
     const maxSessions = Math.max(...sessions.map((s) => s.count), 1);
     // Any operation with significantly fewer sessions (< 40% of max, or <= 1 session when max >= 3)
     const neglected = sessions
-      .filter((s) => s.count <= 1 || s.count < maxSessions * 0.35)
+      .filter((s) => s.count <= 1 || s.count < maxSessions * 0.35 || s.accuracy < 60)
       .map((s) => s.op);
 
     plan.neglectedOperations = neglected;
+  }
+
+  /**
+   * Intelligently rotates primary operation across addition, subtraction, multiplication, and division
+   * to guarantee balanced progress across all 4 basic math operations.
+   */
+  private static balanceAndRotatePrimaryOperation(plan: AdaptiveLearningPlan): void {
+    const ops: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
+    
+    // Sort operations by least total sessions and lowest accuracy
+    const sortedOps = [...ops].sort((a, b) => {
+      const aTier = plan.operations[a]?.currentTier || 1;
+      const bTier = plan.operations[b]?.currentTier || 1;
+      const aEvidence = plan.operations[a]?.tiers[aTier];
+      const bEvidence = plan.operations[b]?.tiers[bTier];
+
+      const aSessions = aEvidence?.sessionsCount || 0;
+      const bSessions = bEvidence?.sessionsCount || 0;
+
+      if (aSessions !== bSessions) {
+        return aSessions - bSessions;
+      }
+
+      const aAccuracy = aEvidence?.recentAccuracy || 0;
+      const bAccuracy = bEvidence?.recentAccuracy || 0;
+      return aAccuracy - bAccuracy;
+    });
+
+    // Pick the most needed operation as the primary operation
+    const topRecommendedOp = sortedOps[0];
+    if (topRecommendedOp && topRecommendedOp !== plan.primaryOperation) {
+      plan.primaryOperation = topRecommendedOp;
+      const targetTier = plan.operations[topRecommendedOp]?.currentTier || 1;
+      const tierDef = getTierDefinition(topRecommendedOp, targetTier);
+      plan.recommendedTier = targetTier;
+      plan.recommendedSkillId = tierDef.skillId;
+      plan.nextMilestoneFa = `تسلط بر ${tierDef.stageNameFa}`;
+    }
   }
 
   /**

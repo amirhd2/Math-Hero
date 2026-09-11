@@ -17,16 +17,19 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
   const isUnpracticed = stat.totalQuestions === 0;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3 sm:gap-4">
+    <div
+      onClick={() => onPractice(stat.operation)}
+      className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-xs hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all cursor-pointer flex flex-col justify-between gap-3 sm:gap-4 active:scale-98 select-none group"
+    >
       {/* Top: Operation Symbol, Title and Tier Badge */}
       <div className="space-y-2.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-xs shrink-0">
+            <span className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shadow-xs shrink-0 group-hover:scale-105 transition-transform">
               {stat.symbol}
             </span>
             <div className="min-w-0">
-              <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm truncate">
+              <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 عملیات {stat.titleFa}
               </h4>
               <p className="text-[11px] text-slate-400 font-medium truncate">
@@ -86,14 +89,10 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={() => onPractice(stat.operation)}
-          className="text-xs font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 active:scale-95 transition-transform shrink-0 whitespace-nowrap"
-        >
-          <span>تمرین {stat.titleFa}</span>
+        <div className="text-xs font-black text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-indigo-300 flex items-center gap-1 shrink-0 whitespace-nowrap">
+          <span>شروع آزمون {stat.titleFa}</span>
           <span>←</span>
-        </button>
+        </div>
       </div>
     </div>
   );

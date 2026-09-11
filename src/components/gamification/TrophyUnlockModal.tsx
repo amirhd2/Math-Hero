@@ -67,27 +67,27 @@ export const TrophyUnlockModal: React.FC<TrophyUnlockModalProps> = ({
         </div>
 
         {/* Center Trophy Display with Sparkling & Glistening Light Animation */}
-        <div className="relative mx-auto w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center select-none py-1">
+        <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none py-1 my-1">
           {/* Pulsing Light Glow behind Cup */}
           <div className="absolute inset-1 rounded-full bg-gradient-to-tr from-amber-400/40 via-yellow-300/50 to-amber-500/30 blur-xl animate-pulse" />
 
           {/* Twinkling Sparkling Stars around Cup (Barq Zadan) */}
-          <div className="absolute -top-1 right-1 text-yellow-400 text-lg sm:text-xl animate-spin-slow pointer-events-none select-none drop-shadow">
+          <div className="absolute -top-1 right-1 text-yellow-400 text-base sm:text-lg animate-spin-slow pointer-events-none select-none drop-shadow">
             ✨
           </div>
-          <div className="absolute bottom-1 left-0 text-amber-300 text-base sm:text-lg animate-bounce pointer-events-none select-none drop-shadow">
+          <div className="absolute bottom-1 left-0 text-amber-300 text-sm sm:text-base animate-bounce pointer-events-none select-none drop-shadow">
             🌟
           </div>
-          <div className="absolute top-2 left-1 text-yellow-300 text-sm sm:text-base animate-pulse pointer-events-none select-none drop-shadow">
+          <div className="absolute top-2 left-1 text-yellow-300 text-xs sm:text-sm animate-pulse pointer-events-none select-none drop-shadow">
             ✨
           </div>
 
-          {/* Trophy Cup Image with Glistening Sheen & Bouncing Animation */}
-          <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-2xl group">
+          {/* Trophy Cup Image with Glistening Sheen & Gentle Pulse Animation */}
+          <div className="relative w-full h-full flex items-center justify-center p-1 group">
             <img
               src={cupImageSrc}
               alt={trophyInfo.stageNameFa}
-              className="w-full h-full object-contain filter drop-shadow-2xl animate-bounce select-none"
+              className="w-full h-full object-contain filter drop-shadow-2xl animate-pulse select-none max-h-24 sm:max-h-28"
               onError={(e) => {
                 const target = e.currentTarget;
                 if (!target.dataset.fallback) {

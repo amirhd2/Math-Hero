@@ -166,8 +166,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           />
         </div>
 
-        {/* 3. Main Center Area: Card stack - STRICT 55% OF TOTAL SCREEN HEIGHT (55vh) */}
-        <div className="w-full max-w-3xl lg:max-w-4xl mx-auto h-[55vh] shrink-0 my-0 overflow-hidden flex flex-col justify-center">
+        {/* 3. Main Center Area: Card stack - STRICT 50% OF TOTAL SCREEN HEIGHT (50vh) */}
+        <div className="w-full max-w-3xl lg:max-w-4xl mx-auto h-[50vh] shrink-0 my-0 overflow-hidden flex flex-col justify-center">
           <QuizCardStack
             currentQuestion={currentQuestion}
             upcomingQuestions={upcomingQuestions}
@@ -185,8 +185,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           />
         </div>
 
-        {/* 4. Custom Virtual Numeric Keyboard with Answer Input - STRICT 42% OF TOTAL SCREEN HEIGHT (42vh) */}
-        <div className="w-full max-w-md lg:max-w-lg mx-auto h-[42vh] shrink-0 flex flex-col justify-end pb-0 mb-0 overflow-hidden">
+        {/* 4. Custom Virtual Numeric Keyboard with Answer Input - STRICT 40% OF TOTAL SCREEN HEIGHT (40vh) */}
+        <div className="w-full max-w-md lg:max-w-lg mx-auto h-[40vh] shrink-0 flex flex-col justify-end pb-0 mb-0 overflow-hidden">
           <VirtualKeyboard
             onInputDigit={(digit) => {
               if (!isSubmitting && !isAdvancing && revealedAnswer === null) {

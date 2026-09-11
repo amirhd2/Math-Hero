@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { UserProfile, ScreenId, OperationType, QuizConfiguration } from '../types';
+import { UserProfile, ScreenId, OperationType, QuizConfiguration, QuizMode } from '../types';
 import { fetchStatisticsData } from '../statistics/statisticsQueries';
 import { StatisticsSummary, TimeRange } from '../statistics/statisticsTypes';
 import { StatisticsHero } from '../components/statistics/StatisticsHero';
@@ -16,24 +16,56 @@ import { PerformanceInsight } from '../components/statistics/PerformanceInsight'
 import { RecentQuizHistory } from '../components/statistics/RecentQuizHistory';
 import { StatisticsEmptyState } from '../components/statistics/StatisticsEmptyState';
 import { BackButton } from '../components/common/BackButton';
+import { QuickQuestionCountModal } from '../components/common/QuickQuestionCountModal';
 import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 
 interface ProgressScreenProps {
   profile: UserProfile;
+  appMode?: 'child' | 'parent';
   onNavigate: (screen: ScreenId) => void;
   onOpenSetup?: (config?: Partial<QuizConfiguration>) => void;
+  onStartChildQuickOperation?: (op: OperationType, count?: number, mode?: QuizMode) => void;
 }
+
+const OP_CONFIGS: Record<OperationType, { title: string; symbol: string; color: string }> = {
+  addition: { title: 'جمع', symbol: '➕', color: 'from-emerald-500 to-teal-600' },
+  subtraction: { title: 'تفریق', symbol: '➖', color: 'from-amber-500 to-orange-600' },
+  multiplication: { title: 'ضرب', symbol: '✖️', color: 'from-indigo-500 to-purple-600' },
+  division: { title: 'تقسیم', symbol: '➗', color: 'from-sky-500 to-blue-600' },
+  mixed: { title: 'ترکیبی', symbol: '🧮', color: 'from-violet-500 to-fuchsia-600' },
+};
 
 export const ProgressScreen: React.FC<ProgressScreenProps> = ({
   profile,
+  appMode = 'child',
   onNavigate,
   onOpenSetup,
+  onStartChildQuickOperation,
 }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
   const [summary, setSummary] = useState<StatisticsSummary | null>(null);
   const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Quick Question Count Modal State for Dashboard alignment
+  const [countModalState, setCountModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle?: string;
+    icon?: string;
+    mode: 'test' | 'practice';
+    colorGradient?: string;
+    badgeText?: string;
+    options?: number[];
+    defaultCount?: number;
+    onConfirm: (count: number) => void;
+  }>({
+    isOpen: false,
+    title: '',
+    mode: 'test',
+    onConfirm: () => {},
+  });
 
   // Load adaptive learning plan for teacher recommendations
   useEffect(() => {
@@ -60,21 +92,36 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
     loadStats(timeRange);
   }, [loadStats, timeRange]);
 
-  // Quick action: Preselect operation in Quiz Setup
+  // Handle touch/click on each operation card matching Dashboard behavior
   const handlePracticeOperation = (operation: OperationType) => {
-    if (onOpenSetup) {
-      onOpenSetup({
-        selectedOperations: [operation],
-        distribution: {
-          addition: operation === 'addition' ? 100 : 0,
-          subtraction: operation === 'subtraction' ? 100 : 0,
-          multiplication: operation === 'multiplication' ? 100 : 0,
-          division: operation === 'division' ? 100 : 0,
-          mixed: 0,
+    const config = OP_CONFIGS[operation] || OP_CONFIGS.addition;
+    if (appMode === 'child') {
+      setCountModalState({
+        isOpen: true,
+        title: `آزمون ${config.title}`,
+        subtitle: 'تعداد سوالات آزمون رو انتخاب کن. در حالت آزمون، دقت و سرعت تو سنجیده می‌شه!',
+        icon: config.symbol,
+        mode: 'test',
+        colorGradient: config.color,
+        badgeText: '🏆 حالت آزمون',
+        options: [5, 10, 15, 20],
+        defaultCount: 10,
+        onConfirm: (count: number) => {
+          setCountModalState((prev) => ({ ...prev, isOpen: false }));
+          if (onStartChildQuickOperation) {
+            onStartChildQuickOperation(operation, count, 'test');
+          }
         },
       });
     } else {
-      onNavigate('quiz_setup');
+      if (onOpenSetup) {
+        onOpenSetup({
+          selectedOperations: [operation],
+          mode: 'test',
+        });
+      } else {
+        onNavigate('quiz_setup');
+      }
     }
   };
 
@@ -139,12 +186,28 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
               insights={summary.insights}
               plan={adaptivePlan}
               onPractice={handlePracticeOperation}
+              appMode={appMode}
             />
 
             <RecentQuizHistory results={summary.recentResults} />
           </div>
         </div>
       )}
+
+      {/* Quick Question Count Modal for 4 Operations aligned with Dashboard rules */}
+      <QuickQuestionCountModal
+        isOpen={countModalState.isOpen}
+        onClose={() => setCountModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={countModalState.onConfirm}
+        title={countModalState.title}
+        subtitle={countModalState.subtitle}
+        icon={countModalState.icon}
+        mode={countModalState.mode}
+        badgeText={countModalState.badgeText}
+        colorGradient={countModalState.colorGradient}
+        options={countModalState.options}
+        defaultCount={countModalState.defaultCount}
+      />
     </div>
   );
 };
