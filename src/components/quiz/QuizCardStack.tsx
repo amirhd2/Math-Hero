@@ -179,7 +179,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
         key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
         dir="rtl"
-        className={`absolute inset-x-0 top-0 bottom-4 sm:bottom-5 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 cursor-text flex flex-col overflow-hidden ${feedbackRingClass} ${
+        className={`absolute inset-x-0 top-0 bottom-2 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 cursor-text flex flex-col overflow-hidden ${feedbackRingClass} ${
           isAdvancing ? 'animate-card-slide-down-fade pointer-events-none' : 'scale-100 opacity-100 transition-shadow duration-200'
         }`}
       >

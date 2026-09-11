@@ -155,8 +155,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
         <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
-        {/* 2. Connected Dots Bar (Top header) */}
-        <div className="w-full max-w-xl mx-auto shrink-0 pt-0.5">
+        {/* 2. Connected Dots Bar (Top header) - Fixed small header */}
+        <div className="w-full max-w-xl mx-auto shrink-0 pt-0.5 h-[3vh] min-h-[28px] max-h-[36px] flex items-center">
           <QuizHeader
             questionNumber={questionNumber}
             totalQuestions={totalQuestions}
@@ -166,8 +166,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           />
         </div>
 
-        {/* 3. Main Center Area: Card stack - flex-1 expands to fill space without pushing keyboard */}
-        <div className="w-full max-w-3xl lg:max-w-4xl mx-auto flex-1 min-h-0 flex flex-col justify-center my-0.5 overflow-hidden">
+        {/* 3. Main Center Area: Card stack - STRICT 55% OF TOTAL SCREEN HEIGHT (55vh) */}
+        <div className="w-full max-w-3xl lg:max-w-4xl mx-auto h-[55vh] shrink-0 my-0 overflow-hidden flex flex-col justify-center">
           <QuizCardStack
             currentQuestion={currentQuestion}
             upcomingQuestions={upcomingQuestions}
@@ -185,8 +185,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           />
         </div>
 
-        {/* 4. Custom Virtual Numeric Keyboard with Answer Input - shrink-0 pinned safely at bottom */}
-        <div className="w-full max-w-md lg:max-w-lg mx-auto shrink-0 flex flex-col justify-end pb-0 mb-0">
+        {/* 4. Custom Virtual Numeric Keyboard with Answer Input - STRICT 42% OF TOTAL SCREEN HEIGHT (42vh) */}
+        <div className="w-full max-w-md lg:max-w-lg mx-auto h-[42vh] shrink-0 flex flex-col justify-end pb-0 mb-0 overflow-hidden">
           <VirtualKeyboard
             onInputDigit={(digit) => {
               if (!isSubmitting && !isAdvancing && revealedAnswer === null) {

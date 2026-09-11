@@ -10,6 +10,7 @@
  */
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { toPersianDigits } from '../../utils/persian';
 import { getAssetUrl } from '../../utils/assetPaths';
 import { sound } from '../../utils/sound';
@@ -33,15 +34,15 @@ export const LevelUpModal: React.FC<LevelUpModalProps> = ({
 
   const currentLevelDef = LEVEL_DEFINITIONS[level - 1] || LEVEL_DEFINITIONS[0];
 
-  return (
+  const modalContent = (
     <div
       id="level-up-modal-backdrop"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fadeIn select-none"
       dir="rtl"
     >
       <div
         id="level-up-modal-card"
-        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400 dark:border-amber-500 my-auto text-center space-y-4 overflow-visible max-h-[92vh] flex flex-col justify-between"
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border-2 border-amber-400 dark:border-amber-500 my-auto text-center space-y-4 overflow-visible max-h-[90vh] flex flex-col justify-between"
       >
         {/* Glow Accents */}
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-32 h-32 bg-amber-400/25 rounded-full blur-2xl pointer-events-none" />
@@ -129,4 +130,7 @@ export const LevelUpModal: React.FC<LevelUpModalProps> = ({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 };
