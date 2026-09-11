@@ -4,7 +4,7 @@
  * and constructive child-friendly learning insights.
  */
 
-import { OperationType, QuizResult } from '../types';
+import { QuizResult } from '../types';
 import {
   PerformanceTier,
   PerformanceCategoryConfig,

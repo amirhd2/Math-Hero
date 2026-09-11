@@ -21,7 +21,8 @@ import { createTargetedPracticeMistakesSession } from '../smartReview/smartRevie
  */
 export function createPracticeMistakesSession(
   mistakes: MistakeRecord[],
-  baseConfig?: QuizConfiguration
+  baseConfig?: QuizConfiguration,
+  limitCount?: number
 ): QuizSession {
   if (!mistakes || mistakes.length === 0) {
     // Fallback to default practice config
@@ -29,7 +30,7 @@ export function createPracticeMistakesSession(
       ? { ...baseConfig, mode: 'practice' }
       : {
           mode: 'practice',
-          questionCount: 5,
+          questionCount: limitCount || 5,
           selectedOperations: ['addition'],
           operationSettings: DEFAULT_OPERATION_SETTINGS,
           distribution: { addition: 100, subtraction: 0, multiplication: 0, division: 0, mixed: 0 },
@@ -38,7 +39,7 @@ export function createPracticeMistakesSession(
     return createQuizSession(fallbackConfig);
   }
 
-  return createTargetedPracticeMistakesSession(mistakes, baseConfig);
+  return createTargetedPracticeMistakesSession(mistakes, baseConfig, limitCount);
 }
 
 /**

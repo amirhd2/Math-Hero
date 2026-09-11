@@ -129,8 +129,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
       {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
-      {/* 2. Connected Dots Bar (Very Top ~2% of viewport height) */}
-      <div className="w-full max-w-xl mx-auto h-[2dvh] max-h-[16px] flex items-center shrink-0">
+      {/* 2. Connected Dots Bar (Top header) */}
+      <div className="w-full max-w-xl mx-auto shrink-0 pt-0.5">
         <QuizHeader
           questionNumber={questionNumber}
           totalQuestions={totalQuestions}
@@ -140,8 +140,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 3. Main Center Area: Card stack - exactly 55% of viewport height (55dvh) */}
-      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto h-[55dvh] max-h-[55dvh] shrink-0 flex flex-col justify-center my-0">
+      {/* 3. Main Center Area: Card stack - flex-1 expands to fill space without pushing keyboard */}
+      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto flex-1 min-h-0 flex flex-col justify-center my-0.5 overflow-hidden">
         <QuizCardStack
           currentQuestion={currentQuestion}
           upcomingQuestions={upcomingQuestions}
@@ -159,8 +159,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 4. Custom Virtual Numeric Keyboard with Answer Input - exactly 43% of viewport height (43dvh) & 1mm bottom distance */}
-      <div className="w-full max-w-md lg:max-w-lg mx-auto h-[43dvh] max-h-[43dvh] pb-0 mb-0 shrink-0 flex flex-col justify-end">
+      {/* 4. Custom Virtual Numeric Keyboard with Answer Input - shrink-0 pinned safely at bottom */}
+      <div className="w-full max-w-md lg:max-w-lg mx-auto shrink-0 flex flex-col justify-end pb-0 mb-0">
         <VirtualKeyboard
           onInputDigit={(digit) => {
             if (!isSubmitting && !isAdvancing && revealedAnswer === null) {

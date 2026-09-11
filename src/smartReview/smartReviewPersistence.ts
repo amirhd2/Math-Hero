@@ -4,7 +4,7 @@
  */
 
 import { storage } from '../utils/storage';
-import { QuizResult, MistakeRecord } from '../types';
+import { QuizResult } from '../types';
 import { SmartReviewState } from './smartReviewTypes';
 import { analyzeSmartReview } from './smartReviewAnalyzer';
 

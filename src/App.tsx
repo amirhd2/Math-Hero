@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { UserProfile, AppSettings, QuizPreset, QuizResult, ScreenId, TestPattern, QuizConfiguration, QuizSession, AppMode, OperationType } from './types';
+import { UserProfile, AppSettings, QuizPreset, QuizResult, ScreenId, TestPattern, QuizConfiguration, QuizSession, AppMode, OperationType, QuizMode } from './types';
 import { storage, DEFAULT_PROFILE, DEFAULT_SETTINGS, DEFAULT_PRESETS, DEFAULT_TEST_PATTERNS } from './utils/storage';
 import { createQuizSession, DEFAULT_OPERATION_SETTINGS } from './utils/questionGenerator';
 import { createSmartReviewSession } from './smartReview/smartReviewEngine';
@@ -41,7 +41,8 @@ export default function App() {
   const [navigationHistory, setNavigationHistory] = useState<ScreenId[]>(['home']);
 
   const getDefaultPreviousScreen = (screen: ScreenId, mode: AppMode): ScreenId | null => {
-    if (screen === 'home' || screen === 'onboarding') return null;
+    if (screen === 'home' || screen === 'onboarding' || screen === 'quiz_active') return null;
+    if (screen === 'quiz_results') return 'home';
     if (screen === 'quiz_setup') return mode === 'parent' ? 'parent_dashboard' : 'home';
     if (screen === 'presets') return mode === 'parent' ? 'parent_dashboard' : 'home';
     if (screen === 'parent_dashboard') return 'home';
@@ -49,11 +50,16 @@ export default function App() {
   };
 
   const getPreviousScreen = (): ScreenId | null => {
-    if (currentScreen === 'home' || currentScreen === 'onboarding') {
+    if (currentScreen === 'home' || currentScreen === 'onboarding' || currentScreen === 'quiz_active') {
       return null;
     }
+    if (currentScreen === 'quiz_results') {
+      return 'home';
+    }
     if (navigationHistory.length > 1) {
-      return navigationHistory[navigationHistory.length - 2];
+      const prev = navigationHistory[navigationHistory.length - 2];
+      if (prev === 'quiz_active') return 'home';
+      return prev;
     }
     return getDefaultPreviousScreen(currentScreen, appMode);
   };
@@ -79,9 +85,19 @@ export default function App() {
   };
 
   const handleGoBack = () => {
+    if (currentScreen === 'quiz_results') {
+      setNavigationHistory(['home']);
+      setCurrentScreen('home');
+      return;
+    }
     if (navigationHistory.length > 1) {
       const nextHistory = navigationHistory.slice(0, -1);
       const prevScreen = nextHistory[nextHistory.length - 1];
+      if (prevScreen === 'quiz_active') {
+        setNavigationHistory(['home']);
+        setCurrentScreen('home');
+        return;
+      }
       setNavigationHistory(nextHistory);
       setCurrentScreen(prevScreen);
     } else {
@@ -258,24 +274,31 @@ export default function App() {
     }
   };
 
-  // Start child quick practice directly for a selected operation (Adaptive & Simple)
-  const handleStartChildQuickOperation = async (op: OperationType) => {
+  // Start child operation quiz (defaults to 'test' mode)
+  const handleStartChildQuickOperation = async (
+    op: OperationType,
+    count: number = 10,
+    mode: QuizMode = 'test'
+  ) => {
     try {
       const plan = await SmartTeacherEngine.getLearningPlan();
       const currentTier = plan.operations[op]?.currentTier || 1;
       const adaptiveQuestions = await SmartTeacherEngine.generateAdaptiveQuestions(
         op,
-        10,
+        count,
         currentTier
       );
+      const isTest = mode === 'test';
       const config: QuizConfiguration = {
         id: `child-${op}-${Date.now()}`,
-        title: `تمرین هوشمند ${op === 'addition' ? 'جمع' : op === 'subtraction' ? 'تفریق' : op === 'multiplication' ? 'ضرب' : 'تقسیم'}`,
-        mode: 'practice',
+        title: `${isTest ? 'آزمون' : 'تمرین هوشمند'} ${
+          op === 'addition' ? 'جمع' : op === 'subtraction' ? 'تفریق' : op === 'multiplication' ? 'ضرب' : 'تقسیم'
+        }`,
+        mode,
         isAdaptive: true,
         adaptiveSkillTier: currentTier,
         selectedOperations: [op],
-        questionCount: 10,
+        questionCount: adaptiveQuestions.length,
         operationSettings: DEFAULT_OPERATION_SETTINGS,
         distribution: {
           addition: op === 'addition' ? 100 : 0,
@@ -289,7 +312,7 @@ export default function App() {
       const baseSession = createQuizSession(config);
       const session: QuizSession = {
         ...baseSession,
-        source: 'child-adaptive',
+        source: isTest ? 'child-quick' : 'child-adaptive',
         isParentOverride: false,
         questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
         currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
@@ -306,21 +329,22 @@ export default function App() {
     }
   };
 
-  // Start child combined challenge across operations
-  const handleStartChildCombined = async () => {
+  // Start child combined challenge across operations (defaults to 'test' mode)
+  const handleStartChildCombined = async (count: number = 20, mode: QuizMode = 'test') => {
     try {
       const plan = await SmartTeacherEngine.getLearningPlan();
       const mistakes = await storage.getMistakes();
       const sampleMistakes = mistakes.map((m) => m.question);
       const adaptiveQuestions = SmartTeacherEngine.generateCombinedAdaptiveQuestions(
         plan,
-        sampleMistakes
+        sampleMistakes,
+        count
       );
       const operations: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
       const config: QuizConfiguration = {
         id: `child-combined-${Date.now()}`,
         title: 'چالش جامع چهار عمل اصلی',
-        mode: 'test',
+        mode,
         isAdaptive: true,
         selectedOperations: operations,
         questionCount: adaptiveQuestions.length,
@@ -337,7 +361,7 @@ export default function App() {
       const baseSession = createQuizSession(config);
       const session: QuizSession = {
         ...baseSession,
-        source: 'child-adaptive',
+        source: 'child-combined',
         isParentOverride: false,
         questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
         currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
@@ -351,6 +375,11 @@ export default function App() {
     } catch (err) {
       console.error('Failed to start child combined quiz:', err);
     }
+  };
+
+  // Start Smart Teacher Practice (locked in 'practice' mode)
+  const handleStartSmartTeacherPractice = async (op: OperationType, count: number = 10) => {
+    await handleStartChildQuickOperation(op, count, 'practice');
   };
 
   // Parent Gate & Mode Switching
@@ -423,7 +452,8 @@ export default function App() {
     } catch (err) {
       console.warn('Failed to refresh profile after quiz:', err);
     }
-    handleNavigate('quiz_results');
+    setNavigationHistory(['home', 'quiz_results']);
+    setCurrentScreen('quiz_results');
   };
 
   if (isLoading) {
@@ -458,6 +488,7 @@ export default function App() {
             onStartSmartReview={handleStartSmartReview}
             onStartChildQuickOperation={handleStartChildQuickOperation}
             onStartChildCombined={handleStartChildCombined}
+            onStartSmartTeacherPractice={handleStartSmartTeacherPractice}
           />
         );
       case 'parent_dashboard':

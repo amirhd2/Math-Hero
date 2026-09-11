@@ -4,7 +4,7 @@
  * conservative promotion logic, adaptive learning plans, and parent overrides.
  */
 
-import { OperationType, QuizQuestion, QuizResult } from '../types';
+import { OperationType } from '../types';
 import { SkillId } from '../smartReview/smartReviewTypes';
 
 export type MasteryState =

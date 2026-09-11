@@ -216,3 +216,17 @@ export function getTierForSkillId(skillId: SkillId): SkillTierDefinition | null 
   }
   return null;
 }
+
+export function getTierMedalUrl(operation: OperationType, tier: number): string {
+  const map: Record<OperationType, Record<number, number>> = {
+    addition: { 1: 16, 2: 17, 3: 18, 4: 18 },
+    subtraction: { 1: 19, 2: 20, 3: 21, 4: 21 },
+    multiplication: { 1: 22, 2: 23, 3: 24, 4: 24 },
+    division: { 1: 25, 2: 26, 3: 27, 4: 27 },
+    mixed: { 1: 35, 2: 36, 3: 37, 4: 38 },
+  };
+  const opMap = map[operation] || map.addition;
+  const medalNum = opMap[tier] || opMap[1] || 16;
+  return `assets/medals/${medalNum}.png`;
+}
+

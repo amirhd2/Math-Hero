@@ -1,19 +1,16 @@
 import React from 'react';
 import { QuizQuestion } from '../types';
-import { formatExpression } from '../utils/persian';
 
 interface QuizCardProps {
   question: QuizQuestion;
-  questionNumber: number;
-  totalQuestions: number;
+  questionNumber?: number;
+  totalQuestions?: number;
   isExiting: boolean;
   children: React.ReactNode;
 }
 
 export const QuizCard: React.FC<QuizCardProps> = ({
   question,
-  questionNumber,
-  totalQuestions,
   isExiting,
   children,
 }) => {

@@ -42,6 +42,7 @@ import {
   DailyChallengeItem,
 } from '../components/gamification/DailyChallengesCardStack';
 import { getTierDefinition } from '../adaptive/tierRegistry';
+import { QuickQuestionCountModal } from '../components/common/QuickQuestionCountModal';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -53,8 +54,9 @@ interface HomeScreenProps {
   onStartQuiz: (preset?: QuizPreset) => void;
   onNavigate: (screen: ScreenId) => void;
   onStartSmartReview?: () => void;
-  onStartChildQuickOperation: (op: OperationType) => void;
-  onStartChildCombined: () => void;
+  onStartChildQuickOperation: (op: OperationType, count?: number, mode?: 'test' | 'practice') => void;
+  onStartChildCombined: (count?: number, mode?: 'test' | 'practice') => void;
+  onStartSmartTeacherPractice?: (op: OperationType, count?: number) => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
@@ -69,6 +71,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onStartSmartReview,
   onStartChildQuickOperation,
   onStartChildCombined,
+  onStartSmartTeacherPractice,
 }) => {
   const [unresolvedMistakesCount, setUnresolvedMistakesCount] = useState(0);
   const [todaySolved, setTodaySolved] = useState(0);
@@ -80,6 +83,25 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [totalBadgesCount, setTotalBadgesCount] = useState(45);
   const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
+
+  // Quick Question Count Modal state
+  const [countModalState, setCountModalState] = useState<{
+    isOpen: boolean;
+    title: string;
+    subtitle?: string;
+    icon?: string;
+    mode: 'test' | 'practice';
+    colorGradient?: string;
+    badgeText?: string;
+    options?: number[];
+    defaultCount?: number;
+    onConfirm: (count: number) => void;
+  }>({
+    isOpen: false,
+    title: '',
+    mode: 'test',
+    onConfirm: () => {},
+  });
 
   const [opMastery, setOpMastery] = useState<Record<string, { accuracy: number; stars: number }>>({
     addition: { accuracy: 0, stars: 0 },
@@ -108,27 +130,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     setPendingPromotion(null);
     const updatedPlan = await SmartTeacherEngine.getLearningPlan();
     setAdaptivePlan(updatedPlan);
-    if (appMode === 'child') {
-      onStartChildQuickOperation(promo.operation);
-    } else {
-      onOpenSetup({
-        selectedOperations: [promo.operation],
-        mode: 'practice',
-        isAdaptive: true,
-        adaptiveSkillTier: promo.unlockedTier,
-      });
-    }
-  };
-
-  const handlePostponePromotion = async () => {
-    if (!pendingPromotion) return;
-    await SmartTeacherEngine.postponePromotion(pendingPromotion.id);
-    setPendingPromotion(null);
   };
 
   const handleStartAdaptiveRecommendation = (op: OperationType) => {
     if (appMode === 'child') {
-      onStartChildQuickOperation(op);
+      setCountModalState({
+        isOpen: true,
+        title: 'تمرین هوشمند با معلم دانا',
+        subtitle: 'تعداد سوالات تمرینی رو انتخاب کن. با حل تمرین‌های بیشتر، امتیاز و مدال‌های طلایی به دست میاری!',
+        icon: '🦉',
+        mode: 'practice',
+        colorGradient: 'from-amber-500 to-orange-500',
+        badgeText: '🌱 حالت تمرینی (۳ فرصت)',
+        options: [5, 10, 15, 20],
+        defaultCount: 10,
+        onConfirm: (count: number) => {
+          setCountModalState((prev) => ({ ...prev, isOpen: false }));
+          if (onStartSmartTeacherPractice) {
+            onStartSmartTeacherPractice(op, count);
+          } else {
+            onStartChildQuickOperation(op, count, 'practice');
+          }
+        },
+      });
     } else {
       const activeTier = adaptivePlan?.operations[op]?.currentTier || 1;
       onOpenSetup({
@@ -136,6 +160,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         mode: 'practice',
         isAdaptive: true,
         adaptiveSkillTier: activeTier,
+      });
+    }
+  };
+
+  const handleOpenCombinedModal = () => {
+    if (appMode === 'child') {
+      setCountModalState({
+        isOpen: true,
+        title: 'آزمون جامع چهار عمل اصلی',
+        subtitle: 'تعداد سوالات آزمون جامع رو مشخص کن. ترکیبی از جمع، تفریق، ضرب و تقسیم برای قهرمانان ریاضی!',
+        icon: '🌟',
+        mode: 'test',
+        colorGradient: 'from-indigo-900 via-indigo-800 to-violet-900',
+        badgeText: '🏆 حالت آزمون',
+        options: [10, 15, 20, 25],
+        defaultCount: 20,
+        onConfirm: (count: number) => {
+          setCountModalState((prev) => ({ ...prev, isOpen: false }));
+          onStartChildCombined(count, 'test');
+        },
+      });
+    } else {
+      onOpenSetup({
+        selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
+        mode: 'test',
+        isAdaptive: true,
+        questionCount: 20,
+      });
+    }
+  };
+
+  const handleOpenOpCardModal = (op: typeof operations[0]) => {
+    if (appMode === 'child') {
+      setCountModalState({
+        isOpen: true,
+        title: `آزمون ${op.title}`,
+        subtitle: 'تعداد سوالات آزمون رو انتخاب کن. در حالت آزمون، دقت و سرعت تو سنجیده می‌شه!',
+        icon: op.symbol,
+        mode: 'test',
+        colorGradient: op.color,
+        badgeText: '🏆 حالت آزمون',
+        options: [5, 10, 15, 20],
+        defaultCount: 10,
+        onConfirm: (count: number) => {
+          setCountModalState((prev) => ({ ...prev, isOpen: false }));
+          onStartChildQuickOperation(op.id as OperationType, count, 'test');
+        },
+      });
+    } else {
+      onOpenSetup({
+        selectedOperations: [op.id as any],
+        mode: 'test',
       });
     }
   };
@@ -329,7 +405,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         bgGradient: 'bg-gradient-to-br from-teal-300 via-emerald-200 to-teal-200 text-slate-950',
         borderAccent: 'border-teal-400',
         cardIcon: '🎯',
-        onAction: () => handleStartAdaptiveRecommendation(op),
+        onAction: () => {
+          if (appMode === 'child') {
+            onStartChildQuickOperation(op, 10, 'test');
+          } else {
+            onOpenSetup({ selectedOperations: [op], mode: 'test', questionCount: 10 });
+          }
+        },
       });
     } else if (adaptivePlan?.recommendedSkillId) {
       const tierDef = getTierDefinition(adaptivePlan.primaryOperation, adaptivePlan.recommendedTier || 1);
@@ -348,7 +430,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         bgGradient: 'bg-gradient-to-br from-sky-300 via-blue-200 to-indigo-200 text-slate-950',
         borderAccent: 'border-sky-400',
         cardIcon: '🌟',
-        onAction: () => handleStartAdaptiveRecommendation(adaptivePlan.primaryOperation),
+        onAction: () => {
+          if (appMode === 'child') {
+            onStartChildQuickOperation(adaptivePlan.primaryOperation, 10, 'test');
+          } else {
+            onOpenSetup({ selectedOperations: [adaptivePlan.primaryOperation], mode: 'test', questionCount: 10 });
+          }
+        },
       });
     }
 
@@ -370,7 +458,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       cardIcon: '🧮',
       onAction: () => {
         if (appMode === 'child') {
-          onStartChildCombined();
+          onStartChildCombined(20, 'test');
         } else {
           onOpenSetup({
             selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
@@ -400,7 +488,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       cardIcon: '🏆',
       onAction: () => {
         if (appMode === 'child') {
-          onStartChildQuickOperation(adaptivePlan?.primaryOperation || 'addition');
+          onStartChildQuickOperation(adaptivePlan?.primaryOperation || 'addition', 10, 'test');
         } else {
           onOpenSetup({ mode: 'test', questionCount: 10, isAdaptive: true });
         }
@@ -738,22 +826,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* 1. Distinct Combined Quiz Action Banner */}
           <div
             id="home-combined-quiz-card"
-            onClick={() => {
-              if (appMode === 'child') {
-                onStartChildCombined();
-              } else {
-                onOpenSetup({
-                  selectedOperations: ['addition', 'subtraction', 'multiplication', 'division'],
-                  mode: 'test',
-                  isAdaptive: true,
-                  questionCount: 20,
-                });
-              }
-            }}
+            onClick={handleOpenCombinedModal}
             className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-violet-900 rounded-3xl p-4 sm:p-5 text-white shadow-lg flex items-center justify-between gap-3 sm:gap-4 border border-indigo-700/50 hover:shadow-xl hover:scale-[1.005] active:scale-[0.99] transition-all cursor-pointer group h-full"
             role="button"
             tabIndex={0}
-            title="شروع چالش ترکیبی چهار عمل اصلی"
+            title="شروع آزمون جامع چهار عمل اصلی"
           >
             {/* Right Side: Title & Description */}
             <div className="flex items-center gap-3 sm:gap-4 text-right">
@@ -853,16 +930,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               <div
                 key={op.id}
                 id={`home-op-card-${op.id}`}
-                onClick={() => {
-                  if (appMode === 'child') {
-                    onStartChildQuickOperation(op.id as OperationType);
-                  } else {
-                    onOpenSetup({
-                      selectedOperations: [op.id as any],
-                      mode: 'practice',
-                    });
-                  }
-                }}
+                onClick={() => handleOpenOpCardModal(op)}
                 className={`bg-white dark:bg-slate-900 rounded-2xl p-4 border ${op.borderLight} shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group hover:-translate-y-0.5`}
               >
                 {/* Title & Description with Operation Icon on the left */}
@@ -1040,12 +1108,26 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         onStart={handleConfirmStartSmartReview}
       />
 
+      {/* Quick Question Count Selection Modal */}
+      <QuickQuestionCountModal
+        isOpen={countModalState.isOpen}
+        title={countModalState.title}
+        subtitle={countModalState.subtitle}
+        icon={countModalState.icon}
+        mode={countModalState.mode}
+        colorGradient={countModalState.colorGradient}
+        badgeText={countModalState.badgeText}
+        options={countModalState.options}
+        defaultCount={countModalState.defaultCount}
+        onClose={() => setCountModalState((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={countModalState.onConfirm}
+      />
+
       {/* Adaptive Promotion Celebration Modal */}
       {pendingPromotion && (
         <PromotionModal
           promotion={pendingPromotion}
           onAccept={handleAcceptPromotion}
-          onPostpone={handlePostponePromotion}
         />
       )}
     </div>

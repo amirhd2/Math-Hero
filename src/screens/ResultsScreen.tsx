@@ -68,13 +68,6 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
     if (!pendingPromotion) return;
     await SmartTeacherEngine.acceptPromotion(pendingPromotion.id);
     setPendingPromotion(null);
-    onNavigate('home');
-  };
-
-  const handlePostponePromotion = async () => {
-    if (!pendingPromotion) return;
-    await SmartTeacherEngine.postponePromotion(pendingPromotion.id);
-    setPendingPromotion(null);
   };
 
   // Sound and celebration effects on mount
@@ -254,7 +247,6 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             <PromotionModal
               promotion={pendingPromotion}
               onAccept={handleAcceptPromotion}
-              onPostpone={handlePostponePromotion}
             />
           )}
         </div>

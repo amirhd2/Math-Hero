@@ -9,7 +9,6 @@ import { GamificationState, GamificationStats } from './gamificationTypes';
 import { getLevelFromXp } from './levelCalculator';
 import { calculateTrophyStage } from './trophyManager';
 import { getLocalCalendarDate } from './streakManager';
-import { BADGE_REGISTRY } from './badgeRegistry';
 import { OperationType } from '../types';
 import {
   extractOperationBreakdownFromQuizResult,

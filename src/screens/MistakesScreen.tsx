@@ -10,6 +10,7 @@ import { formatNumber } from '../utils/persian';
 import { createPracticeMistakesSession } from '../results/reviewSessionGenerator';
 import { BackButton } from '../components/common/BackButton';
 import { PopoutOwlAvatar } from '../components/adaptive/PopoutOwlAvatar';
+import { QuickQuestionCountModal } from '../components/common/QuickQuestionCountModal';
 
 interface MistakesScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -18,17 +19,34 @@ interface MistakesScreenProps {
 
 export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onStartSession }) => {
   const [mistakes, setMistakes] = useState<MistakeRecord[]>([]);
+  const [isCountModalOpen, setIsCountModalOpen] = useState(false);
 
   useEffect(() => {
     storage.getMistakes().then(setMistakes);
   }, []);
 
-  const handlePracticeMistakes = () => {
+  const handleOpenCountModal = () => {
+    if (mistakes.length > 0) {
+      setIsCountModalOpen(true);
+    }
+  };
+
+  const handleConfirmPractice = (count: number) => {
+    setIsCountModalOpen(false);
     if (mistakes.length > 0 && onStartSession) {
-      const session = createPracticeMistakesSession(mistakes);
+      const session = createPracticeMistakesSession(mistakes, undefined, count);
       onStartSession(session);
     }
   };
+
+  // Build appropriate options based on mistake count
+  const questionCountOptions = React.useMemo(() => {
+    const total = mistakes.length;
+    if (total <= 5) return [total];
+    if (total <= 10) return [5, total];
+    if (total <= 15) return [5, 10, total];
+    return [5, 10, 15, Math.min(20, total)];
+  }, [mistakes.length]);
 
   return (
     <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 space-y-8" dir="rtl">
@@ -102,7 +120,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
                 <button
                   type="button"
                   id="btn-practice-all-mistakes"
-                  onClick={handlePracticeMistakes}
+                  onClick={handleOpenCountModal}
                   className="w-full py-3 sm:py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>شروع تمرین هوشمند و پاک‌سازی اشتباهات</span>
@@ -111,6 +129,21 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
               </div>
             )}
           </div>
+
+          {/* Quick Question Count Modal (Fixed in Practice Mode) */}
+          <QuickQuestionCountModal
+            isOpen={isCountModalOpen}
+            onClose={() => setIsCountModalOpen(false)}
+            onConfirm={handleConfirmPractice}
+            title="تمرین و پاک‌سازی اشتباهات"
+            subtitle="تعداد سوالات مورد نظرت رو برای تمرین و یادگیری انتخاب کن. با حل این سوالات اشتباهات گذشته رو پاک می‌کنی!"
+            icon="🦉"
+            mode="practice"
+            badgeText="🌱 حالت تمرینی"
+            colorGradient="from-amber-500 to-orange-500"
+            options={questionCountOptions}
+            defaultCount={questionCountOptions[Math.min(1, questionCountOptions.length - 1)]}
+          />
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">

@@ -2,29 +2,31 @@
  * PromotionModal component for Math Hero.
  * Celebrates unlocking a new skill tier when the child demonstrates verified mastery.
  *
- * Provides two clear choices:
- * - "بزن بریم 🚀" (Accepts promotion & immediately updates Learning Plan)
- * - "بعداً" (Postpones without relocking the tier)
- *
- * Supports Mobile Portrait, Mobile Landscape, Tablet Portrait, and Tablet Landscape.
+ * Displays:
+ * - Standalone Owl Celebrating character at top-left with no box/background
+ * - Exact unlocked tier medal with rocking/bouncing animation
+ * - Clean "بزن بریم به مرحله بعد 🚀" confirmation action
  */
 
 import React from 'react';
 import { PromotionEvent } from '../../adaptive/adaptiveTypes';
 import { toPersianDigits } from '../../utils/persian';
 import { getAssetUrl } from '../../utils/assetPaths';
+import { getTierMedalUrl } from '../../adaptive/tierRegistry';
 
 interface PromotionModalProps {
   promotion: PromotionEvent;
   onAccept: () => void;
-  onPostpone: () => void;
+  onPostpone?: () => void;
 }
 
 export const PromotionModal: React.FC<PromotionModalProps> = ({
   promotion,
   onAccept,
-  onPostpone,
 }) => {
+  const medalRelativePath = getTierMedalUrl(promotion.operation, promotion.unlockedTier);
+  const medalSrc = getAssetUrl(medalRelativePath);
+
   return (
     <div
       id="promotion-modal-backdrop"
@@ -38,12 +40,28 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({
         {/* Glow Accents */}
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-28 h-28 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Real Gold Cup Asset */}
-        <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none">
+        {/* Owl Character (Top-Left, Standalone with NO background box/circle) */}
+        <div className="absolute -top-8 left-3 sm:-top-10 sm:left-4 w-20 h-20 sm:w-24 sm:h-24 pointer-events-none select-none z-10">
           <img
-            src={getAssetUrl('assets/cups/gold 1.webp')}
-            alt="جام قهرمانی"
-            className="w-full h-full object-contain filter drop-shadow-xl animate-bounce"
+            src={getAssetUrl('assets/characters/owl/Celebrating.webp')}
+            alt="جغد دانا"
+            className="w-full h-full object-contain filter drop-shadow-lg"
+          />
+        </div>
+
+        {/* Exact Unlocked Tier Medal Asset (Bouncing/Rocking) */}
+        <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none pt-2">
+          <img
+            src={medalSrc}
+            alt={`مدال مرحله ${promotion.unlockedTier}`}
+            className="w-full h-full object-contain filter drop-shadow-xl animate-bounce select-none"
+            onError={(e) => {
+              const target = e.currentTarget;
+              if (!target.dataset.fallback) {
+                target.dataset.fallback = '1';
+                target.src = getAssetUrl('assets/medals/16.png');
+              }
+            }}
           />
         </div>
 
@@ -89,30 +107,23 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({
           )}
 
           <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold pt-1">
-            دوست داری از همین حالا وارد این چالش جدید بشی؟
+            از همین حالا می‌تونی در این مرحله جدید تمرین کنی و امتیاز بگیری!
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        {/* Action Button: Single full-width Proceed button */}
+        <div className="pt-2">
           <button
             id="accept-promotion-btn"
             onClick={onAccept}
-            className="flex-1 py-3.5 px-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-base sm:text-lg rounded-2xl shadow-lg hover:shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>بزن بریم به مرحله بعد</span>
             <span>🚀</span>
-          </button>
-
-          <button
-            id="postpone-promotion-btn"
-            onClick={onPostpone}
-            className="py-3.5 px-6 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm sm:text-base rounded-2xl transition-all"
-          >
-            بعداً
           </button>
         </div>
       </div>
     </div>
   );
 };
+

@@ -24,7 +24,6 @@ export const ProgressTrend: React.FC<ProgressTrendProps> = ({
 
   // Chart dimensions & calculations
   const chartHeight = 180;
-  const paddingX = 36;
   const paddingTop = 24;
   const paddingBottom = 32;
   const effectiveHeight = chartHeight - paddingTop - paddingBottom;

@@ -27,11 +27,7 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
     >
       <div className="flex items-center justify-between">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-400 text-slate-950 text-xs font-black rounded-full shadow-xs">
-          <img
-            src={getAssetUrl('assets/cups/gold 1.webp')}
-            alt=""
-            className="w-4 h-4 object-contain"
-          />
+          <span className="text-sm">🏅</span>
           <span>دست‌آورد جدید!</span>
         </span>
         <h3 className="text-base font-black text-amber-900 dark:text-amber-200">
@@ -54,12 +50,12 @@ export const AchievementUnlock: React.FC<AchievementUnlockProps> = ({
               key={ach.id}
               className="bg-white dark:bg-slate-900/90 border border-amber-300 dark:border-amber-700/60 p-4 rounded-2xl flex items-center gap-3.5 shadow-sm overflow-hidden"
             >
-              {/* Pure icon without colored square background */}
-              <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center select-none">
+              {/* Pure icon without colored square background, upright and clean */}
+              <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center select-none rotate-0">
                 <img
                   src={medalSrc}
                   alt={ach.title}
-                  className="w-full h-full object-contain filter drop-shadow-md"
+                  className="w-full h-full object-contain filter drop-shadow-md rotate-0 transform-none"
                   onError={(e) => {
                     const target = e.currentTarget;
                     if (!target.dataset.fallback) {

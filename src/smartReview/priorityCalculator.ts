@@ -46,7 +46,6 @@ export function calculateReviewPriority(
 ): number {
   const {
     totalAttempts,
-    correctCount,
     mistakeCount,
     consecutiveMistakes,
     consecutiveCorrect,

@@ -115,7 +115,7 @@ export function validateQuizConfig(config: QuizConfiguration): { valid: boolean;
  */
 export function balanceDistribution(
   selectedOps: OperationType[],
-  currentDist?: Record<OperationType, number>
+  _currentDist?: Record<OperationType, number>
 ): Record<OperationType, number> {
   const newDist: Record<OperationType, number> = {
     addition: 0,

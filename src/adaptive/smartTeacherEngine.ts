@@ -18,15 +18,13 @@ import {
   AdaptiveLearningPlan,
   OperationMasteryProfile,
   PromotionEvent,
-  SkillTierDefinition,
   SkillTierEvidence,
   TeacherDecision,
 } from './adaptiveTypes';
-import { SKILL_TIERS, getTierDefinition, getTierForSkillId } from './tierRegistry';
+import { SKILL_TIERS, getTierDefinition } from './tierRegistry';
 import { SkillMasteryEvaluator } from './masteryModel';
 import { storage } from '../utils/storage';
 import { generateQuestionForSkill } from '../smartReview/questionSelector';
-import { classifyQuestionToSkill } from '../smartReview/skillModel';
 import { DEFAULT_OPERATION_SETTINGS } from '../utils/questionGenerator';
 
 const LEARNING_PLAN_STORAGE_KEY = 'math_hero_learning_plan_v1';
@@ -256,6 +254,7 @@ export class SmartTeacherEngine {
   ): Promise<QuizQuestion[]> {
     let plan: AdaptiveLearningPlan;
     let sampleMistakes: QuizQuestion[] = [];
+    const desiredCount = typeof countOrPlan === 'number' ? countOrPlan : 10;
 
     if (typeof countOrPlan === 'object' && countOrPlan !== null) {
       plan = countOrPlan;
@@ -274,9 +273,9 @@ export class SmartTeacherEngine {
     const signatures = new Set<string>();
 
     const targetSkillId = decision.skillId;
-    const targetCount = decision.questionMix.targetTierCount;
-    const reviewCount = decision.questionMix.reviewFoundationalCount;
-    const mistakeCount = decision.questionMix.mistakeReviewCount;
+    const targetCount = Math.max(1, Math.round(desiredCount * 0.7));
+    const reviewCount = desiredCount > 5 ? Math.max(0, Math.round(desiredCount * 0.2)) : 0;
+    const mistakeCount = desiredCount > 5 ? Math.max(0, desiredCount - targetCount - reviewCount) : 0;
 
     // 1. Generate target tier questions
     for (let i = 0; i < targetCount; i++) {
@@ -326,8 +325,8 @@ export class SmartTeacherEngine {
       }
     }
 
-    // Fill remaining up to 10 with target skill
-    while (questions.length < 10) {
+    // Fill remaining up to desiredCount with target skill
+    while (questions.length < desiredCount) {
       const q = generateQuestionForSkill(
         targetSkillId,
         [],
@@ -343,7 +342,7 @@ export class SmartTeacherEngine {
     }
 
     // Safety fallback: ensure all questions have required properties
-    return questions.map((q, idx) => ({
+    return questions.slice(0, desiredCount).map((q, idx) => ({
       ...q,
       id: `adp_${operation}_${Date.now()}_${idx}`,
     }));
@@ -356,32 +355,18 @@ export class SmartTeacherEngine {
    */
   static generateCombinedAdaptiveQuestions(
     plan: AdaptiveLearningPlan,
-    sampleMistakes: QuizQuestion[] = []
+    sampleMistakes: QuizQuestion[] = [],
+    desiredCount: number = 20
   ): QuizQuestion[] {
     const ops: OperationType[] = ['addition', 'subtraction', 'multiplication', 'division'];
     const questions: QuizQuestion[] = [];
     const signatures = new Set<string>();
 
-    // Determine weight for each operation: give neglected operations slightly higher weight
-    const distribution: Record<OperationType, number> = {
-      addition: 2,
-      subtraction: 2,
-      multiplication: 3,
-      division: 3,
-      mixed: 0,
-    };
-
-    if (plan.neglectedOperations && plan.neglectedOperations.length > 0) {
-      plan.neglectedOperations.forEach((negOp) => {
-        if (distribution[negOp] !== undefined) {
-          distribution[negOp] += 1;
-        }
-      });
-    }
+    const perOp = Math.max(1, Math.ceil(desiredCount / ops.length));
 
     // Build question pool
     ops.forEach((op) => {
-      const count = distribution[op] || 2;
+      const count = perOp;
       const profile = plan.operations[op] || plan.operations.addition;
       const approvedTier = profile.currentTier || 1;
       const skillId = getTierDefinition(op, approvedTier).skillId;
@@ -406,7 +391,7 @@ export class SmartTeacherEngine {
       [questions[i], questions[j]] = [questions[j], questions[i]];
     }
 
-    return questions.slice(0, 10).map((q, idx) => ({
+    return questions.slice(0, desiredCount).map((q, idx) => ({
       ...q,
       id: `adp_comb_${Date.now()}_${idx}`,
     }));

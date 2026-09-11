@@ -10,7 +10,6 @@ import {
   SkillPerformanceRecord,
   SmartReviewConfiguration,
 } from './smartReviewTypes';
-import { getSkillDefinition } from './skillModel';
 import { generateNumberWithDigits } from '../utils/questionGenerator';
 
 /**
@@ -48,10 +47,9 @@ export function validateSmartQuestion(q: QuizQuestion): boolean {
 export function generateQuestionForSkill(
   skillId: SkillId,
   sampleMistakes: QuizQuestion[] = [],
-  settings: OperationSettings,
-  existingSignatures: Set<string>
+  _settings?: OperationSettings,
+  existingSignatures: Set<string> = new Set()
 ): QuizQuestion | null {
-  const skill = getSkillDefinition(skillId);
   const id = `sr_q_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
   // 1. If sample mistakes exist for this skill, attempt to generate smart variation

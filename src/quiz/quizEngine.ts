@@ -16,7 +16,7 @@ import {
   QuizQuestionResponse,
 } from '../types';
 import { createQuizSession } from '../utils/questionGenerator';
-import { validateAnswer, normalizeAnswer, PRACTICE_MAX_ATTEMPTS, TEST_MAX_ATTEMPTS } from './answerValidator';
+import { validateAnswer, PRACTICE_MAX_ATTEMPTS, TEST_MAX_ATTEMPTS } from './answerValidator';
 import { recordResponseInSession, advanceSessionToNext, buildFinalQuizResult } from './quizSession';
 import { persistQuizCompletion } from './quizPersistence';
 import { sound } from '../utils/sound';

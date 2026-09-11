@@ -23,7 +23,7 @@ import {
   GamificationStats,
 } from './gamificationTypes';
 import { calculateQuizXp } from './xpCalculator';
-import { getLevelProgress, calculateLevelUp, getLevelFromXp, getRawLevelByXp } from './levelCalculator';
+import { getLevelProgress, calculateLevelUp, getLevelFromXp } from './levelCalculator';
 import { evaluateStreak, getLocalCalendarDate } from './streakManager';
 import { evaluateBadges } from './achievementEngine';
 import { getTrophyInfo, calculateTrophyStage } from './trophyManager';
@@ -113,7 +113,6 @@ class GamificationEngineService {
 
     // 0. IDEMPOTENCY CHECK: Ensure the exact same quiz result ID cannot award duplicate XP or badges
     if (result.id && currentState.processedQuizIds?.includes(result.id)) {
-      const levelInfo = getLevelProgress(currentState.totalXp);
       return {
         updatedState: currentState,
         updatedProfile: profile,

@@ -11,13 +11,12 @@ import {
   MIN_QUESTIONS,
   MAX_QUESTIONS,
   MULTIPLICATION_TABLES,
-  validateQuizConfig,
   balanceDistribution,
   DEFAULT_QUIZ_CONFIG,
 } from '../utils/questionGenerator';
 import { DigitCapsuleControl } from '../components/DigitCapsuleControl';
 import { PercentageCapsuleControl } from '../components/PercentageCapsuleControl';
-import { toPersianDigits, parseNumericInput } from '../utils/persian';
+import { toPersianDigits } from '../utils/persian';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { AdaptiveLearningPlan } from '../adaptive/adaptiveTypes';
 import { getTierDefinition } from '../adaptive/tierRegistry';

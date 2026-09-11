@@ -3,7 +3,7 @@
  * Maps logical identifiers to icons, colors, or vector representations.
  */
 
-import { AssetId, CharacterGender, CharacterPose } from '../types';
+import { AssetId } from '../types';
 
 export function getAssetLabel(assetId: AssetId): string {
   switch (assetId) {

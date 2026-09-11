@@ -24,7 +24,7 @@ export async function getSmartReviewState(forceRefresh: boolean = false): Promis
  * Generates an adaptive Smart Review QuizSession using existing QuizSession architecture.
  * Directly runnable by the existing QuizEngine.
  */
-export async function createSmartReviewSession(): Promise<{
+export async function createSmartReviewSession(customQuestionCount?: number): Promise<{
   session: QuizSession | null;
   state: SmartReviewState;
 }> {
@@ -58,7 +58,7 @@ export async function createSmartReviewSession(): Promise<{
 
   // 5. Build Smart Review Configuration
   const reviewConfig: SmartReviewConfiguration = {
-    questionCount: SMART_REVIEW_DEFAULT_QUESTION_COUNT,
+    questionCount: customQuestionCount || SMART_REVIEW_DEFAULT_QUESTION_COUNT,
     targetSkills: targetSkills.map((s) => s.skillId),
     operationWeights: state.operationWeights,
     difficultyProfile,
@@ -127,7 +127,8 @@ export async function createSmartReviewSession(): Promise<{
  */
 export function createTargetedPracticeMistakesSession(
   mistakes: MistakeRecord[],
-  baseConfig?: QuizConfiguration
+  baseConfig?: QuizConfiguration,
+  limitCount?: number
 ): QuizSession {
   if (!mistakes || mistakes.length === 0) {
     throw new Error('No mistakes available to practice');
@@ -135,9 +136,10 @@ export function createTargetedPracticeMistakesSession(
 
   const generatedQuestions = [];
   const existingSignatures = new Set<string>();
+  const targetMistakes = limitCount ? mistakes.slice(0, limitCount) : mistakes;
 
   // 1. Direct mistakes questions
-  for (const m of mistakes) {
+  for (const m of targetMistakes) {
     const q = m.question;
     const sig = `${q.operation}:${q.num1}:${q.num2}`;
     if (!existingSignatures.has(sig)) {
@@ -148,8 +150,9 @@ export function createTargetedPracticeMistakesSession(
       });
     }
 
-    // Add smart variation if total questions is small (< 8)
-    if (generatedQuestions.length < 10) {
+    // Add smart variation if total questions is small (< 8) and limit allows
+    const maxTarget = limitCount || 10;
+    if (generatedQuestions.length < maxTarget) {
       const variation = createMistakeVariation(q, existingSignatures);
       if (variation && validateSmartQuestion(variation)) {
         const varSig = `${variation.operation}:${variation.num1}:${variation.num2}`;
@@ -157,15 +160,20 @@ export function createTargetedPracticeMistakesSession(
         generatedQuestions.push(variation);
       }
     }
+
+    if (limitCount && generatedQuestions.length >= limitCount) {
+      break;
+    }
   }
 
-  const distinctOps = Array.from(new Set(generatedQuestions.map((q) => q.operation))) as OperationType[];
+  const finalQuestions = limitCount ? generatedQuestions.slice(0, limitCount) : generatedQuestions;
+  const distinctOps = Array.from(new Set(finalQuestions.map((q) => q.operation))) as OperationType[];
 
   const config: QuizConfiguration = {
     id: 'mistakes-practice',
     title: 'تمرین هوشمند اشتباهات',
     mode: 'practice',
-    questionCount: generatedQuestions.length,
+    questionCount: finalQuestions.length,
     selectedOperations: distinctOps,
     operationSettings: baseConfig?.operationSettings || {
       addition: { operand1Digits: 2, operand2Digits: 1 },
@@ -183,10 +191,10 @@ export function createTargetedPracticeMistakesSession(
     id: `session_mistakes_practice_${startedAt}_${Math.random().toString(36).substring(2, 7)}`,
     config,
     mode: 'practice',
-    totalQuestions: generatedQuestions.length,
+    totalQuestions: finalQuestions.length,
     currentIndex: 0,
-    questions: generatedQuestions,
-    currentQuestion: generatedQuestions[0],
+    questions: finalQuestions,
+    currentQuestion: finalQuestions[0],
     answers: {},
     attempts: {},
     correctAnswers: 0,
@@ -199,7 +207,7 @@ export function createTargetedPracticeMistakesSession(
     xpEarned: 0,
     source: 'mistakes-practice',
     smartReviewMetadata: {
-      targetedSkills: mistakes.map((m) => getSkillDefinition(classifyQuestionToSkill(m.question)).titleFa),
+      targetedSkills: targetMistakes.map((m) => getSkillDefinition(classifyQuestionToSkill(m.question)).titleFa),
       targetOperations: distinctOps,
       insightFa: 'تمرین متمرکز روی اشتباهات ثبت‌شده همراه با الگوهای مشابه',
     },

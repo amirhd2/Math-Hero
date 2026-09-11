@@ -3,7 +3,7 @@
  * Prepares data structures for Statistics screens and future Smart Review (Prompt 07).
  */
 
-import { OperationType, QuizMode, QuizResult, MistakeRecord } from '../types';
+import { OperationType, QuizResult, MistakeRecord } from '../types';
 
 export type TimeRange = '7days' | '30days' | 'all';
 

@@ -3,7 +3,7 @@
  * Classifies arithmetic questions into granular skills and defines learning taxonomy.
  */
 
-import { QuizQuestion, OperationType } from '../types';
+import { QuizQuestion } from '../types';
 import { SkillDefinition, SkillId, SkillConfidence } from './smartReviewTypes';
 
 export const ALL_SKILLS: SkillDefinition[] = [

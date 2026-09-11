@@ -35,7 +35,6 @@ export function validateAnswer(
   currentAttemptCount: number // prior attempts for this question
 ): AnswerValidationResult {
   const parsed = normalizeAnswer(rawInput);
-  const maxAttempts = mode === 'test' ? TEST_MAX_ATTEMPTS : PRACTICE_MAX_ATTEMPTS;
   const attemptNumber = currentAttemptCount + 1;
 
   if (parsed === null) {

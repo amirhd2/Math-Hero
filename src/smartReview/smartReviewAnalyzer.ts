@@ -4,14 +4,14 @@
  * from IndexedDB into adaptive skill metrics and operational priorities.
  */
 
-import { QuizResult, MistakeRecord, OperationType, QuizQuestion } from '../types';
+import { QuizResult, MistakeRecord, OperationType } from '../types';
 import {
   SkillId,
   SkillPerformanceRecord,
   SmartReviewState,
   SmartReviewDataTier,
 } from './smartReviewTypes';
-import { ALL_SKILLS, classifyQuestionToSkill, calculateSkillConfidence, getSkillDefinition } from './skillModel';
+import { ALL_SKILLS, classifyQuestionToSkill, calculateSkillConfidence } from './skillModel';
 import { calculateReviewPriority } from './priorityCalculator';
 
 export function analyzeSmartReview(

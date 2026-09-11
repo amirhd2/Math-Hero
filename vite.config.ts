@@ -17,8 +17,10 @@ export default defineConfig(() => {
           'apple-touch-icon.png',
           'icon.svg',
           'assets/characters/**/*.webp',
-          'assets/characters/**/half-body/*.webp',
-          'assets/badges/*.jpg',
+          'assets/characters/**/*.png',
+          'assets/medals/*.png',
+          'assets/cups/*.webp',
+          'assets/stages/*.webp',
         ],
         manifest: {
           id: './',
@@ -49,7 +51,8 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2,webmanifest}'],
+          maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
           runtimeCaching: [
             {
               urlPattern: /\.(?:png|jpg|jpeg|svg|webp)$/i,
@@ -57,8 +60,8 @@ export default defineConfig(() => {
               options: {
                 cacheName: 'images-cache',
                 expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 60, // 60 days
+                  maxEntries: 500,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
                 },
                 cacheableResponse: {
                   statuses: [0, 200],

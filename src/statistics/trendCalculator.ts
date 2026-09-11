@@ -7,8 +7,6 @@ import { QuizResult } from '../types';
 import { DailyTrendPoint, TimeRange } from './statisticsTypes';
 import { toPersianDigits } from '../utils/persian';
 
-const PERSIAN_WEEKDAYS = ['۱ش', '۲ش', '۳ش', '۴ش', '۵ش', 'جمعه', 'شنبه']; // Sun..Sat
-
 export function calculateTrendPoints(results: QuizResult[], timeRange: TimeRange): DailyTrendPoint[] {
   if (!results || results.length === 0) {
     return [];
