@@ -144,23 +144,71 @@ class SoundService {
   playLevelUp(enabled = true) {
     if (!enabled) return;
     try {
+      this.playCheer(enabled);
+    } catch {}
+  }
+
+  playCheer(enabled = true) {
+    if (!enabled) return;
+    try {
       const ctx = this.getContext();
       if (!ctx) return;
       const now = ctx.currentTime;
-      // Upbeat triumphal arpeggio: C4, E4, G4, C5, E5, G5
-      const freqs = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.5];
+      
+      // 1. Triumphal Brass Fanfare (C4, E4, G4, C5, E5, G5, C6)
+      const freqs = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.50, 1318.51];
       freqs.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-        gain.gain.setValueAtTime(0.15, now + idx * 0.08);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.5);
+        osc.type = idx % 2 === 0 ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+        gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.45);
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(now + idx * 0.08);
-        osc.stop(now + idx * 0.08 + 0.5);
+        osc.start(now + idx * 0.06);
+        osc.stop(now + idx * 0.06 + 0.45);
       });
+
+      // 2. Celebratory Sparkling Chimes (High pitch arpeggio)
+      [1567.98, 1760.0, 2093.0, 2349.32, 2637.02].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + 0.35 + idx * 0.05);
+        gain.gain.setValueAtTime(0.08, now + 0.35 + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35 + idx * 0.05 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + 0.35 + idx * 0.05);
+        osc.stop(now + 0.35 + idx * 0.05 + 0.35);
+      });
+
+      // 3. Synthesized Crowd Cheering Noise Burst
+      const bufferSize = Math.floor(ctx.sampleRate * 0.7);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const whiteNoise = ctx.createBufferSource();
+      whiteNoise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1200, now);
+      filter.Q.setValueAtTime(1.5, now);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.001, now);
+      noiseGain.gain.linearRampToValueAtTime(0.06, now + 0.1);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+
+      whiteNoise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      whiteNoise.start(now);
+      whiteNoise.stop(now + 0.7);
     } catch {}
   }
 

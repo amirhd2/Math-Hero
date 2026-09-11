@@ -338,6 +338,11 @@ export function useQuizEngine({
 
   const manualAdvanceRef = useRef<(() => void) | null>(null);
 
+  const resetQuestionTimer = useCallback(() => {
+    questionStartTimeRef.current = Date.now();
+    focusInput();
+  }, [focusInput]);
+
   const advanceNow = useCallback(() => {
     if (manualAdvanceRef.current) {
       manualAdvanceRef.current();
@@ -373,6 +378,7 @@ export function useQuizEngine({
     inputRef,
     submitAnswer,
     advanceNow,
+    resetQuestionTimer,
     cancelQuiz: onCancelQuiz,
   };
 }

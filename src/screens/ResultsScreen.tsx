@@ -25,6 +25,10 @@ import { calculateMeasurableImprovement } from '../smartReview/smartReviewPersis
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { PromotionEvent } from '../adaptive/adaptiveTypes';
 import { PromotionModal } from '../components/adaptive/PromotionModal';
+import { LevelUpModal } from '../components/gamification/LevelUpModal';
+import { TrophyUnlockModal } from '../components/gamification/TrophyUnlockModal';
+import { gamificationEngine } from '../gamification/gamificationEngine';
+import { TrophyInfo } from '../gamification/gamificationTypes';
 import { BackButton } from '../components/common/BackButton';
 
 interface ResultsScreenProps {
@@ -48,26 +52,59 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   const leveledUp = Boolean(
     result.leveledUp || (result.levelBefore && result.levelAfter && result.levelAfter > result.levelBefore)
   );
+  const trophyUpgraded = Boolean(
+    result.trophyUpgraded ||
+      (result.trophyStageAfter &&
+        result.trophyStageBefore &&
+        result.trophyStageAfter > result.trophyStageBefore)
+  );
   const hasAchievements = Boolean(
     result.unlockedAchievements && result.unlockedAchievements.length > 0
   );
   const mistakes = result.mistakes || [];
   const hasMistakes = mistakes.length > 0;
 
+  const [modalQueue, setModalQueue] = useState<('levelup' | 'trophy' | 'promotion')[]>([]);
   const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
+  const [trophyDetails, setTrophyDetails] = useState<TrophyInfo | null>(null);
 
   useEffect(() => {
+    const queue: ('levelup' | 'trophy' | 'promotion')[] = [];
+
+    // Rule 1: Always show Level Up banner if leveled up
+    if (leveledUp) {
+      queue.push('levelup');
+    }
+
+    // Rule 2: Always show Trophy unlock banner if trophy upgraded
+    if (trophyUpgraded) {
+      queue.push('trophy');
+      gamificationEngine.getOverviewData().then((overview) => {
+        if (overview?.trophyInfo) {
+          setTrophyDetails(overview.trophyInfo);
+        }
+      });
+    }
+
+    // Skill tier promotion
     SmartTeacherEngine.getPendingPromotion().then((promo) => {
       if (promo) {
         setPendingPromotion(promo);
+        if (!queue.includes('promotion')) {
+          queue.push('promotion');
+        }
       }
+      setModalQueue(queue);
     });
-  }, []);
+  }, [leveledUp, trophyUpgraded]);
 
-  const handleAcceptPromotion = async () => {
-    if (!pendingPromotion) return;
-    await SmartTeacherEngine.acceptPromotion(pendingPromotion.id);
-    setPendingPromotion(null);
+  const handleDismissCurrentModal = async () => {
+    const currentModal = modalQueue[0];
+    if (currentModal === 'promotion' && pendingPromotion) {
+      await SmartTeacherEngine.acceptPromotion(pendingPromotion.id);
+      setPendingPromotion(null);
+    }
+    setModalQueue((prev) => prev.slice(1));
   };
 
   // Sound and celebration effects on mount
@@ -242,11 +279,28 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
              />
           </div>
 
-          {/* Adaptive Promotion Celebration Modal */}
-          {pendingPromotion && (
+          {/* Celebration Modals Queue (Level Up, Trophy Unlock, Skill Promotion) */}
+          {modalQueue[0] === 'levelup' && (
+            <LevelUpModal
+              level={result.levelAfter || profile.level}
+              onAccept={handleDismissCurrentModal}
+              soundEnabled={settings.soundEnabled}
+            />
+          )}
+
+          {modalQueue[0] === 'trophy' && trophyDetails && (
+            <TrophyUnlockModal
+              trophyInfo={trophyDetails}
+              onAccept={handleDismissCurrentModal}
+              soundEnabled={settings.soundEnabled}
+            />
+          )}
+
+          {modalQueue[0] === 'promotion' && pendingPromotion && (
             <PromotionModal
               promotion={pendingPromotion}
-              onAccept={handleAcceptPromotion}
+              onAccept={handleDismissCurrentModal}
+              soundEnabled={settings.soundEnabled}
             />
           )}
         </div>

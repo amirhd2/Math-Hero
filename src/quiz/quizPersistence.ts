@@ -86,6 +86,9 @@ export async function persistQuizCompletion(
     levelBefore: gamificationResult.levelBefore,
     levelAfter: gamificationResult.levelAfter,
     leveledUp: gamificationResult.leveledUp,
+    trophyStageBefore: gamificationResult.trophyStageBefore,
+    trophyStageAfter: gamificationResult.trophyStageAfter,
+    trophyUpgraded: gamificationResult.trophyUpgraded,
     unlockedAchievements,
     mistakes,
   };

@@ -228,6 +228,9 @@ export interface QuizResult {
   levelBefore?: number;
   levelAfter?: number;
   leveledUp?: boolean;
+  trophyStageBefore?: number;
+  trophyStageAfter?: number;
+  trophyUpgraded?: boolean;
   unlockedAchievements?: Achievement[];
   mistakes?: MistakeRecord[];
   questions?: QuizQuestion[];

@@ -16,6 +16,7 @@ import {
   TestPattern,
   QuizConfiguration,
   OperationType,
+  QuizResult,
 } from '../types';
 import { formatNumber, toPersianDigits } from '../utils/persian';
 import { storage } from '../utils/storage';
@@ -83,6 +84,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   const [totalBadgesCount, setTotalBadgesCount] = useState(45);
   const [adaptivePlan, setAdaptivePlan] = useState<AdaptiveLearningPlan | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<PromotionEvent | null>(null);
+  const [todayQuizResults, setTodayQuizResults] = useState<QuizResult[]>([]);
 
   // Quick Question Count Modal state
   const [countModalState, setCountModalState] = useState<{
@@ -260,6 +262,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         const xpToday = todayResults.reduce((sum, r) => sum + (r.xpEarned || 0), 0);
         setTodaySolved(qToday);
         setTodayXp(xpToday);
+        setTodayQuizResults(todayResults);
 
         // Operation mastery calculation
         if (results.length > 0) {
@@ -360,6 +363,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         onAction: () => onNavigate('mistakes'),
       });
     } else {
+      const isReviewDone = todaySolved > 0;
       list.push({
         id: 'smart-review',
         badgeText: 'مرور تطبیقی',
@@ -369,8 +373,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         description: '۱۰ سوال گلچین شده بر اساس سابقه عملکرد برای ارتقای سرعت و تسلط حافظه',
         rewardXp: 45,
         rewardCoins: 9,
-        isCompleted: false,
-        actionText: 'ورود به مرور هوشمند',
+        isCompleted: isReviewDone,
+        actionText: isReviewDone ? 'تکمیل شد' : 'ورود به مرور هوشمند',
         actionIcon: '✨',
         bgGradient: 'bg-gradient-to-br from-violet-300 via-indigo-200 to-purple-300 text-slate-950',
         borderAccent: 'border-violet-400',
@@ -390,6 +394,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         mixed: 'ترکیبی',
       };
       const opName = opNames[op] || 'این بخش';
+      const isOpDone = todayQuizResults.some(
+        (r) => (r.operations && r.operations.includes(op)) || r.operation === op
+      );
       list.push({
         id: `focus-${op}`,
         badgeText: 'تعادل مهارت‌ها',
@@ -399,8 +406,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         description: `پیشنهاد معلم: تمرین روی ${opName} برای ایجاد توازن و رسیدن به تسلط در همه عملیات‌ها`,
         rewardXp: 45,
         rewardCoins: 8,
-        isCompleted: false,
-        actionText: `تمرین ${opName}`,
+        isCompleted: isOpDone,
+        actionText: isOpDone ? 'تکمیل شد' : `تمرین ${opName}`,
         actionIcon: '🌟',
         bgGradient: 'bg-gradient-to-br from-teal-300 via-emerald-200 to-teal-200 text-slate-950',
         borderAccent: 'border-teal-400',
@@ -415,6 +422,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       });
     } else if (adaptivePlan?.recommendedSkillId) {
       const tierDef = getTierDefinition(adaptivePlan.primaryOperation, adaptivePlan.recommendedTier || 1);
+      const isTierDone = todayQuizResults.some(
+        (r) => (r.operations && r.operations.includes(adaptivePlan.primaryOperation)) || r.operation === adaptivePlan.primaryOperation
+      );
       list.push({
         id: 'tier-challenge',
         badgeText: 'گام به گام تا استادی',
@@ -424,8 +434,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         description: tierDef.pedagogicalGoalFa || 'یک مرحله جلوتر برو و به تسلط کامل در این سطح برس!',
         rewardXp: 50,
         rewardCoins: 10,
-        isCompleted: false,
-        actionText: 'شروع مرحله جدید',
+        isCompleted: isTierDone,
+        actionText: isTierDone ? 'تکمیل شد' : 'شروع مرحله جدید',
         actionIcon: '🚀',
         bgGradient: 'bg-gradient-to-br from-sky-300 via-blue-200 to-indigo-200 text-slate-950',
         borderAccent: 'border-sky-400',
@@ -441,6 +451,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     }
 
     // Challenge 4: Combined Quiz Challenge
+    const isCombinedDone = todayQuizResults.some(
+      (r) => (r.operations && r.operations.length >= 2) || r.operation === 'mixed'
+    );
     list.push({
       id: 'combined-grand-challenge',
       badgeText: 'آزمون جامع',
@@ -450,8 +463,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       description: '۲۰ معمای هوشمند ترکیبی از جمع، تفریق، ضرب و تقسیم برای قهرمانان واقعی',
       rewardXp: 75,
       rewardCoins: 15,
-      isCompleted: false,
-      actionText: 'شروع چالش ترکیبی',
+      isCompleted: isCombinedDone,
+      actionText: isCombinedDone ? 'تکمیل شد' : 'شروع چالش ترکیبی',
       actionIcon: '👑',
       bgGradient: 'bg-gradient-to-br from-indigo-300 via-purple-200 to-pink-200 text-slate-950',
       borderAccent: 'border-indigo-400',
@@ -471,6 +484,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     });
 
     // Challenge 5: Accuracy Master Challenge
+    const isAccuracyDone = todayQuizResults.some((r) => {
+      const acc = r.totalQuestions > 0 ? (r.correctCount / r.totalQuestions) * 100 : 0;
+      return acc >= 90 && r.totalQuestions >= 5;
+    });
     list.push({
       id: 'accuracy-challenge',
       badgeText: 'دقت طلایی',
@@ -480,8 +497,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       description: 'حل آزمون ۱۰ سوالی با دقت بالای ۹۰٪ برای دریافت نشان استاد بی‌خطا',
       rewardXp: 60,
       rewardCoins: 12,
-      isCompleted: false,
-      actionText: 'شروع آزمون بدون خطا',
+      isCompleted: isAccuracyDone,
+      actionText: isAccuracyDone ? 'تکمیل شد' : 'شروع آزمون بدون خطا',
       actionIcon: '🎯',
       bgGradient: 'bg-gradient-to-br from-emerald-300 via-teal-200 to-green-200 text-slate-950',
       borderAccent: 'border-emerald-400',
@@ -501,6 +518,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     unresolvedMistakesCount,
     adaptivePlan,
     appMode,
+    todayQuizResults,
     onStartChildQuickOperation,
     onStartChildCombined,
     onOpenSetup,
@@ -1128,6 +1146,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         <PromotionModal
           promotion={pendingPromotion}
           onAccept={handleAcceptPromotion}
+          soundEnabled={true}
         />
       )}
     </div>

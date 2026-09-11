@@ -535,6 +535,7 @@ export default function App() {
       case 'quiz_active':
         return (
           <QuizActiveScreen
+            key={activeSession?.id || `quiz_${Date.now()}`}
             session={activeSession || undefined}
             preset={activePreset}
             profile={profile}
@@ -730,9 +731,9 @@ export default function App() {
         )}
 
         <main
-          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' ? '' : 'pb-16 md:pb-8 pt-safe'}`}
+          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' || screenId === 'onboarding' ? '' : 'pb-16 md:pb-8 pt-safe'}`}
           style={{
-            paddingTop: screenId === 'quiz_active' ? undefined : 'env(safe-area-inset-top, 0px)',
+            paddingTop: screenId === 'quiz_active' || screenId === 'onboarding' ? undefined : 'env(safe-area-inset-top, 0px)',
           }}
         >
           {renderScreen(screenId)}

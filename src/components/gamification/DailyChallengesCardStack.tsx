@@ -50,104 +50,126 @@ const ChallengeCardContent: React.FC<{
       <div className="absolute -top-10 -left-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
       <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-black/5 rounded-full blur-2xl pointer-events-none" />
 
-      {/* Top Row: Category Badge & Reward Chips */}
-      <div className="relative z-10 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs ${
-              card.badgeColor || 'bg-slate-950/15 text-slate-900 dark:text-white'
+      {/* Main card content */}
+      <div className="flex flex-col justify-between h-full transition-all duration-300">
+        {/* Top Row: Category Badge & Reward Chips */}
+        <div className="relative z-10 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs ${
+                card.badgeColor || 'bg-slate-950/15 text-slate-900 dark:text-white'
+              }`}
+            >
+              <span>{card.badgeIcon}</span>
+              <span>{card.badgeText}</span>
+            </span>
+          </div>
+
+          {/* Rewards */}
+          <div className="flex items-center gap-1.5 text-xs font-black">
+            <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
+              <span>⭐</span>
+              <span>+{toPersianDigits(card.rewardXp)} XP</span>
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
+              <span>🪙</span>
+              <span>+{toPersianDigits(card.rewardCoins)}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Middle Content: Title, Description */}
+        <div className="relative z-10 my-auto py-2 flex items-center justify-between gap-4">
+          <div className="space-y-1 max-w-xl text-right">
+            <h4 className="text-base sm:text-xl font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
+              {card.title}
+            </h4>
+            <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
+              {card.description}
+            </p>
+          </div>
+
+          {/* Visual Card Symbol */}
+          <div className="hidden sm:flex w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md items-center justify-center text-3xl shadow-inner shrink-0">
+            {card.cardIcon}
+          </div>
+        </div>
+
+        {/* Bottom Action Button */}
+        <div className="relative z-10 pt-1">
+          <button
+            type="button"
+            tabIndex={isInteractive ? 0 : -1}
+            onPointerDown={(e) => {
+              if (!isInteractive) return;
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              if (!isInteractive) return;
+              e.stopPropagation();
+              card.onAction();
+            }}
+            className={`w-full py-2.5 sm:py-3 px-4 bg-slate-950 hover:bg-slate-900 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/20 active:scale-95 transition-all flex items-center justify-center gap-2 ${
+              isInteractive ? 'cursor-pointer' : 'pointer-events-none'
             }`}
           >
-            <span>{card.badgeIcon}</span>
-            <span>{card.badgeText}</span>
-          </span>
-
-          {card.isCompleted && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[11px] font-black shadow-xs">
-              <span>✓</span>
-              <span>تکمیل شد</span>
-            </span>
-          )}
+            <span>{card.actionIcon || '🚀'}</span>
+            <span>{card.actionText}</span>
+          </button>
         </div>
-
-        {/* Rewards */}
-        <div className="flex items-center gap-1.5 text-xs font-black">
-          <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
-            <span>⭐</span>
-            <span>+{toPersianDigits(card.rewardXp)} XP</span>
-          </span>
-          <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
-            <span>🪙</span>
-            <span>+{toPersianDigits(card.rewardCoins)}</span>
-          </span>
-        </div>
-      </div>
-
-      {/* Middle Content: Title, Description, Progress */}
-      <div className="relative z-10 my-auto py-1 flex items-center justify-between gap-4">
-        <div className="space-y-1 max-w-xl text-right">
-          <h4 className="text-base sm:text-xl font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
-            {card.title}
-          </h4>
-          <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
-            {card.description}
-          </p>
-
-          {/* Progress bar if applicable */}
-          {typeof card.progressCurrent === 'number' &&
-            typeof card.progressTotal === 'number' && (
-              <div className="pt-1.5 max-w-xs space-y-1">
-                <div className="flex items-center justify-between text-[11px] font-bold text-slate-800 dark:text-slate-300">
-                  <span>پیشرفت امروز</span>
-                  <span>
-                    {toPersianDigits(card.progressCurrent)} از{' '}
-                    {toPersianDigits(card.progressTotal)}
-                  </span>
-                </div>
-                <div className="w-full h-2 bg-black/15 dark:bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-slate-950 dark:bg-white rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(
-                        100,
-                        Math.round((card.progressCurrent / card.progressTotal) * 100)
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-        </div>
-
-        {/* Visual Card Symbol */}
-        <div className="hidden sm:flex w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md items-center justify-center text-3xl shadow-inner shrink-0">
-          {card.cardIcon}
-        </div>
-      </div>
-
-      {/* Bottom Action Button */}
-      <div className="relative z-10 pt-1">
-        <button
-          type="button"
-          tabIndex={isInteractive ? 0 : -1}
-          onPointerDown={(e) => {
-            if (!isInteractive) return;
-            e.stopPropagation();
-          }}
-          onClick={(e) => {
-            if (!isInteractive) return;
-            e.stopPropagation();
-            card.onAction();
-          }}
-          className={`w-full py-2.5 sm:py-3 px-4 bg-slate-950 hover:bg-slate-900 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-slate-950/20 active:scale-95 transition-all flex items-center justify-center gap-2 ${
-            isInteractive ? 'cursor-pointer' : 'pointer-events-none'
-          }`}
-        >
-          <span>{card.actionIcon || '🚀'}</span>
-          <span>{card.actionText}</span>
-        </button>
       </div>
     </>
+  );
+};
+
+/**
+ * AllChallengesCompletedCard: Displayed when all daily challenges are finished.
+ */
+const AllChallengesCompletedCard: React.FC = () => {
+  return (
+    <div className="relative w-full h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-xl border border-emerald-400/60 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 dark:from-emerald-950/80 dark:via-slate-900 dark:to-teal-950/80 text-slate-900 dark:text-white select-none">
+      {/* Background decorative ambient glow */}
+      <div className="absolute -top-12 -left-12 w-40 h-40 bg-emerald-400/25 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-teal-400/25 rounded-full blur-2xl pointer-events-none" />
+
+      {/* Top Row: Celebration Badges */}
+      <div className="relative z-10 flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs bg-emerald-600 text-white">
+          <span>🎉</span>
+          <span>چالش‌های روزانه تکمیل شد</span>
+        </span>
+        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-black text-xs border border-emerald-500/30 flex items-center gap-1">
+          <span>🌟</span>
+          <span>تمام جوایز دریافت شد</span>
+        </span>
+      </div>
+
+      {/* Middle Content: Celebration message */}
+      <div className="relative z-10 my-auto py-2 flex items-center justify-between gap-4">
+        <div className="space-y-1.5 text-right">
+          <h4 className="text-base sm:text-xl font-black tracking-tight text-emerald-950 dark:text-emerald-200 flex items-center gap-2">
+            <span>آفرین قهرمان ریاضی!</span>
+            <span className="text-xl">🏆</span>
+          </h4>
+          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed max-w-lg">
+            تمامی چالش‌های روزانه امروز رو با موفقیت به پایان رسوندی. چالش‌های تازه فردا ساعت ۰۰:۰۰ آماده خواهند شد!
+          </p>
+        </div>
+
+        {/* Big Celebration Trophy Icon */}
+        <div className="hidden sm:flex w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 items-center justify-center text-3xl sm:text-4xl shadow-inner shrink-0 animate-pulse">
+          👑
+        </div>
+      </div>
+
+      {/* Bottom Status Banner */}
+      <div className="relative z-10 pt-1">
+        <div className="w-full py-2.5 sm:py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md flex items-center justify-center gap-2">
+          <span>✓</span>
+          <span>۱۰۰٪ چالش‌های امروز انجام شد ✨</span>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -159,7 +181,14 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
   const [dragDir, setDragDir] = useState<'next' | 'prev'>('next');
   const [overrideUnderneathIndex, setOverrideUnderneathIndex] = useState<number | null>(null);
   const isAnimatingRef = useRef(false);
-  const total = challenges.length;
+
+  // Filter out completed challenges
+  const activeChallenges = React.useMemo(() => {
+    return (challenges || []).filter((c) => !c.isCompleted);
+  }, [challenges]);
+
+  const total = activeChallenges.length;
+  const safeIndex = total > 0 ? currentIndex % total : 0;
 
   // Real-time Motion Values for physical circular orbit gestures
   const x = useMotionValue(0);
@@ -207,7 +236,7 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     if (currentX < -swipeThreshold || velocity < -velocityThreshold) {
       // Swiped Left (← in RTL) -> Advance to Next card along circular orbit
       isAnimatingRef.current = true;
-      setOverrideUnderneathIndex((currentIndex + 1) % total);
+      setOverrideUnderneathIndex((safeIndex + 1) % total);
       await animate(x, -580, {
         duration: 0.26,
         ease: [0.22, 1, 0.36, 1],
@@ -220,7 +249,7 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     } else if (currentX > swipeThreshold || velocity > velocityThreshold) {
       // Swiped Right (→ in RTL) -> Go to Previous card along circular orbit
       isAnimatingRef.current = true;
-      setOverrideUnderneathIndex((currentIndex - 1 + total) % total);
+      setOverrideUnderneathIndex((safeIndex - 1 + total) % total);
       await animate(x, 580, {
         duration: 0.26,
         ease: [0.22, 1, 0.36, 1],
@@ -243,7 +272,7 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
   const handleNext = useCallback(async () => {
     if (isAnimatingRef.current || total <= 1) return;
     isAnimatingRef.current = true;
-    setOverrideUnderneathIndex((currentIndex + 1) % total);
+    setOverrideUnderneathIndex((safeIndex + 1) % total);
     await animate(x, -580, {
       duration: 0.28,
       ease: [0.22, 1, 0.36, 1],
@@ -253,12 +282,12 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     setOverrideUnderneathIndex(null);
     setDragDir('next');
     isAnimatingRef.current = false;
-  }, [currentIndex, total, x]);
+  }, [safeIndex, total, x]);
 
   const handlePrev = useCallback(async () => {
     if (isAnimatingRef.current || total <= 1) return;
     isAnimatingRef.current = true;
-    setOverrideUnderneathIndex((currentIndex - 1 + total) % total);
+    setOverrideUnderneathIndex((safeIndex - 1 + total) % total);
     await animate(x, 580, {
       duration: 0.28,
       ease: [0.22, 1, 0.36, 1],
@@ -268,14 +297,14 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     setOverrideUnderneathIndex(null);
     setDragDir('next');
     isAnimatingRef.current = false;
-  }, [currentIndex, total, x]);
+  }, [safeIndex, total, x]);
 
   const handleDotClick = useCallback(
     async (targetIndex: number) => {
-      if (isAnimatingRef.current || targetIndex === currentIndex || total <= 1) return;
+      if (isAnimatingRef.current || targetIndex === safeIndex || total <= 1) return;
       isAnimatingRef.current = true;
       setOverrideUnderneathIndex(targetIndex);
-      const targetX = targetIndex > currentIndex ? -580 : 580;
+      const targetX = targetIndex > safeIndex ? -580 : 580;
       await animate(x, targetX, {
         duration: 0.28,
         ease: [0.22, 1, 0.36, 1],
@@ -286,24 +315,52 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
       setDragDir('next');
       isAnimatingRef.current = false;
     },
-    [currentIndex, total, x]
+    [safeIndex, total, x]
   );
 
   if (!challenges || challenges.length === 0) {
     return null;
   }
 
+  // If all challenges completed, show the single celebration completion card
+  if (total === 0) {
+    return (
+      <div
+        id="daily-challenges-container"
+        dir="rtl"
+        className={`relative w-full select-none ${className}`}
+      >
+        {/* Header bar */}
+        <div className="flex items-center justify-between mb-3 px-1 h-8">
+          <div className="flex items-center gap-2">
+            <span className="text-xl sm:text-2xl animate-pulse">⚡</span>
+            <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <span>چالش‌های روزانه</span>
+              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
+                (تکمیل شد ✓)
+              </span>
+            </h3>
+          </div>
+        </div>
+
+        {/* All completed celebration card */}
+        <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pb-3.5 overflow-visible">
+          <AllChallengesCompletedCard />
+        </div>
+      </div>
+    );
+  }
+
   // Exactly 2 cards in the physical stack: Active card and Preloaded underneath card
-  // Underneath card matches the swipe direction (prev if dragging right, next if dragging left)
   const underneathIndex =
     overrideUnderneathIndex !== null
       ? overrideUnderneathIndex
       : dragDir === 'prev'
-      ? (currentIndex - 1 + total) % total
-      : (currentIndex + 1) % total;
+      ? (safeIndex - 1 + total) % total
+      : (safeIndex + 1) % total;
 
-  const currentCard = challenges[currentIndex % total];
-  const underneathCard = challenges[underneathIndex % total];
+  const currentCard = activeChallenges[safeIndex % total];
+  const underneathCard = activeChallenges[underneathIndex % total];
 
   return (
     <div
@@ -319,50 +376,52 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
             <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>چالش‌های روزانه</span>
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                ({toPersianDigits(currentIndex + 1)} از {toPersianDigits(total)})
+                ({toPersianDigits(safeIndex + 1)} از {toPersianDigits(total)})
               </span>
             </h3>
           </div>
         </div>
 
         {/* Stack Navigation: Dots & Arrows */}
-        <div className="flex items-center gap-2">
-          {/* Pagination Indicator Dots */}
-          <div className="hidden sm:flex items-center gap-1 pl-1">
-            {challenges.map((c, i) => (
-              <button
-                key={`dot-${c.id}`}
-                type="button"
-                onClick={() => handleDotClick(i)}
-                aria-label={`رفتن به چالش ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  i === currentIndex
-                    ? 'w-4 bg-indigo-600 dark:bg-indigo-400'
-                    : 'w-1.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
-                }`}
-              />
-            ))}
-          </div>
+        {total > 1 && (
+          <div className="flex items-center gap-2">
+            {/* Pagination Indicator Dots */}
+            <div className="hidden sm:flex items-center gap-1 pl-1">
+              {activeChallenges.map((c, i) => (
+                <button
+                  key={`dot-${c.id}`}
+                  type="button"
+                  onClick={() => handleDotClick(i)}
+                  aria-label={`رفتن به چالش ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    i === safeIndex
+                      ? 'w-4 bg-indigo-600 dark:bg-indigo-400'
+                      : 'w-1.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
+                  }`}
+                />
+              ))}
+            </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handlePrev}
-              aria-label="چالش قبلی"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-            >
-              <span className="text-xs font-black">→</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              aria-label="چالش بعدی"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-            >
-              <span className="text-xs font-black">←</span>
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="چالش قبلی"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
+              >
+                <span className="text-xs font-black">→</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="چالش بعدی"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
+              >
+                <span className="text-xs font-black">←</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Card Stack Deck Container (Preserving original card dimensions and peeking stacked deck appearance) */}
