@@ -1,20 +1,18 @@
 import React from 'react';
 import { QuizMode } from '../../types';
-import { toPersianDigits } from '../../utils/persian';
 
 interface QuizHeaderProps {
   questionNumber: number;
   totalQuestions: number;
   mode: QuizMode;
-  streak: number;
-  onExitClick: () => void;
+  streak?: number;
+  onExitClick?: () => void;
 }
 
 export const QuizHeader: React.FC<QuizHeaderProps> = ({
   questionNumber,
   totalQuestions,
   mode,
-  streak,
 }) => {
   const isPractice = mode === 'practice';
 

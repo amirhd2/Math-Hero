@@ -26,6 +26,7 @@ interface QuizCardStackProps {
   streak?: number;
   userAnswer?: string;
   revealedAnswer?: number | null;
+  onExit?: () => void;
 }
 
 /**
@@ -104,7 +105,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   maxAttempts = 3,
   streak = 0,
   userAnswer,
-  revealedAnswer,
+  onExit,
 }) => {
   // Visual border feedback state for active card
   let feedbackRingClass = '';
@@ -127,7 +128,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
   const cardN2 = upcomingQuestions[1] || null;
   const cardN3 = upcomingQuestions[2] || null;
   return (
-    <div className="relative w-full max-w-3xl lg:max-w-4xl mx-auto select-none pb-2 pt-0 h-full min-h-[300px]">
+    <div className="relative w-full max-w-3xl lg:max-w-4xl mx-auto select-none pb-2 pt-0 h-full min-h-[220px]">
       {/* =========================================================================
           PHYSICAL CARD STACK LAYERS (Rendered in reverse depth order)
           ========================================================================= */}
@@ -182,8 +183,6 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           isAdvancing ? 'animate-card-slide-down-fade pointer-events-none' : 'scale-100 opacity-100 transition-shadow duration-200'
         }`}
       >
-
-
         <QuizCardContent 
           question={currentQuestion}
           characterGender={characterGender}
@@ -193,6 +192,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
           streak={streak}
           feedbackStatus={feedbackStatus}
           userAnswer={userAnswer}
+          onExit={onExit}
         />
       </div>
     </div>

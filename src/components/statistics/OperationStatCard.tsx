@@ -17,19 +17,19 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
   const isUnpracticed = stat.totalQuestions === 0;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-4">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3 sm:gap-4">
       {/* Top: Operation Symbol, Title and Tier Badge */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-xs">
+      <div className="space-y-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-9 h-9 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shadow-xs shrink-0">
               {stat.symbol}
             </span>
-            <div>
-              <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm">
+            <div className="min-w-0">
+              <h4 className="font-black text-slate-800 dark:text-slate-100 text-sm truncate">
                 عملیات {stat.titleFa}
               </h4>
-              <p className="text-[11px] text-slate-400 font-medium">
+              <p className="text-[11px] text-slate-400 font-medium truncate">
                 {isUnpracticed
                   ? 'هنوز تمرین نشده'
                   : `${formatNumber(stat.totalQuestions, 'persian')} سوال حل شده`}
@@ -38,7 +38,7 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
           </div>
 
           <span
-            className={`text-xs px-2.5 py-1 rounded-xl font-black border flex items-center gap-1 ${
+            className={`text-[11px] sm:text-xs px-2 sm:px-2.5 py-1 rounded-xl font-black border flex items-center gap-1 shrink-0 whitespace-nowrap ${
               isUnpracticed
                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
                 : `${stat.tierConfig.badgeBg} ${stat.tierConfig.badgeText} ${stat.tierConfig.badgeBorder}`
@@ -50,7 +50,7 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
         </div>
 
         {/* Accuracy and Progress Bar */}
-        <div className="space-y-1.5 pt-1">
+        <div className="space-y-1.5 pt-0.5">
           <div className="flex items-center justify-between text-xs font-black">
             <span className="text-slate-500 dark:text-slate-400">میزان تسلط و دقت</span>
             <span
@@ -76,11 +76,11 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
       </div>
 
       {/* Footer: Stats Summary & Action */}
-      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-        <div className="text-[11px] text-slate-500">
+      <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+        <div className="text-[11px] text-slate-500 min-w-0 truncate">
           <span>{formatNumber(stat.correctAnswers, 'persian')} درست</span>
           {stat.mistakesCount > 0 && (
-            <span className="text-rose-500 mr-1.5">
+            <span className="text-rose-500 mr-1.5 whitespace-nowrap">
               • {formatNumber(stat.mistakesCount, 'persian')} نیاز به مرور
             </span>
           )}
@@ -89,7 +89,7 @@ export const OperationStatCard: React.FC<OperationStatCardProps> = ({ stat, onPr
         <button
           type="button"
           onClick={() => onPractice(stat.operation)}
-          className="text-xs font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 active:scale-95 transition-transform"
+          className="text-xs font-black text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 flex items-center gap-1 active:scale-95 transition-transform shrink-0 whitespace-nowrap"
         >
           <span>تمرین {stat.titleFa}</span>
           <span>←</span>

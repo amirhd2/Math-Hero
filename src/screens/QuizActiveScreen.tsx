@@ -131,7 +131,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
       {/* 2. Connected Dots Bar (Very Top) */}
-      <div className="w-full max-w-xl mx-auto mt-1">
+      <div className="w-full max-w-xl mx-auto mt-0.5 sm:mt-1 shrink-0">
         <QuizHeader
           questionNumber={questionNumber}
           totalQuestions={totalQuestions}
@@ -141,8 +141,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 3. Main Center Area: Card placed higher with clean equal stack offsets */}
-      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto flex flex-col justify-start mt-1 mb-2 h-[50vh]">
+      {/* 3. Main Center Area: Card stack flex container adjusting smoothly to viewport */}
+      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto flex-1 min-h-0 flex flex-col justify-center my-1 sm:my-2">
         <QuizCardStack
           currentQuestion={currentQuestion}
           upcomingQuestions={upcomingQuestions}
@@ -156,11 +156,12 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           maxAttempts={maxAttempts}
           streak={streak}
           userAnswer={userAnswer}
+          onExit={handleHeaderExitClick}
         />
       </div>
 
       {/* 4. Custom Virtual Numeric Keyboard with Answer Input */}
-      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto pb-1 shrink-0 h-[45vh]">
+      <div className="w-full max-w-md lg:max-w-lg mx-auto pb-1 sm:pb-2 shrink-0">
         <VirtualKeyboard
           onInputDigit={(digit) => {
             if (!isSubmitting && !isAdvancing && revealedAnswer === null) {

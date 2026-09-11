@@ -37,8 +37,6 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
   isAdvancing = false,
   revealedAnswer = null,
   feedbackStatus = 'idle',
-  isPractice = true,
-  attemptsLeft = 3,
 }) => {
   const isLocked = disabled || isSubmitting || isAdvancing;
   const isAnswerRevealed = revealedAnswer !== null;
@@ -99,7 +97,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
     : toPersianDigits(value);
 
   return (
-    <div className="w-full space-y-2.5">
+    <div className="w-full space-y-1.5 sm:space-y-2">
       {/* Primary Numeric Input Field */}
       <div 
         className="relative"
@@ -121,7 +119,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder="پاسخ را بزنید..."
-          className={`w-full text-center text-3xl sm:text-4xl md:text-5xl font-black py-3 px-6 rounded-2xl md:rounded-3xl border-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-inner outline-none transition-all placeholder:text-base sm:placeholder:text-lg placeholder:font-bold placeholder:text-slate-400 ${inputBorderClass}`}
+          className={`w-full text-center text-2xl sm:text-3xl md:text-4xl font-black py-2 sm:py-2.5 px-4 sm:px-6 rounded-2xl md:rounded-3xl border-2 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 shadow-inner outline-none transition-all placeholder:text-sm sm:placeholder:text-base placeholder:font-bold placeholder:text-slate-400 ${inputBorderClass}`}
           aria-label="پاسخ عددی"
         />
 
@@ -133,7 +131,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
               e.stopPropagation();
               onChange('');
             }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold hover:bg-slate-300 transition-colors cursor-pointer"
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center text-xs font-bold hover:bg-slate-300 transition-colors cursor-pointer"
             title="پاک کردن"
           >
             ✕
@@ -146,7 +144,7 @@ export const AnswerInput: React.FC<AnswerInputProps> = ({
         <button
           type="button"
           onClick={onAdvanceNow}
-          className="w-full py-3 sm:py-3.5 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all text-base flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2.5 sm:py-3 bg-amber-500 hover:bg-amber-600 active:scale-98 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all text-sm sm:text-base flex items-center justify-center gap-2 cursor-pointer"
         >
           <span>متوجه شدم، سوال بعدی</span>
           <span>←</span>
