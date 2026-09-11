@@ -65,7 +65,6 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
 
   // Initialize Quiz Engine
   const {
-    session,
     currentQuestion,
     upcomingQuestions,
     questionNumber,
@@ -121,17 +120,17 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         }
       }}
       id="active-screen-container"
-      className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between px-3 sm:px-6 transition-colors select-none"
+      className="fixed inset-0 z-50 w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between px-2 sm:px-4 transition-colors select-none"
       style={{
-        paddingTop: 'max(0.25rem, env(safe-area-inset-top, 0px))',
-        paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 8px))',
+        paddingTop: 'max(0.15rem, env(safe-area-inset-top, 0px))',
+        paddingBottom: 'max(3px, env(safe-area-inset-bottom, 0px))',
       }}
     >
       {/* 1. Navigation Guard (blocks browser popstate / back swipe) */}
       <QuizGuard isActive={true} onAttemptExit={handleGuardTriggerExit} />
 
-      {/* 2. Connected Dots Bar (Very Top) */}
-      <div className="w-full max-w-xl mx-auto mt-0.5 sm:mt-1 shrink-0">
+      {/* 2. Connected Dots Bar (Very Top ~2% of viewport height) */}
+      <div className="w-full max-w-xl mx-auto h-[2dvh] max-h-[16px] flex items-center shrink-0">
         <QuizHeader
           questionNumber={questionNumber}
           totalQuestions={totalQuestions}
@@ -141,8 +140,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 3. Main Center Area: Card stack flex container adjusting smoothly to viewport */}
-      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto flex-1 min-h-0 flex flex-col justify-center my-1 sm:my-2">
+      {/* 3. Main Center Area: Card stack - exactly 55% of viewport height (55dvh) */}
+      <div className="w-full max-w-3xl lg:max-w-4xl mx-auto h-[55dvh] max-h-[55dvh] shrink-0 flex flex-col justify-center my-0">
         <QuizCardStack
           currentQuestion={currentQuestion}
           upcomingQuestions={upcomingQuestions}
@@ -160,8 +159,8 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
         />
       </div>
 
-      {/* 4. Custom Virtual Numeric Keyboard with Answer Input */}
-      <div className="w-full max-w-md lg:max-w-lg mx-auto pb-1 sm:pb-2 shrink-0">
+      {/* 4. Custom Virtual Numeric Keyboard with Answer Input - exactly 43% of viewport height (43dvh) & 1mm bottom distance */}
+      <div className="w-full max-w-md lg:max-w-lg mx-auto h-[43dvh] max-h-[43dvh] pb-0 mb-0 shrink-0 flex flex-col justify-end">
         <VirtualKeyboard
           onInputDigit={(digit) => {
             if (!isSubmitting && !isAdvancing && revealedAnswer === null) {
@@ -184,6 +183,7 @@ export const QuizActiveScreen: React.FC<QuizActiveScreenProps> = ({
           disabled={isSubmitting || isAdvancing}
           submitDisabled={userAnswer.trim() === '' && revealedAnswer === null}
           isPractice={isPractice}
+          submitLabel={revealedAnswer !== null ? 'بعدی' : 'ثبت جواب'}
         >
           <AnswerInput
             inputRef={inputRef}

@@ -9,6 +9,7 @@ import { storage } from '../utils/storage';
 import { formatNumber } from '../utils/persian';
 import { createPracticeMistakesSession } from '../results/reviewSessionGenerator';
 import { BackButton } from '../components/common/BackButton';
+import { PopoutOwlAvatar } from '../components/adaptive/PopoutOwlAvatar';
 
 interface MistakesScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -40,18 +41,6 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
         </div>
 
         <div className="flex items-center gap-3">
-          {mistakes.length > 0 && onStartSession && (
-            <button
-              type="button"
-              id="btn-practice-all-mistakes"
-              onClick={handlePracticeMistakes}
-              className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-sm shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <span>تمرین هوشمند اشتباهات</span>
-              <span>🚀</span>
-            </button>
-          )}
-
           <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
         </div>
       </div>
@@ -63,7 +52,68 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
           <p className="text-sm text-slate-500">شما همه سوالات را به درستی پاسخ داده‌اید.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="space-y-6">
+          {/* Smart Teacher Pedagogical Encouragement Card (Same appearance as Home Dashboard) */}
+          <div
+            id="mistakes-smart-teacher-card"
+            className="relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-amber-300/80 dark:border-amber-700/60 bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10 dark:from-amber-950/40 dark:via-slate-900 dark:to-orange-950/30 shadow-xl select-none space-y-4"
+          >
+            {/* Background decorative watermark */}
+            <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+
+            {/* Content Row: Badges, Title & Description on Right; Owl Avatar on Top-Left (in RTL) */}
+            <div className="relative z-10 my-auto flex items-start justify-between gap-3 sm:gap-4">
+              {/* Right Side: Badges, Title, Pedagogical Description */}
+              <div className="flex-1 min-w-0 flex flex-col justify-start text-right space-y-1 sm:space-y-1.5 pt-0.5">
+                {/* Badges */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-[11px] sm:text-xs font-black shadow-xs shrink-0">
+                    <span>✨</span>
+                    <span>پیام معلم هوشمند</span>
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-black shadow-xs shrink-0 bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/60 dark:border-amber-700/60">
+                    فرصت طلایی یادگیری
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400">
+                    ({formatNumber(mistakes.length, 'persian')} سوال نیازمند تمرین)
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
+                  تبدیل اشتباهات به قوی‌ترین مهارت ریاضی!
+                </h4>
+
+                {/* Pedagogical Description */}
+                <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                  اشتباه کردن یعنی مغز تو در حال یادگیری و قوی‌تر شدنه! هر کدوم از این سوالات یک پله طلایی برای پیشرفته؛ با حل دوباره‌شون، همه اشتباهاتت رو پاک کن و مدال‌های افتخار دریافت کن.
+                </p>
+              </div>
+
+              {/* Left Side (in RTL): 3D Pop-out Owl Avatar at Top-Left */}
+              <div className="shrink-0 self-start -mt-2 sm:-mt-3 -ml-0.5 sm:-ml-1">
+                <PopoutOwlAvatar sizeClassName="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26" />
+              </div>
+            </div>
+
+            {/* Bottom Action: Full-width Button */}
+            {onStartSession && (
+              <div className="relative z-10 pt-1">
+                <button
+                  type="button"
+                  id="btn-practice-all-mistakes"
+                  onClick={handlePracticeMistakes}
+                  className="w-full py-3 sm:py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>شروع تمرین هوشمند و پاک‌سازی اشتباهات</span>
+                  <span>🚀</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
           {mistakes.map((m) => {
             const getOpBadge = (op: string) => {
               switch (op) {
@@ -125,7 +175,8 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
             );
           })}
         </div>
-      )}
-    </div>
+      </div>
+    )}
+  </div>
   );
 };

@@ -11,8 +11,8 @@
 
 import React from 'react';
 import { PromotionEvent } from '../../adaptive/adaptiveTypes';
-import { Character } from '../Character';
 import { toPersianDigits } from '../../utils/persian';
+import { getAssetUrl } from '../../utils/assetPaths';
 
 interface PromotionModalProps {
   promotion: PromotionEvent;
@@ -35,15 +35,16 @@ export const PromotionModal: React.FC<PromotionModalProps> = ({
         id="promotion-modal-card"
         className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-amber-400 dark:border-amber-500 my-auto text-center space-y-6"
       >
-        {/* Glow & Confetti Accents */}
+        {/* Glow Accents */}
         <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-28 h-28 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
 
-        {/* Character Celebration Icon */}
-        <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-tr from-amber-400 to-yellow-300 rounded-full animate-pulse blur-md opacity-70" />
-          <div className="relative z-10 w-full h-full flex items-center justify-center text-5xl sm:text-6xl bg-amber-100 dark:bg-amber-950/60 rounded-full border-2 border-amber-300 dark:border-amber-600 shadow-inner">
-            🎉
-          </div>
+        {/* Real Gold Cup Asset */}
+        <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none">
+          <img
+            src={getAssetUrl('assets/cups/gold 1.webp')}
+            alt="جام قهرمانی"
+            className="w-full h-full object-contain filter drop-shadow-xl animate-bounce"
+          />
         </div>
 
         {/* Heading */}

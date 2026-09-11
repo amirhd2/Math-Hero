@@ -109,7 +109,7 @@ export const QuizCardContent: React.FC<QuizCardContentProps> = ({
               }}
               aria-label="خروج از آزمون"
               title="خروج از آزمون"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900 active:bg-rose-200 dark:active:bg-rose-800 border border-rose-200 dark:border-rose-800/80 flex items-center justify-center text-xs sm:text-sm font-black transition-all cursor-pointer shadow-2xs"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-600 hover:bg-red-700 active:bg-red-800 text-white border border-red-500 shadow-sm flex items-center justify-center text-xs sm:text-sm font-black transition-all cursor-pointer shadow-xs active:scale-95"
             >
               ✕
             </button>
@@ -197,11 +197,11 @@ export const QuizCardContent: React.FC<QuizCardContentProps> = ({
         )}
       </div>
 
-      {/* Overlay for remaining attempts in practice mode on incorrect answer */}
-      {isPractice && feedbackStatus === 'incorrect' && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-bounce">
-          <div className="px-3.5 sm:px-4 py-1.5 rounded-full bg-rose-600/95 dark:bg-rose-700/95 text-white font-black text-xs sm:text-sm shadow-lg border border-rose-400/40 backdrop-blur-xs flex items-center gap-1.5 whitespace-nowrap">
-            <span>⚠️</span>
+      {/* Overlay for remaining attempts in practice mode on incorrect answer - persistent until solved or next action, friendly light orange */}
+      {isPractice && currentAttempts > 0 && currentAttempts < maxAttempts && feedbackStatus !== 'revealed' && feedbackStatus !== 'correct' && (
+        <div className="absolute bottom-2.5 sm:bottom-3 left-1/2 -translate-x-1/2 z-40 pointer-events-none animate-bounce">
+          <div className="px-3.5 sm:px-4 py-1.5 rounded-full bg-orange-100/95 dark:bg-orange-950/90 text-orange-900 dark:text-orange-200 font-black text-xs sm:text-sm shadow-md border-2 border-orange-300 dark:border-orange-700/80 backdrop-blur-xs flex items-center gap-1.5 whitespace-nowrap">
+            <span>💡</span>
             <span>
               {remainingAttempts === 1
                 ? '۱ تلاش دیگر مانده'

@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { UserProfile, QuizResult } from '../../types';
+import { getAssetUrl } from '../../utils/assetPaths';
 
 interface ResultsHeroProps {
   profile: UserProfile;
@@ -16,13 +17,21 @@ export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile: _profile, res
   const isExcellent = result.score >= 80;
   const isGood = result.score >= 60;
 
-  const badgeText = isPerfect
-    ? '🏆 امتیاز ۱۰۰٪ کامل! شاهکار کردی!'
+  const iconUrl = isPerfect
+    ? getAssetUrl('assets/cups/gold 1.webp')
     : isExcellent
-    ? '🌟 درخشان و فوق‌العاده!'
+    ? getAssetUrl('assets/cups/Dimond 1.webp')
     : isGood
-    ? '⭐ تلاش خیلی خوب و پرانرژی!'
-    : '🌱 گام ارزشمند برای یادگیری بیشتر!';
+    ? getAssetUrl('assets/cups/bronze 1.webp')
+    : getAssetUrl('assets/medals/1.png');
+
+  const outcomeTitle = isPerfect
+    ? 'امتیاز ۱۰۰٪ کامل! شاهکار کردی!'
+    : isExcellent
+    ? 'درخشان و فوق‌العاده!'
+    : isGood
+    ? 'تلاش خیلی خوب و پرانرژی!'
+    : 'گام ارزشمند برای یادگیری بیشتر!';
 
   const badgeStyle = isExcellent
     ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border-amber-300/60 dark:border-amber-700/60'
@@ -32,12 +41,13 @@ export const ResultsHero: React.FC<ResultsHeroProps> = ({ profile: _profile, res
 
   return (
     <header className="flex flex-col items-center text-center space-y-4 pt-2">
-      {/* Motivational outcome badge */}
+      {/* Motivational outcome badge with real cup/medal */}
       <div className="space-y-2">
         <div
-          className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs md:text-sm font-black border shadow-sm ${badgeStyle}`}
+          className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs md:text-sm font-black border shadow-xs ${badgeStyle}`}
         >
-          <span>{badgeText}</span>
+          <img src={iconUrl} alt="" className="w-5 h-5 object-contain shrink-0 drop-shadow-2xs" />
+          <span>{outcomeTitle}</span>
         </div>
 
         <h1 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight">

@@ -7,13 +7,15 @@
  * - Shared identically between Home screen and Progress / Statistics screen.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'motion/react';
 import { OperationType } from '../../types';
 import { AdaptiveLearningPlan } from '../../adaptive/adaptiveTypes';
 import { PerformanceInsights } from '../../statistics/statisticsTypes';
 import { toPersianDigits, formatNumber } from '../../utils/persian';
 import { getTierDefinition } from '../../adaptive/tierRegistry';
 import { SmartTeacherEngine } from '../../adaptive/smartTeacherEngine';
+import { PopoutOwlAvatar } from './PopoutOwlAvatar';
 
 export interface TeacherRecommendationItem {
   id: string;
@@ -47,6 +49,81 @@ const OP_TITLES: Record<OperationType, string> = {
   mixed: 'ترکیبی',
 };
 
+/**
+ * TeacherCardContent: Preloaded visual and interactive representation of a teacher recommendation card.
+ * Shared between the active card and the preloaded underneath card.
+ */
+const TeacherCardContent: React.FC<{
+  card: TeacherRecommendationItem;
+  onAction?: () => void;
+  isInteractive?: boolean;
+}> = ({ card, onAction, isInteractive = true }) => {
+  return (
+    <>
+      {/* Background decorative watermark */}
+      <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+
+      {/* Content Row: Badges, Title & Description on Right; Owl Avatar on Top-Left (in RTL) */}
+      <div className="relative z-10 my-auto flex items-start justify-between gap-3 sm:gap-4">
+        {/* Right Side: Badges, Title, Pedagogical Description (Position & structure unchanged) */}
+        <div className="flex-1 min-w-0 flex flex-col justify-start text-right space-y-1 sm:space-y-1.5 pt-0.5">
+          {/* Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-[11px] sm:text-xs font-black shadow-xs shrink-0">
+              <span>✨</span>
+              <span>پیشنهاد معلم هوشمند</span>
+            </span>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black shadow-xs shrink-0 ${
+                card.badgeColor || 'bg-amber-100 text-amber-900'
+              }`}
+            >
+              {card.badgeText}
+            </span>
+          </div>
+
+          {/* Title */}
+          <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
+            {card.title}
+          </h4>
+
+          {/* Pedagogical Description */}
+          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
+            {card.description}
+          </p>
+        </div>
+
+        {/* Left Side (in RTL): 3D Pop-out Owl Avatar at Top-Left */}
+        <div className="shrink-0 self-start -mt-2 sm:-mt-3 -ml-0.5 sm:-ml-1">
+          <PopoutOwlAvatar sizeClassName="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26" />
+        </div>
+      </div>
+
+      {/* Bottom Row: Full-width Action Button */}
+      <div className="relative z-10 pt-1">
+        <button
+          type="button"
+          tabIndex={isInteractive ? 0 : -1}
+          onPointerDown={(e) => {
+            if (!isInteractive) return;
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            if (!isInteractive) return;
+            e.stopPropagation();
+            onAction?.();
+          }}
+          className={`w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 ${
+            isInteractive ? 'cursor-pointer' : 'pointer-events-none'
+          }`}
+        >
+          <span>{card.actionText}</span>
+        </button>
+      </div>
+    </>
+  );
+};
+
 export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps> = ({
   plan: propPlan,
   insights,
@@ -58,10 +135,40 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
 }) => {
   const [internalPlan, setInternalPlan] = useState<AdaptiveLearningPlan | null>(propPlan || null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchEndX, setTouchEndX] = useState<number | null>(null);
-  const [isSwiping, setIsSwiping] = useState(false);
-  const stackRef = useRef<HTMLDivElement>(null);
+  const [dragDir, setDragDir] = useState<'next' | 'prev'>('next');
+  const [overrideUnderneathIndex, setOverrideUnderneathIndex] = useState<number | null>(null);
+  const isAnimatingRef = useRef(false);
+
+  // Real-time Motion Values for physical circular orbit gestures
+  const x = useMotionValue(0);
+
+  // Dynamically update the revealed underneath card based on real-time drag direction
+  useEffect(() => {
+    const unsubscribe = x.on('change', (latestX) => {
+      if (latestX > 4) {
+        setDragDir('prev');
+      } else if (latestX < -4) {
+        setDragDir('next');
+      }
+    });
+    return () => unsubscribe();
+  }, [x]);
+
+  // Large circular orbit trajectory mapping (Radius R ≈ 1800px):
+  // Smooth, gentle curve preventing steep downward drop
+  const y = useTransform(x, (currentX) => (currentX * currentX) / 3600);
+  // Tangential rotation along the circular orbit:
+  const rotate = useTransform(x, (currentX) => (currentX / 1800) * 18);
+  // Subtle fading out once thrown past threshold:
+  const opacity = useTransform(x, [-580, -380, 0, 380, 580], [0, 0.96, 1, 0.96, 0]);
+
+  // Underneath card reactive interpolation:
+  // At rest (x=0), underneath card visibly peeks out below the top card by ~12-14px to form a distinct 2-card deck.
+  // As top card is swiped along its orbit, underneath card rises to y=0 and expands to full scale.
+  const underneathScaleX = useTransform(x, [-380, 0, 380], [1, 0.94, 1]);
+  const underneathScaleY = useTransform(x, [-380, 0, 380], [1, 0.98, 1]);
+  const underneathY = useTransform(x, [-380, 0, 380], [0, 14, 0]);
+  const underneathOpacity = useTransform(x, [-380, 0, 380], [1, 0.92, 1]);
 
   // Auto-fetch plan if not provided by parent
   useEffect(() => {
@@ -209,50 +316,103 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
 
   const total = items.length;
 
-  const handleNext = useCallback(() => {
-    if (total === 0) return;
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total]);
+  // Drag End handler with physical circular throw and snap back
+  const handleDragEnd = async (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
+    if (isAnimatingRef.current) return;
+    const currentX = x.get();
+    const velocity = info.velocity.x;
+    const swipeThreshold = 65;
+    const velocityThreshold = 220;
 
-  const handlePrev = useCallback(() => {
-    if (total === 0) return;
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
-  // Touch swipe handling (RTL Aware)
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStartX(e.targetTouches[0].clientX);
-    setIsSwiping(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (isSwiping) {
-      setTouchEndX(e.targetTouches[0].clientX);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!isSwiping || touchStartX === null || touchEndX === null) {
-      setIsSwiping(false);
+    if (total <= 1) {
+      animate(x, 0, { type: 'spring', stiffness: 450, damping: 35 });
       return;
     }
-    const distance = touchStartX - touchEndX;
-    const minSwipeDistance = 45;
 
-    if (Math.abs(distance) > minSwipeDistance) {
-      if (distance > 0) {
-        // Swiped Left -> go to Next
-        handleNext();
-      } else {
-        // Swiped Right -> go to Previous
-        handlePrev();
-      }
+    if (currentX < -swipeThreshold || velocity < -velocityThreshold) {
+      // Swiped Left (←) in RTL -> Next card along circular orbit
+      isAnimatingRef.current = true;
+      setOverrideUnderneathIndex((currentIndex + 1) % total);
+      await animate(x, -580, {
+        duration: 0.26,
+        ease: [0.22, 1, 0.36, 1],
+      });
+      setCurrentIndex((prev) => (prev + 1) % total);
+      x.set(0);
+      setOverrideUnderneathIndex(null);
+      setDragDir('next');
+      isAnimatingRef.current = false;
+    } else if (currentX > swipeThreshold || velocity > velocityThreshold) {
+      // Swiped Right (→) in RTL -> Prev card along circular orbit
+      isAnimatingRef.current = true;
+      setOverrideUnderneathIndex((currentIndex - 1 + total) % total);
+      await animate(x, 580, {
+        duration: 0.26,
+        ease: [0.22, 1, 0.36, 1],
+      });
+      setCurrentIndex((prev) => (prev - 1 + total) % total);
+      x.set(0);
+      setOverrideUnderneathIndex(null);
+      setDragDir('next');
+      isAnimatingRef.current = false;
+    } else {
+      // Release without completing swipe: smoothly return to center of orbit
+      animate(x, 0, {
+        type: 'spring',
+        stiffness: 450,
+        damping: 35,
+      });
     }
-
-    setTouchStartX(null);
-    setTouchEndX(null);
-    setIsSwiping(false);
   };
+
+  const handleNext = useCallback(async () => {
+    if (isAnimatingRef.current || total <= 1) return;
+    isAnimatingRef.current = true;
+    setOverrideUnderneathIndex((currentIndex + 1) % total);
+    await animate(x, -580, {
+      duration: 0.28,
+      ease: [0.22, 1, 0.36, 1],
+    });
+    setCurrentIndex((prev) => (prev + 1) % total);
+    x.set(0);
+    setOverrideUnderneathIndex(null);
+    setDragDir('next');
+    isAnimatingRef.current = false;
+  }, [currentIndex, total, x]);
+
+  const handlePrev = useCallback(async () => {
+    if (isAnimatingRef.current || total <= 1) return;
+    isAnimatingRef.current = true;
+    setOverrideUnderneathIndex((currentIndex - 1 + total) % total);
+    await animate(x, 580, {
+      duration: 0.28,
+      ease: [0.22, 1, 0.36, 1],
+    });
+    setCurrentIndex((prev) => (prev - 1 + total) % total);
+    x.set(0);
+    setOverrideUnderneathIndex(null);
+    setDragDir('next');
+    isAnimatingRef.current = false;
+  }, [currentIndex, total, x]);
+
+  const handleDotClick = useCallback(
+    async (targetIndex: number) => {
+      if (isAnimatingRef.current || targetIndex === currentIndex || total <= 1) return;
+      isAnimatingRef.current = true;
+      setOverrideUnderneathIndex(targetIndex);
+      const targetX = targetIndex > currentIndex ? -580 : 580;
+      await animate(x, targetX, {
+        duration: 0.28,
+        ease: [0.22, 1, 0.36, 1],
+      });
+      setCurrentIndex(targetIndex);
+      x.set(0);
+      setOverrideUnderneathIndex(null);
+      setDragDir('next');
+      isAnimatingRef.current = false;
+    },
+    [currentIndex, total, x]
+  );
 
   if (variant === 'compact') {
     const card = items[currentIndex % total];
@@ -260,41 +420,47 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
       <div
         id="teacher-recommendation-card-compact"
         dir="rtl"
-        className={`rounded-2xl p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-900 dark:to-slate-800 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-3 ${className}`}
+        className={`rounded-2xl p-3.5 sm:p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-900 dark:to-slate-800 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-3 ${className}`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-xl flex items-center justify-center shrink-0">
-            {card.cardIcon}
+        <div className="flex-1 min-w-0 text-right space-y-1">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-950 dark:text-amber-200 text-[10px] font-black">
+            <span>✨</span>
+            <span>پیشنهاد معلم هوشمند</span>
           </div>
-          <div>
-            <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100">
-              {card.title}
-            </h4>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
-              {card.description}
-            </p>
-          </div>
+          <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">
+            {card.title}
+          </h4>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+            {card.description}
+          </p>
         </div>
-        <button
-          onClick={() => onStartRecommended(card.targetOp)}
-          className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black shrink-0 transition-colors cursor-pointer shadow-xs active:scale-95"
-        >
-          {card.actionText}
-        </button>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={() => onStartRecommended(card.targetOp)}
+            className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black shrink-0 transition-colors cursor-pointer shadow-xs active:scale-95"
+          >
+            {card.actionText}
+          </button>
+
+          {/* 3D Pop-Out Owl Avatar on the Left (in RTL) */}
+          <PopoutOwlAvatar sizeClassName="w-11 h-11 sm:w-12 sm:h-12" />
+        </div>
       </div>
     );
   }
 
-  // Preload cards for physical 3D stack
-  const currentCard = items[currentIndex % total];
-  const nextCard = items[(currentIndex + 1) % total];
-  const nextNextCard = items[(currentIndex + 2) % total];
+  // Exactly 2 cards in the physical stack: Active card and Underneath card peeking out at bottom
+  // Underneath card matches the swipe direction (prev if dragging right, next if dragging left)
+  const underneathIndex =
+    overrideUnderneathIndex !== null
+      ? overrideUnderneathIndex
+      : dragDir === 'prev'
+      ? (currentIndex - 1 + total) % total
+      : (currentIndex + 1) % total;
 
-  const visibleCards = [
-    { card: currentCard, layer: 0, key: `teacher-card-${currentCard.id}` },
-    ...(total > 1 ? [{ card: nextCard, layer: 1, key: `teacher-card-${nextCard.id}` }] : []),
-    ...(total > 2 ? [{ card: nextNextCard, layer: 2, key: `teacher-card-${nextNextCard.id}` }] : []),
-  ];
+  const currentCard = items[currentIndex % total];
+  const underneathCard = items[underneathIndex % total];
 
   return (
     <div
@@ -331,7 +497,7 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
                     <button
                       key={`teacher-dot-${item.id}`}
                       type="button"
-                      onClick={() => setCurrentIndex(i)}
+                      onClick={() => handleDotClick(i)}
                       aria-label={`رفتن به پیشنهاد ${i + 1}`}
                       className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                         i === currentIndex
@@ -367,106 +533,52 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
         </div>
       )}
 
-      {/* Card Stack Deck Container */}
-      <div
-        ref={stackRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        className="relative w-full h-[250px] sm:h-[250px] md:h-[240px]"
-      >
-        {visibleCards
-          .slice()
-          .reverse()
-          .map(({ card, layer, key }) => {
-            const isTop = layer === 0;
+      {/* Card Stack Deck Container (Preserving original card dimensions and peeking stacked deck appearance) */}
+      <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pb-3.5 overflow-visible">
+        {/* Layer 1: Underneath Card peeking out at bottom as a stacked card (when total > 1) */}
+        {total > 1 && (
+          <motion.div
+            key="teacher-underneath-card"
+            style={{
+              transformOrigin: 'top center',
+              scaleX: underneathScaleX,
+              scaleY: underneathScaleY,
+              y: underneathY,
+              opacity: underneathOpacity,
+              zIndex: 10,
+            }}
+            className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-md border bg-white dark:bg-slate-900 pointer-events-none select-none ${underneathCard.borderAccent} ${underneathCard.bgGradient}`}
+          >
+            <TeacherCardContent
+              card={underneathCard}
+              isInteractive={false}
+            />
+          </motion.div>
+        )}
 
-            let transformStyle = '';
-            let zIndexStyle = 30;
-            let opacityStyle = 1;
-
-            if (layer === 0) {
-              transformStyle = 'translateY(0px) scale(1)';
-              zIndexStyle = 30;
-              opacityStyle = 1;
-            } else if (layer === 1) {
-              transformStyle = 'translateY(10px) scale(0.97)';
-              zIndexStyle = 20;
-              opacityStyle = 0.88;
-            } else {
-              transformStyle = 'translateY(20px) scale(0.94)';
-              zIndexStyle = 10;
-              opacityStyle = 0.65;
-            }
-
-            return (
-              <div
-                key={key}
-                style={{
-                  transform: transformStyle,
-                  zIndex: zIndexStyle,
-                  opacity: opacityStyle,
-                }}
-                className={`absolute inset-0 origin-top rounded-3xl p-5 sm:p-6 transition-all duration-300 ease-out flex flex-col justify-between overflow-hidden shadow-xl border bg-white dark:bg-slate-900 ${card.borderAccent} ${card.bgGradient} ${
-                  isTop ? 'pointer-events-auto' : 'pointer-events-none select-none'
-                }`}
-              >
-                {/* Background decorative watermarks */}
-                <div className="absolute -top-10 -left-10 w-36 h-36 bg-amber-200/20 dark:bg-white/5 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-
-                {/* Top Row: Badges & Icon */}
-                <div
-                  className={`relative z-10 flex items-center justify-between gap-2 transition-opacity duration-200 ${
-                    isTop ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                  }`}
-                >
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-xs font-black shadow-xs">
-                      <span>✨</span>
-                      <span>پیشنهاد معلم هوشمند</span>
-                    </span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-black shadow-xs ${card.badgeColor || 'bg-amber-100 text-amber-900'}`}>
-                      {card.badgeText}
-                    </span>
-                  </div>
-
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-400/25 dark:bg-amber-400/15 flex items-center justify-center text-lg sm:text-xl shrink-0 shadow-inner">
-                    {card.cardIcon}
-                  </div>
-                </div>
-
-                {/* Middle Row: Title & Pedagogical Description */}
-                <div
-                  className={`relative z-10 my-auto py-1 space-y-1 text-right transition-opacity duration-200 ${
-                    isTop ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                  }`}
-                >
-                  <h4 className="text-base sm:text-lg font-black line-clamp-1">
-                    {card.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-                    {card.description}
-                  </p>
-                </div>
-
-                {/* Bottom Row: Full-width Action Button */}
-                <div
-                  className={`relative z-10 pt-1 transition-opacity duration-200 ${
-                    isTop ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => onStartRecommended(card.targetOp)}
-                    className="w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <span>{card.actionText}</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        {/* Layer 0: Active / Top Card with physical circular orbit gesture and stable key */}
+        <motion.div
+          key="teacher-top-card"
+          style={{
+            x,
+            y,
+            rotate,
+            opacity,
+            transformOrigin: '50% 120%',
+            zIndex: 20,
+          }}
+          drag={total > 1 ? 'x' : false}
+          dragMomentum={false}
+          dragElastic={0.85}
+          onDragEnd={handleDragEnd}
+          className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-xl border bg-white dark:bg-slate-900 cursor-grab active:cursor-grabbing touch-pan-y ${currentCard.borderAccent} ${currentCard.bgGradient}`}
+        >
+          <TeacherCardContent
+            card={currentCard}
+            onAction={() => onStartRecommended(currentCard.targetOp)}
+            isInteractive={true}
+          />
+        </motion.div>
       </div>
     </div>
   );

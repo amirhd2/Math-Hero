@@ -58,20 +58,20 @@ const BackCardLayer: React.FC<BackCardLayerProps> = ({
   if (layer === 1) {
     // Card N+1 (Immediately behind active card)
     transformClasses = isAdvancing
-      ? 'animate-card-promote-up z-30'
-      : 'translate-y-[10px] scale-[0.975] z-20 shadow-md';
+      ? 'animate-card-promote-up z-20'
+      : 'translate-y-[6px] sm:translate-y-[8px] scale-[0.98] z-20 shadow-md';
     bgClasses = 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800';
   } else if (layer === 2) {
     // Card N+2 (Third card in stack)
     transformClasses = isAdvancing
-      ? 'animate-card-step-2-to-1 z-20'
-      : 'translate-y-[20px] scale-[0.95] opacity-80 z-10 shadow-sm';
+      ? 'animate-card-step-2-to-1 z-10'
+      : 'translate-y-[12px] sm:translate-y-[16px] scale-[0.96] opacity-80 z-10 shadow-sm';
     bgClasses = 'bg-slate-50 dark:bg-slate-800/90 border-slate-200/80 dark:border-slate-700/70';
   } else {
     // Card N+3 (Fourth card in stack)
     transformClasses = isAdvancing
-      ? 'animate-card-step-3-to-2 z-10'
-      : 'translate-y-[30px] scale-[0.925] opacity-60 z-0 shadow-xs';
+      ? 'animate-card-step-3-to-2 z-0'
+      : 'translate-y-[18px] sm:translate-y-[22px] scale-[0.94] opacity-60 z-0 shadow-xs';
     bgClasses = 'bg-slate-100 dark:bg-slate-800/70 border-slate-200/60 dark:border-slate-700/50';
   }
 
@@ -80,7 +80,7 @@ const BackCardLayer: React.FC<BackCardLayerProps> = ({
       key={`back-card-${layer}-${question.id}`}
       aria-hidden="true"
       dir="rtl"
-      className={`absolute inset-0 origin-top rounded-3xl pointer-events-none select-none flex flex-col h-full p-0 overflow-hidden border border-slate-200/90 dark:border-slate-800 ${bgClasses} ${transformClasses}`}
+      className={`absolute inset-x-0 top-0 bottom-4 sm:bottom-5 origin-top rounded-3xl pointer-events-none select-none flex flex-col p-0 overflow-hidden border border-slate-200/90 dark:border-slate-800 ${bgClasses} ${transformClasses}`}
     >
       <QuizCardContent 
         question={question}
@@ -179,7 +179,7 @@ export const QuizCardStack: React.FC<QuizCardStackProps> = ({
         key={`card-active-${currentQuestion.id}`}
         onClick={handleCardClick}
         dir="rtl"
-        className={`absolute inset-0 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 cursor-text flex flex-col h-full overflow-hidden ${feedbackRingClass} ${
+        className={`absolute inset-x-0 top-0 bottom-4 sm:bottom-5 z-30 w-full bg-white dark:bg-slate-900 rounded-3xl p-0 shadow-xl border border-slate-200/90 dark:border-slate-800 cursor-text flex flex-col overflow-hidden ${feedbackRingClass} ${
           isAdvancing ? 'animate-card-slide-down-fade pointer-events-none' : 'scale-100 opacity-100 transition-shadow duration-200'
         }`}
       >

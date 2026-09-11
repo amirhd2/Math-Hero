@@ -865,31 +865,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 }}
                 className={`bg-white dark:bg-slate-900 rounded-2xl p-4 border ${op.borderLight} shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group hover:-translate-y-0.5`}
               >
-                <div className="space-y-2.5">
-                  {/* Top Bar: Icon & Mastery Stars */}
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${op.color} flex items-center justify-center text-lg sm:text-xl text-white shadow-sm group-hover:scale-105 transition-transform`}
-                    >
-                      {op.symbol}
-                    </div>
-                    {/* Mastery Stars */}
-                    <div className="flex items-center gap-0.5" title={`تسلط: ${mastery.stars} از ۳ ستاره`}>
-                      {[1, 2, 3].map((starIndex) => (
-                        <span
-                          key={starIndex}
-                          className={`text-xs sm:text-sm ${
-                            starIndex <= mastery.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'
-                          }`}
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Title & Description */}
-                  <div>
+                {/* Title & Description with Operation Icon on the left */}
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex-1 min-w-0 text-right">
                     <h4 className="text-sm font-black text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">
                       {op.title}
                     </h4>
@@ -897,16 +875,33 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                       {op.desc}
                     </p>
                   </div>
+
+                  {/* Operation Icon positioned to the left of texts */}
+                  <div
+                    className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${op.color} flex items-center justify-center text-lg sm:text-xl text-white shadow-sm group-hover:scale-105 transition-transform`}
+                  >
+                    {op.symbol}
+                  </div>
                 </div>
 
-                {/* Bottom Stats */}
+                {/* Bottom Stats & Mastery Stars (Arrow removed, 3 stars placed at bottom-left) */}
                 <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <span className={`text-[10px] sm:text-[11px] font-extrabold ${op.textColor}`}>
                     دقت: ٪{formatNumber(mastery.accuracy, 'persian')}
                   </span>
-                  <span className="text-[11px] text-slate-400 group-hover:text-indigo-500 transition-colors font-black">
-                    ←
-                  </span>
+                  {/* Mastery Stars */}
+                  <div className="flex items-center gap-0.5" title={`تسلط: ${mastery.stars} از ۳ ستاره`}>
+                    {[1, 2, 3].map((starIndex) => (
+                      <span
+                        key={starIndex}
+                        className={`text-xs sm:text-sm ${
+                          starIndex <= mastery.stars ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
             );

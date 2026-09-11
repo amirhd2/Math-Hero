@@ -18,22 +18,7 @@ export const StickyReviewStack: React.FC<StickyReviewStackProps> = ({
   gender = 'boy',
 }) => {
   if (!mistakes || mistakes.length === 0) {
-    return (
-      <section
-        aria-label="مرور سوالات"
-        className="bg-emerald-50/70 dark:bg-emerald-950/40 border-2 border-dashed border-emerald-300 dark:border-emerald-800 rounded-3xl p-8 text-center space-y-3"
-      >
-        <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-3xl mx-auto shadow-inner">
-          🎉
-        </div>
-        <h3 className="text-lg font-black text-emerald-900 dark:text-emerald-200">
-          آفرین قهرمان! نمره ۲۰ کامل!
-        </h3>
-        <p className="text-sm font-medium text-emerald-800/80 dark:text-emerald-300/80 max-w-md mx-auto">
-          در این آزمون به تمام سوالات پاسخ درست دادی و هیچ اشتباهی برای مرور نداری! فوق‌العاده بودی.
-        </p>
-      </section>
-    );
+    return null;
   }
 
   return (

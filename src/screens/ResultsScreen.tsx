@@ -208,7 +208,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
 
           {/* Main Content: Adaptive layout */}
           <div className="flex flex-col gap-6 w-full">
-            {/* Primary Cards (Stats, Score, XP & Achievements) - 2 columns on tablet, 1 on mobile/desktop */}
+            {/* Primary Cards (Stats, Score & XP Progress) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 items-start">
               <div className="w-full">
                 <ScoreSummary result={result} />
@@ -216,20 +216,26 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
               <div className="w-full">
                 <XPProgress profile={profile} result={result} />
               </div>
-              <div className={`w-full ${!hasAchievements ? 'md:col-span-2 lg:col-span-1' : ''}`}>
-                <PerformanceMessage result={result} />
-              </div>
-              {hasAchievements && (
-                <div className="w-full">
-                  <AchievementUnlock unlockedAchievements={result.unlockedAchievements} />
-                </div>
-              )}
             </div>
 
-            {/* Secondary Section (Sticky Review Stack for Mistakes) - Always full width below */}
+            {/* Smart Teacher Feedback Card - Formatted identically to Home dashboard */}
             <div className="w-full">
-              <StickyReviewStack mistakes={mistakes} gender={profile.gender} />
+              <PerformanceMessage result={result} />
             </div>
+
+            {/* Unlocked Achievements */}
+            {hasAchievements && (
+              <div className="w-full">
+                <AchievementUnlock unlockedAchievements={result.unlockedAchievements} />
+              </div>
+            )}
+
+            {/* Mistakes Review Stack (Only renders when there are mistakes to review) */}
+            {hasMistakes && (
+              <div className="w-full">
+                <StickyReviewStack mistakes={mistakes} gender={profile.gender} />
+              </div>
+            )}
           </div>
           
           {/* Sticky Bottom Actions inside the scrollable container */}

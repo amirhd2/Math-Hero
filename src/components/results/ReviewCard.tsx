@@ -7,7 +7,7 @@
 import React from 'react';
 import { MistakeRecord, Gender } from '../../types';
 import { formatNumber } from '../../utils/persian';
-import { Character } from '../Character';
+import { getAssetUrl, getFallbackAssetUrl } from '../../utils/assetPaths';
 
 interface ReviewCardProps {
   mistake: MistakeRecord;
@@ -21,7 +21,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   mistake,
   index,
   totalMistakes,
-  gender = 'boy',
+  gender: _gender = 'boy',
   style,
 }) => {
   const { question, userAnswer, questionNumber } = mistake;
@@ -135,10 +135,17 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
         </div>
       </div>
 
-      {/* Helpful learning hint footer with mini character */}
+      {/* Helpful learning hint footer with Owl helper */}
       <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-start gap-3">
         <div className="shrink-0 pt-0.5">
-          <Character character={gender} pose="thinking" size="sm" />
+          <img
+            src={getAssetUrl('assets/characters/owl/Owl.webp')}
+            alt="راهنمای هوشمند"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = getFallbackAssetUrl('assets/characters/owl/Owl.webp');
+            }}
+            className="w-9 h-9 sm:w-10 sm:h-10 object-contain drop-shadow-sm select-none"
+          />
         </div>
         <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
           {getEducationalHint()}
