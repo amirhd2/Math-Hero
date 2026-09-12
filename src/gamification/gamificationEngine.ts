@@ -87,6 +87,22 @@ class GamificationEngineService {
   private cachedState: GamificationState | null = null;
 
   /**
+   * Invalidates the in-memory state cache.
+   * Forces the engine to reload state from storage on the next request.
+   */
+  invalidateCache(): void {
+    this.cachedState = null;
+  }
+
+  /**
+   * Overwrites the in-memory state cache and saves to persistence.
+   */
+  async setGamificationState(state: GamificationState): Promise<void> {
+    this.cachedState = state;
+    await saveGamificationState(state);
+  }
+
+  /**
    * Retrieves the current gamification state.
    */
   async getState(): Promise<GamificationState> {

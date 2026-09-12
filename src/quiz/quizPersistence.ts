@@ -96,7 +96,7 @@ export async function persistQuizCompletion(
   // 6. Save Quiz Result
   await storage.saveResult(finalResult);
 
-  // 7. Save individual mistake records for Smart Review
+  // 7. Save new individual mistake records for Smart Review
   for (const mistake of mistakes) {
     try {
       await storage.saveMistake(mistake);
@@ -105,7 +105,7 @@ export async function persistQuizCompletion(
     }
   }
 
-  // 8. Invalidate Smart Review cache
+  // 9. Invalidate Smart Review cache
   invalidateSmartReviewCache();
 
   return {

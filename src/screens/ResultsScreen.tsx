@@ -16,11 +16,7 @@ import { ResultsActions } from '../components/results/ResultsActions';
 import { ConfettiCanvas } from '../components/results/ConfettiCanvas';
 import { sound } from '../utils/sound';
 import { formatNumber } from '../utils/persian';
-import {
-  createPracticeMistakesSession,
-  createRetryQuizSession,
-} from '../results/reviewSessionGenerator';
-import { DEFAULT_QUIZ_CONFIG } from '../utils/questionGenerator';
+import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 import { calculateMeasurableImprovement } from '../smartReview/smartReviewPersistence';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { PromotionEvent } from '../adaptive/adaptiveTypes';
@@ -31,12 +27,13 @@ import { gamificationEngine } from '../gamification/gamificationEngine';
 import { TrophyInfo } from '../gamification/gamificationTypes';
 import { BackButton } from '../components/common/BackButton';
 
+
 interface ResultsScreenProps {
   result: QuizResult;
   profile: UserProfile;
   settings: AppSettings;
   onNavigate: (screen: ScreenId) => void;
-  onStartSession: (session: QuizSession) => void;
+  onStartSession?: (session: QuizSession) => void;
 }
 
 export const ResultsScreen: React.FC<ResultsScreenProps> = ({
@@ -44,8 +41,8 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
   profile,
   settings,
   onNavigate,
-  onStartSession,
 }) => {
+
   const [showConfetti, setShowConfetti] = useState(false);
 
   const isExcellent = result.score >= 80;
@@ -124,46 +121,34 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
     }
   }, [isExcellent, leveledUp, hasAchievements, settings.soundEnabled]);
 
-  // Handler for "Practice These Mistakes"
-  const handlePracticeMistakes = () => {
-    sound.playClick(settings.soundEnabled);
-    const reviewSession = createPracticeMistakesSession(mistakes, result.config);
-    onStartSession(reviewSession);
-  };
-
-  // Handler for "Try Again"
-  const handleRetryQuiz = () => {
-    sound.playClick(settings.soundEnabled);
-    const config = result.config || DEFAULT_QUIZ_CONFIG;
-    const retrySession = createRetryQuizSession(config);
-    onStartSession(retrySession);
-  };
-
   const handleGoHome = () => {
     sound.playClick(settings.soundEnabled);
     onNavigate('home');
   };
 
+
   // Determine character image based on score and gender
-  let characterImage = '';
+  let relativePath = '';
   const percentage = result.score;
   if (profile.gender === 'boy') {
-    if (percentage <= 40) characterImage = '/assets/characters/boy/quiz answer/5.webp';
-    else if (percentage <= 50) characterImage = '/assets/characters/boy/quiz answer/thinking.webp';
-    else if (percentage <= 60) characterImage = '/assets/characters/boy/quiz answer/encouraging.webp';
-    else if (percentage <= 70) characterImage = '/assets/characters/boy/quiz answer/13.webp';
-    else if (percentage <= 80) characterImage = '/assets/characters/boy/quiz answer/11.webp';
-    else if (percentage <= 90) characterImage = '/assets/characters/boy/quiz answer/9.webp';
-    else characterImage = '/assets/characters/boy/quiz answer/Celebrating.webp';
+    if (percentage <= 40) relativePath = 'assets/characters/boy/quiz answer/5.webp';
+    else if (percentage <= 50) relativePath = 'assets/characters/boy/quiz answer/thinking.webp';
+    else if (percentage <= 60) relativePath = 'assets/characters/boy/quiz answer/encouraging.webp';
+    else if (percentage <= 70) relativePath = 'assets/characters/boy/quiz answer/13.webp';
+    else if (percentage <= 80) relativePath = 'assets/characters/boy/quiz answer/11.webp';
+    else if (percentage <= 90) relativePath = 'assets/characters/boy/quiz answer/9.webp';
+    else relativePath = 'assets/characters/boy/quiz answer/Celebrating.webp';
   } else {
-    if (percentage <= 40) characterImage = '/assets/characters/girl/quiz answer/15.webp';
-    else if (percentage <= 50) characterImage = '/assets/characters/girl/quiz answer/5.webp';
-    else if (percentage <= 60) characterImage = '/assets/characters/girl/quiz answer/17.webp';
-    else if (percentage <= 70) characterImage = '/assets/characters/girl/quiz answer/16.webp';
-    else if (percentage <= 80) characterImage = '/assets/characters/girl/quiz answer/3.webp';
-    else if (percentage <= 90) characterImage = '/assets/characters/girl/quiz answer/10.webp';
-    else characterImage = '/assets/characters/girl/quiz answer/12.webp';
+    if (percentage <= 40) relativePath = 'assets/characters/girl/quiz answer/15.webp';
+    else if (percentage <= 50) relativePath = 'assets/characters/girl/quiz answer/5.webp';
+    else if (percentage <= 60) relativePath = 'assets/characters/girl/quiz answer/17.webp';
+    else if (percentage <= 70) relativePath = 'assets/characters/girl/quiz answer/16.webp';
+    else if (percentage <= 80) relativePath = 'assets/characters/girl/quiz answer/3.webp';
+    else if (percentage <= 90) relativePath = 'assets/characters/girl/quiz answer/10.webp';
+    else relativePath = 'assets/characters/girl/quiz answer/12.webp';
   }
+  const characterImage = getAssetUrl(relativePath);
+  const characterFallback = getFallbackAssetUrl(relativePath);
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950" dir="rtl">
@@ -175,12 +160,18 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         {/* Mobile: Top 65%. Desktop: Left 50% */}
         <div className="absolute top-0 left-0 w-full h-[65vh] lg:w-1/2 lg:h-[calc(100vh-4rem)] flex flex-col justify-end items-center pb-4 lg:pb-0 bg-transparent">
           <img 
-            src={characterImage} 
+            src={characterImage}
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = characterFallback;
+            }}
+            loading="eager"
+            decoding="async"
             className="max-h-full max-w-full object-contain drop-shadow-2xl origin-bottom" 
             alt="Character Feedback" 
           />
         </div>
       </div>
+
 
       {/* SCROLLABLE CONTENT */}
       <div className="relative z-10 w-full flex lg:justify-start min-h-screen pointer-events-none">
@@ -271,13 +262,11 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
           {/* Sticky Bottom Actions inside the scrollable container */}
           <div className="pt-4">
              <ResultsActions
-               hasMistakes={hasMistakes}
-               onPracticeMistakes={handlePracticeMistakes}
-               onRetryQuiz={handleRetryQuiz}
                onGoHome={handleGoHome}
                onViewAchievements={() => onNavigate('achievements')}
              />
           </div>
+
 
           {/* Celebration Modals Queue (Level Up, Trophy Unlock, Skill Promotion) */}
           {modalQueue[0] === 'levelup' && (

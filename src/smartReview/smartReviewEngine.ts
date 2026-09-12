@@ -147,6 +147,7 @@ export function createTargetedPracticeMistakesSession(
       generatedQuestions.push({
         ...q,
         id: `mistake_q_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        sourceMistakeId: m.id,
       });
     }
 

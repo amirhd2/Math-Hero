@@ -16,7 +16,8 @@
  * - Operation Breadth (Multi-Operation Competence)
  */
 
-import { TrophyInfo } from './gamificationTypes';
+import { TrophyInfo, TrophyRequirementDetail } from './gamificationTypes';
+import { formatNumber } from '../utils/persian';
 
 export interface TrophyStageConfig {
   stage: number;
@@ -222,19 +223,90 @@ export function getTrophyInfo(
   const tiersRemaining = Math.max(0, targetTiers - masteredTiersCount);
   const opsRemaining = Math.max(0, nextConfig.distinctOpsRequired - distinctOpsCount);
 
+  // Detailed requirement items evaluation
+  const detailedRequirements: TrophyRequirementDetail[] = [];
+
+  // 1. Level Requirement
+  const isLevelMet = currentLevel >= targetLevel;
+  detailedRequirements.push({
+    id: 'level',
+    titleFa: `رسیدن به سطح ${formatNumber(targetLevel, 'persian')}`,
+    currentValue: currentLevel,
+    targetValue: targetLevel,
+    unitFa: 'سطح',
+    isMet: isLevelMet,
+    guidanceFa: isLevelMet
+      ? `سطح ${formatNumber(currentLevel, 'persian')} شما برای این جام کافی است (شرط سطح برقرار است ✔)`
+      : `با شرکت در تمرین‌ها و آزمون‌ها ${formatNumber(levelsRemaining, 'persian')} سطح بالاتر بروید تا به سطح ${formatNumber(targetLevel, 'persian')} برسید.`,
+  });
+
+  // 2. Badges Requirement
+  const isBadgesMet = unlockedBadgesCount >= targetBadges;
+  detailedRequirements.push({
+    id: 'badges',
+    titleFa: `کسب ${formatNumber(targetBadges, 'persian')} نشان افتخار`,
+    currentValue: unlockedBadgesCount,
+    targetValue: targetBadges,
+    unitFa: 'نشان',
+    isMet: isBadgesMet,
+    guidanceFa: isBadgesMet
+      ? `تعداد ${formatNumber(unlockedBadgesCount, 'persian')} نشان افتخار شما کافی است (شرط نشان برقرار است ✔)`
+      : `با حل تمرین‌های عالی، تداوم روزانه و مرور اشتباهات ${formatNumber(badgesRemaining, 'persian')} نشان افتخار جدید آزاد کنید.`,
+  });
+
+  // 3. Mastered Skill Tiers Requirement
+  if (targetTiers > 0) {
+    const isTiersMet = masteredTiersCount >= targetTiers;
+    detailedRequirements.push({
+      id: 'tiers',
+      titleFa: `تسلط بر ${formatNumber(targetTiers, 'persian')} مرحله مهارت`,
+      currentValue: masteredTiersCount,
+      targetValue: targetTiers,
+      unitFa: 'مرحله',
+      isMet: isTiersMet,
+      guidanceFa: isTiersMet
+        ? `بر ${formatNumber(masteredTiersCount, 'persian')} مرحله مهارت مسلط شده‌اید (شرط تسلط برقرار است ✔)`
+        : `با انجام تمرین‌های هوشمند و کسب نمره عالی، بر ${formatNumber(tiersRemaining, 'persian')} مرحله مهارت جدید مسلط شوید.`,
+    });
+  }
+
+  // 4. Distinct Operations Requirement
+  if (nextConfig.distinctOpsRequired > 0) {
+    const targetOps = nextConfig.distinctOpsRequired;
+    const isOpsMet = distinctOpsCount >= targetOps;
+    detailedRequirements.push({
+      id: 'operations',
+      titleFa: `تنوع در ${formatNumber(targetOps, 'persian')} عملیات ریاضی (جمع، تفریق، ضرب، تقسیم)`,
+      currentValue: distinctOpsCount,
+      targetValue: targetOps,
+      unitFa: 'عملیات',
+      isMet: isOpsMet,
+      guidanceFa: isOpsMet
+        ? `در ${formatNumber(distinctOpsCount, 'persian')} عملیات مختلف تمرین داشته‌اید (شرط تنوع برقرار است ✔)`
+        : `تنها یک عملیات کافی نیست؛ حداقل در ${formatNumber(opsRemaining, 'persian')} عملیات ریاضی جدید نیز مسلط شوید.`,
+    });
+  }
+
+  // Construct complete summary statement listing ALL unmet requirements
+  const unmetSummary: string[] = [];
+  if (!isLevelMet) {
+    unmetSummary.push(`${formatNumber(levelsRemaining, 'persian')} سطح بالاتر`);
+  }
+  if (!isBadgesMet) {
+    unmetSummary.push(`${formatNumber(badgesRemaining, 'persian')} نشان افتخار دیگر`);
+  }
+  if (targetTiers > 0 && masteredTiersCount < targetTiers) {
+    unmetSummary.push(`تسلط بر ${formatNumber(tiersRemaining, 'persian')} مرحله مهارت جدید`);
+  }
+  if (nextConfig.distinctOpsRequired > 0 && distinctOpsCount < nextConfig.distinctOpsRequired) {
+    unmetSummary.push(`تمرین در ${formatNumber(opsRemaining, 'persian')} عملیات دیگر`);
+  }
+
   let nextRequirementText = '';
-  if (nextConfig.stage === 6) {
-    nextRequirementText = 'برای رسیدن به قهرمان ریاضی، مهارت‌های بیشتری را در عملیات‌های مختلف کامل کن.';
-  } else if (opsRemaining > 0) {
-    nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: مهارت‌هایت را در ${opsRemaining} عملیات دیگر هم کامل کن.`;
-  } else if (tiersRemaining > 0) {
-    nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: تسلط بر ${tiersRemaining} مرحله جدید از مهارت‌ها نیاز است.`;
-  } else if (levelsRemaining > 0) {
-    nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: رسیدن به سطح ${targetLevel} و کسب ${badgesRemaining} نشان افتخار دیگر نیاز است.`;
-  } else if (badgesRemaining > 0) {
-    nextRequirementText = `برای ارتقا به ${nextConfig.stageNameFa}: ${badgesRemaining} نشان افتخار دیگر کسب کن.`;
+  if (unmetSummary.length === 0) {
+    nextRequirementText = `تمام شرایط دریافت ${nextConfig.stageNameFa} آماده است! با انجام یک تمرین دیگر آن را دریافت کن. 🎉`;
   } else {
-    nextRequirementText = `آماده دریافت ${nextConfig.stageNameFa}!`;
+    nextRequirementText = `برای دریافت ${nextConfig.stageNameFa}: نیاز به ${unmetSummary.join(' و ')} داری.`;
   }
 
   return {
@@ -249,7 +321,9 @@ export function getTrophyInfo(
     levelRequired: currentConfig.levelRequired,
     masteredTiersRequired: currentConfig.masteredTiersRequired,
     distinctOpsRequired: currentConfig.distinctOpsRequired,
+    nextStageNameFa: nextConfig.stageNameFa,
     nextRequirementText,
+    detailedRequirements,
     progressPercent: combinedPercent,
     isMax: false,
     isLockedAndMysterious: stageNumber < 6,

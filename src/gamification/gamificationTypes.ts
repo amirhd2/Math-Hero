@@ -60,6 +60,16 @@ export interface Badge {
   maxProgress?: number;
 }
 
+export interface TrophyRequirementDetail {
+  id: 'level' | 'badges' | 'tiers' | 'operations';
+  titleFa: string;
+  currentValue: number;
+  targetValue: number;
+  unitFa: string;
+  isMet: boolean;
+  guidanceFa: string;
+}
+
 export interface TrophyInfo {
   stage: number; // 1 to 6
   maxStage: number;
@@ -72,7 +82,9 @@ export interface TrophyInfo {
   levelRequired: number;
   masteredTiersRequired?: number;
   distinctOpsRequired?: number;
+  nextStageNameFa?: string;
   nextRequirementText: string;
+  detailedRequirements?: TrophyRequirementDetail[];
   progressPercent: number;
   isMax: boolean;
   isLockedAndMysterious?: boolean;

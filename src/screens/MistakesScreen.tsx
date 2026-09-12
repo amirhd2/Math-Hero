@@ -50,15 +50,15 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
 
   return (
     <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 space-y-8" dir="rtl">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-right">
-          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">گنجینه اشتباهات و مرور</h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            اشتباهات ثبت‌شده در آزمون‌ها برای تمرین و یادگیری عمیق‌تر
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-right min-w-0">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100 truncate">گنجینه اشتباهات و مرور</h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">
+            مرور و یادگیری عمیق‌تر اشتباهات آزمون‌ها
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <BackButton onClick={() => onNavigate('home')} title="بازگشت به خانه" />
         </div>
       </div>
@@ -104,7 +104,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
 
                 {/* Pedagogical Description */}
                 <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-                  اشتباه کردن یعنی مغز تو در حال یادگیری و قوی‌تر شدنه! هر کدوم از این سوالات یک پله طلایی برای پیشرفته؛ با حل دوباره‌شون، همه اشتباهاتت رو پاک کن و مدال‌های افتخار دریافت کن.
+                  اشتباه کردن یعنی مغز تو در حال یادگیری و قوی‌تر شدنه! هر کدوم از این سوالات یک فرصت عالی برای تمرینه؛ با مرور دوباره‌شون تسلط و مهارتت رو افزایش بده و مدال‌های افتخار دریافت کن.
                 </p>
               </div>
 
@@ -123,7 +123,7 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
                   onClick={handleOpenCountModal}
                   className="w-full py-3 sm:py-3.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>شروع تمرین هوشمند و پاک‌سازی اشتباهات</span>
+                  <span>شروع مرور هوشمند اشتباهات</span>
                   <span>🚀</span>
                 </button>
               </div>
@@ -135,8 +135,8 @@ export const MistakesScreen: React.FC<MistakesScreenProps> = ({ onNavigate, onSt
             isOpen={isCountModalOpen}
             onClose={() => setIsCountModalOpen(false)}
             onConfirm={handleConfirmPractice}
-            title="تمرین و پاک‌سازی اشتباهات"
-            subtitle="تعداد سوالات مورد نظرت رو برای تمرین و یادگیری انتخاب کن. با حل این سوالات اشتباهات گذشته رو پاک می‌کنی!"
+            title="مرور گنجینه اشتباهات"
+            subtitle="تعداد سوالات مورد نظرت رو برای مرور و تمرین انتخاب کن. با مرور این سوالات حافظه و مهارتت قوی‌تر میشه!"
             icon="🦉"
             mode="practice"
             badgeText="🌱 حالت تمرینی"

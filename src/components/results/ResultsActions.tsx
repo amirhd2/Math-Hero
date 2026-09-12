@@ -1,84 +1,60 @@
 /**
  * ResultsActions component.
- * Provides primary actions: Practice Mistakes, Try Again, and Back to Home.
+ * Renders exactly two primary navigation actions at the bottom of the results screen:
+ * 1. تالار افتخارات (Hall of Achievements)
+ * 2. بازگشت به خانه (Return to Home)
  */
 
 import React from 'react';
 import { getAssetUrl } from '../../utils/assetPaths';
 
 interface ResultsActionsProps {
-  hasMistakes: boolean;
-  onPracticeMistakes: () => void;
-  onRetryQuiz: () => void;
   onGoHome: () => void;
-  onViewAchievements?: () => void;
+  onViewAchievements: () => void;
+  hasMistakes?: boolean;
+  onPracticeMistakes?: () => void;
+  onRetryQuiz?: () => void;
 }
 
 export const ResultsActions: React.FC<ResultsActionsProps> = ({
-  hasMistakes,
-  onPracticeMistakes,
-  onRetryQuiz,
   onGoHome,
   onViewAchievements,
 }) => {
   return (
     <nav
       aria-label="عملیات پایان آزمون"
-      className="sticky bottom-4 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-wrap items-center justify-center gap-3"
+      className="sticky bottom-4 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl p-3 sm:p-4 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl w-full"
     >
-      {/* Primary Action */}
-      {hasMistakes ? (
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4 w-full">
+        {/* 1. تالار افتخارات */}
         <button
-          onClick={onPracticeMistakes}
-          className="w-full sm:flex-1 py-4 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <span>🎯</span>
-          <span>تمرین روی این اشتباهات</span>
-        </button>
-      ) : (
-        <button
-          onClick={onRetryQuiz}
-          className="w-full sm:flex-1 py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <span>🚀</span>
-          <span>یک تمرین جدید دیگر</span>
-        </button>
-      )}
-
-      {/* Secondary Action: Try Again */}
-      {hasMistakes && (
-        <button
-          onClick={onRetryQuiz}
-          className="w-full sm:flex-1 py-4 px-6 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 font-bold rounded-2xl transition-all flex items-center justify-center gap-2"
-        >
-          <span>🔄</span>
-          <span>تکرار همین آزمون</span>
-        </button>
-      )}
-
-      {/* Achievements shortcut button */}
-      {onViewAchievements && (
-        <button
+          type="button"
           onClick={onViewAchievements}
-          className="w-full sm:w-auto py-4 px-5 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-700 font-black rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-          title="مشاهده نشان‌ها و جام‌ها"
+          className="w-full py-3.5 sm:py-4 px-3 sm:px-6 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-black rounded-2xl shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 sm:gap-2.5 cursor-pointer text-xs sm:text-base border border-amber-300/60"
+          title="مشاهده نشان‌ها و افتخارات"
         >
           <img
             src={getAssetUrl('assets/cups/gold 1.webp')}
             alt=""
-            className="w-5 h-5 object-contain"
+            className="w-5 h-5 sm:w-6 sm:h-6 object-contain shrink-0 filter drop-shadow-xs"
+            loading="eager"
+            decoding="async"
           />
-          <span>افتخارات</span>
+          <span className="truncate">تالار افتخارات</span>
         </button>
-      )}
 
-      {/* Tertiary Action: Back to Home */}
-      <button
-        onClick={onGoHome}
-        className="w-full sm:w-auto py-4 px-6 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-2xl transition-colors"
-      >
-        بازگشت به خانه
-      </button>
+        {/* 2. بازگشت به خانه */}
+        <button
+          type="button"
+          onClick={onGoHome}
+          className="w-full py-3.5 sm:py-4 px-3 sm:px-6 bg-gradient-to-r from-indigo-600 via-indigo-500 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 sm:gap-2.5 cursor-pointer text-xs sm:text-base border border-indigo-400/30"
+          title="بازگشت به صفحه اصلی"
+        >
+          <span className="text-sm sm:text-lg shrink-0">🏠</span>
+          <span className="truncate">بازگشت به خانه</span>
+        </button>
+      </div>
     </nav>
   );
 };
+

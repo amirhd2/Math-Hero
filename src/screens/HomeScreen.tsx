@@ -17,7 +17,9 @@ import {
   QuizConfiguration,
   OperationType,
   QuizResult,
+  QuizSession,
 } from '../types';
+import { createPracticeMistakesSession } from '../results/reviewSessionGenerator';
 import { formatNumber, toPersianDigits } from '../utils/persian';
 import { storage } from '../utils/storage';
 import { SmartReviewModal } from '../components/smartReview/SmartReviewModal';
@@ -53,6 +55,7 @@ interface HomeScreenProps {
   onOpenSetup: (config?: Partial<QuizConfiguration>) => void;
   onStartPattern: (pattern: TestPattern) => void;
   onStartQuiz: (preset?: QuizPreset) => void;
+  onStartSession?: (session: QuizSession) => void;
   onNavigate: (screen: ScreenId) => void;
   onStartSmartReview?: () => void;
   onStartChildQuickOperation: (op: OperationType, count?: number, mode?: 'test' | 'practice') => void;
@@ -68,6 +71,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
   onOpenSetup,
   onStartPattern,
   onStartQuiz: _onStartQuiz,
+  onStartSession,
   onNavigate,
   onStartSmartReview,
   onStartChildQuickOperation,
@@ -343,24 +347,62 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
     // Challenge 2: Mistakes Vault or Smart Review
     if (unresolvedMistakesCount > 0) {
+      const isMistakesReviewDoneToday = todayQuizResults.some(
+        (r) => r.source === 'mistakes-practice' || r.source === 'smart-review' || (r.id && r.id.includes('mistakes'))
+      );
       list.push({
         id: 'mistakes-vault',
-        badgeText: 'فرصت طلایی',
+        badgeText: 'مرور اشتباهات',
         badgeIcon: '💡',
         badgeColor: 'bg-rose-500 text-white',
-        title: 'پاک‌سازی گنجینه اشتباهات',
-        description: `تو ${toPersianDigits(unresolvedMistakesCount)} سوال حل‌نشده داری. با حل دوباره‌شون امتیاز کامل و نشان پشتکار بگیر!`,
+        title: 'مرور گنجینه اشتباهات',
+        description: `تو ${toPersianDigits(unresolvedMistakesCount)} سوال نیازمند مرور داری. با مرور دوباره‌شون تسلط و مهارتت رو افزایش بده!`,
         rewardXp: 40,
         rewardCoins: 8,
-        progressCurrent: 0,
+        progressCurrent: isMistakesReviewDoneToday ? unresolvedMistakesCount : 0,
         progressTotal: unresolvedMistakesCount,
-        isCompleted: false,
-        actionText: 'اصلاح اشتباهات',
+        isCompleted: isMistakesReviewDoneToday,
+        actionText: isMistakesReviewDoneToday ? 'تکمیل شد' : 'مرور اشتباهات',
         actionIcon: '✏️',
         bgGradient: 'bg-gradient-to-br from-rose-400 via-pink-300 to-rose-300 text-slate-950',
         borderAccent: 'border-rose-400',
         cardIcon: '💡',
-        onAction: () => onNavigate('mistakes'),
+        onAction: () => {
+          if (onStartSession) {
+            storage.getMistakes().then((mistakes) => {
+              const unresolved = mistakes.filter((m) => !m.resolved);
+              if (unresolved.length > 0) {
+                const total = unresolved.length;
+                let options = [total];
+                if (total <= 5) options = [total];
+                else if (total <= 10) options = [5, total];
+                else if (total <= 15) options = [5, 10, total];
+                else options = [5, 10, 15, Math.min(20, total)];
+
+                setCountModalState({
+                  isOpen: true,
+                  title: 'مرور گنجینه اشتباهات',
+                  subtitle: 'تعداد سوالات مورد نظرت رو برای مرور و تمرین انتخاب کن. با مرور این سوالات حافظه و مهارتت قوی‌تر میشه!',
+                  icon: '💡',
+                  mode: 'practice',
+                  badgeText: '🌱 حالت تمرینی',
+                  colorGradient: 'from-rose-500 to-pink-600',
+                  options,
+                  defaultCount: options[Math.min(1, options.length - 1)],
+                  onConfirm: (count: number) => {
+                    setCountModalState((prev) => ({ ...prev, isOpen: false }));
+                    const session = createPracticeMistakesSession(unresolved, undefined, count);
+                    onStartSession(session);
+                  },
+                });
+              } else {
+                onNavigate('mistakes');
+              }
+            });
+          } else {
+            onNavigate('mistakes');
+          }
+        },
       });
     } else {
       const isReviewDone = todaySolved > 0;

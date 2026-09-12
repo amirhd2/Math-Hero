@@ -200,6 +200,7 @@ export interface QuizQuestion {
   operatorSymbol?: string;
   remainder?: number;
   options?: number[]; // for multiple choice if used
+  sourceMistakeId?: string;
 }
 
 export interface QuizOperationStat {

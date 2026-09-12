@@ -324,11 +324,6 @@ export const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ onComplete }
           <div className="w-full h-full flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-3 sm:gap-6 lg:gap-12 animate-fadeIn min-h-0 overflow-hidden">
             {/* Text Side (Right in RTL flex-row) */}
             <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-right space-y-2 sm:space-y-4 shrink-0 lg:shrink">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-2xl bg-amber-100/80 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs sm:text-sm font-black border border-amber-200 dark:border-amber-800/60 shadow-2xs">
-                <span>🦉</span>
-                <span>همسفر باهوش و مهربان تو</span>
-              </div>
-
               <h1 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-slate-50 leading-tight sm:leading-snug">
                 سلام به برنامه قهرمان ریاضی خوش آمدی عزیزم!
               </h1>

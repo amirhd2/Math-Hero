@@ -20,10 +20,131 @@ import { GamificationState } from '../gamification/gamificationTypes';
 import { invalidateSmartReviewCache } from '../smartReview/smartReviewPersistence';
 import { SmartTeacherEngine } from '../adaptive/smartTeacherEngine';
 import { AdaptiveLearningPlan, PromotionEvent } from '../adaptive/adaptiveTypes';
+import { gamificationEngine } from '../gamification/gamificationEngine';
+import { calculateTrophyStage } from '../gamification/trophyManager';
+import { getLevelFromXp } from '../gamification/levelCalculator';
 
 export const BACKUP_FORMAT_VERSION = 1;
 export const APP_VERSION = '1.0.0';
 export const DATA_SCHEMA_VERSION = 1;
+
+/**
+ * Ensures 100% synchronization between Profile, Achievements, GamificationState, Trophies, and Skill Tiers.
+ */
+export function synchronizeAppState(
+  profile: UserProfile,
+  gamification: GamificationState,
+  achievements: Achievement[],
+  learningPlan?: AdaptiveLearningPlan | null
+): {
+  syncedProfile: UserProfile;
+  syncedGamification: GamificationState;
+  syncedAchievements: Achievement[];
+} {
+  // 1. Collect all unlocked badge IDs from achievements list & gamification unlockedBadges array
+  const unlockedFromAchievements = (achievements || []).filter((a) => a.unlocked).map((a) => a.id);
+  const unlockedFromGamification = gamification?.unlockedBadges || [];
+  const allUnlockedBadgeIds = Array.from(new Set([...unlockedFromGamification, ...unlockedFromAchievements]));
+
+  // 2. Mark every achievement matching allUnlockedBadgeIds as unlocked: true
+  const syncedAchievements = (achievements || []).map((a) => {
+    if (allUnlockedBadgeIds.includes(a.id)) {
+      return {
+        ...a,
+        unlocked: true,
+        progress: a.maxProgress || a.progress || 1,
+        unlockedAt: a.unlockedAt || Date.now(),
+      };
+    }
+    return a;
+  });
+
+  // 3. Synchronize XP, Level, Streak, Coins
+  const finalXp = Math.max(profile?.xp || 0, gamification?.totalXp || 0);
+  const finalLevel = Math.max(
+    profile?.level || 1,
+    gamification?.currentLevel || 1,
+    getLevelFromXp(finalXp)
+  );
+  const finalStreak = Math.max(profile?.streakDays || 1, gamification?.currentStreak || 1, gamification?.bestStreak || 1);
+  const finalCoins = Math.max(profile?.coins || 0, 0);
+
+  const syncedProfile: UserProfile = {
+    id: profile?.id || 'default_user',
+    name: profile?.name?.trim() || 'قهرمان ریاضی',
+    age: profile?.age || 9,
+    gender: profile?.gender || 'boy',
+    avatarId: profile?.avatarId || 'hero_boy_1',
+    xp: finalXp,
+    level: finalLevel,
+    streakDays: finalStreak,
+    coins: finalCoins,
+    createdAt: profile?.createdAt || Date.now(),
+    onboardingCompleted: profile?.onboardingCompleted ?? true,
+  };
+
+  // 4. Calculate educational metrics from learningPlan
+  let masteredTiersCount = 0;
+  let distinctOpsCount = 0;
+  if (learningPlan && learningPlan.operations) {
+    const opsWithMastery = new Set<string>();
+    Object.entries(learningPlan.operations).forEach(([op, prof]) => {
+      if (prof && prof.tiers) {
+        Object.values(prof.tiers).forEach((ev: any) => {
+          if (ev.state === 'mastered') {
+            masteredTiersCount++;
+            opsWithMastery.add(op);
+          }
+        });
+      }
+    });
+    distinctOpsCount = opsWithMastery.size;
+  }
+
+  // 5. Recalculate Trophy Stage accurately using synced Level, Unlocked Badges Count, and Skill Tiers
+  const computedTrophyStage = calculateTrophyStage(
+    finalLevel,
+    allUnlockedBadgeIds.length,
+    masteredTiersCount,
+    distinctOpsCount
+  );
+  const finalTrophyStage = Math.max(gamification?.trophyStage || 1, computedTrophyStage);
+
+  const syncedGamification: GamificationState = {
+    totalXp: finalXp,
+    currentLevel: finalLevel,
+    currentStreak: finalStreak,
+    bestStreak: Math.max(gamification?.bestStreak || 1, finalStreak),
+    unlockedBadges: allUnlockedBadgeIds,
+    badgeUnlockTimestamps: gamification?.badgeUnlockTimestamps || {},
+    trophyStage: finalTrophyStage,
+    lastActivityDate: gamification?.lastActivityDate || null,
+    lastActivityAt: gamification?.lastActivityAt || null,
+    stats: gamification?.stats || {
+      totalQuizzesCompleted: 0,
+      totalQuestionsAnswered: 0,
+      totalCorrectAnswers: 0,
+      perfectQuizzesCount: 0,
+      smartReviewsCount: 0,
+      practiceCount: 0,
+      testCount: 0,
+      mistakesResolvedCount: 0,
+      consecutiveImprovements: 0,
+      operationCorrectCounts: { addition: 0, subtraction: 0, multiplication: 0, division: 0, mixed: 0 },
+      operationAccuracies: { addition: 0, subtraction: 0, multiplication: 0, division: 0, mixed: 0 },
+    },
+    processedQuizIds: gamification?.processedQuizIds || [],
+    awardedMasteryBonuses: gamification?.awardedMasteryBonuses || [],
+    masteredTiersCount,
+    distinctOperationsMastered: distinctOpsCount,
+  };
+
+  return {
+    syncedProfile,
+    syncedGamification,
+    syncedAchievements,
+  };
+}
 
 export interface MathHeroBackupMetadata {
   backupFormatVersion: number;
@@ -137,6 +258,13 @@ export async function createFullBackup(): Promise<{ filename: string; json: stri
       SmartTeacherEngine.getPromotions(),
     ]);
 
+  const { syncedProfile, syncedGamification, syncedAchievements } = synchronizeAppState(
+    profile,
+    gamification,
+    achievements,
+    learningPlan
+  );
+
   const now = Date.now();
   const d = new Date(now);
   const year = d.getFullYear();
@@ -154,19 +282,19 @@ export async function createFullBackup(): Promise<{ filename: string; json: stri
       itemCounts: {
         results: results.length,
         mistakes: mistakes.length,
-        achievements: achievements.length,
+        achievements: syncedAchievements.length,
         testPatterns: testPatterns.length,
         promotions: promotions.length,
       },
     },
-    profile,
+    profile: syncedProfile,
     settings,
     results,
     mistakes,
-    achievements,
+    achievements: syncedAchievements,
     testPatterns,
-    gamification,
-    learningPlan,
+    gamification: syncedGamification,
+    learningPlan: learningPlan || undefined,
     promotions,
   };
 
@@ -376,6 +504,24 @@ export async function restoreBackup(
         }
       }
 
+      // 9. Synchronize Profile, Gamification, Achievements, and Trophies
+      const currentProfile = backup.profile || (await storage.getProfile());
+      const currentGamification = backup.gamification || (await loadGamificationState());
+      const currentAchievements = backup.achievements || (await storage.getAchievements());
+      const currentPlan = backup.learningPlan || (await SmartTeacherEngine.getLearningPlan());
+
+      const { syncedProfile, syncedGamification, syncedAchievements } = synchronizeAppState(
+        currentProfile,
+        currentGamification,
+        currentAchievements,
+        currentPlan
+      );
+
+      await storage.saveProfile(syncedProfile);
+      await storage.saveAchievements(syncedAchievements);
+      await saveGamificationState(syncedGamification);
+
+      gamificationEngine.invalidateCache();
       invalidateSmartReviewCache();
 
       return {
@@ -410,7 +556,6 @@ export async function restoreBackup(
       coins: Math.max(currentProfile.coins || 0, backup.profile?.coins || 0),
       onboardingCompleted: currentProfile.onboardingCompleted || backup.profile?.onboardingCompleted || true,
     };
-    await storage.saveProfile(mergedProfile);
 
     // 2. Merge Settings (keep current theme/language preferences if already set, but fill missing)
     const mergedSettings: AppSettings = {
@@ -467,7 +612,6 @@ export async function restoreBackup(
         }
       });
     }
-    await storage.saveAchievements(Array.from(achievementsMap.values()));
 
     // 6. Merge Test Patterns (deduplicate by id)
     const patternsMap = new Map<string, TestPattern>();
@@ -482,42 +626,39 @@ export async function restoreBackup(
     await storage.saveTestPatternsBulk(Array.from(patternsMap.values()));
 
     // 7. Merge Gamification State
-    if (backup.gamification) {
-      const mergedBadges = Array.from(
-        new Set([...currentGamification.unlockedBadges, ...(backup.gamification.unlockedBadges || [])])
-      );
-      const mergedTimestamps = {
-        ...backup.gamification.badgeUnlockTimestamps,
-        ...currentGamification.badgeUnlockTimestamps,
-      };
+    const mergedBadges = Array.from(
+      new Set([...currentGamification.unlockedBadges, ...(backup.gamification?.unlockedBadges || [])])
+    );
+    const mergedTimestamps = {
+      ...(backup.gamification?.badgeUnlockTimestamps || {}),
+      ...currentGamification.badgeUnlockTimestamps,
+    };
 
-      const mergedGamification: GamificationState = {
-        ...currentGamification,
-        totalXp: Math.max(currentGamification.totalXp, backup.gamification.totalXp || 0),
-        currentLevel: Math.max(currentGamification.currentLevel, backup.gamification.currentLevel || 1),
-        currentStreak: Math.max(currentGamification.currentStreak, backup.gamification.currentStreak || 1),
-        bestStreak: Math.max(currentGamification.bestStreak, backup.gamification.bestStreak || 1),
-        unlockedBadges: mergedBadges,
-        badgeUnlockTimestamps: mergedTimestamps,
-        trophyStage: Math.max(currentGamification.trophyStage, backup.gamification.trophyStage || 1),
-        stats: {
-          ...currentGamification.stats,
-          totalQuizzesCompleted: Math.max(
-            currentGamification.stats.totalQuizzesCompleted,
-            backup.gamification.stats?.totalQuizzesCompleted || 0
-          ),
-          totalQuestionsAnswered: Math.max(
-            currentGamification.stats.totalQuestionsAnswered,
-            backup.gamification.stats?.totalQuestionsAnswered || 0
-          ),
-          totalCorrectAnswers: Math.max(
-            currentGamification.stats.totalCorrectAnswers,
-            backup.gamification.stats?.totalCorrectAnswers || 0
-          ),
-        },
-      };
-      await saveGamificationState(mergedGamification);
-    }
+    const mergedGamification: GamificationState = {
+      ...currentGamification,
+      totalXp: Math.max(currentGamification.totalXp, backup.gamification?.totalXp || 0),
+      currentLevel: Math.max(currentGamification.currentLevel, backup.gamification?.currentLevel || 1),
+      currentStreak: Math.max(currentGamification.currentStreak, backup.gamification?.currentStreak || 1),
+      bestStreak: Math.max(currentGamification.bestStreak, backup.gamification?.bestStreak || 1),
+      unlockedBadges: mergedBadges,
+      badgeUnlockTimestamps: mergedTimestamps,
+      trophyStage: Math.max(currentGamification.trophyStage, backup.gamification?.trophyStage || 1),
+      stats: {
+        ...currentGamification.stats,
+        totalQuizzesCompleted: Math.max(
+          currentGamification.stats.totalQuizzesCompleted,
+          backup.gamification?.stats?.totalQuizzesCompleted || 0
+        ),
+        totalQuestionsAnswered: Math.max(
+          currentGamification.stats.totalQuestionsAnswered,
+          backup.gamification?.stats?.totalQuestionsAnswered || 0
+        ),
+        totalCorrectAnswers: Math.max(
+          currentGamification.stats.totalCorrectAnswers,
+          backup.gamification?.stats?.totalCorrectAnswers || 0
+        ),
+      },
+    };
 
     // 8. Merge Adaptive Learning Plan & Promotions
     if (backup.learningPlan) {
@@ -537,6 +678,20 @@ export async function restoreBackup(
       }
     }
 
+    // 9. Synchronize Profile, Gamification, Achievements, and Trophies
+    const mergedPlan = backup.learningPlan || (await SmartTeacherEngine.getLearningPlan());
+    const { syncedProfile, syncedGamification, syncedAchievements } = synchronizeAppState(
+      mergedProfile,
+      mergedGamification,
+      Array.from(achievementsMap.values()),
+      mergedPlan
+    );
+
+    await storage.saveProfile(syncedProfile);
+    await storage.saveAchievements(syncedAchievements);
+    await saveGamificationState(syncedGamification);
+
+    gamificationEngine.invalidateCache();
     invalidateSmartReviewCache();
 
     return {
@@ -562,9 +717,11 @@ export async function resetApplicationData(): Promise<void> {
   try {
     localStorage.removeItem('math_hero_learning_plan_v1');
     localStorage.removeItem('math_hero_promotions_v1');
+    localStorage.removeItem('math_hero_gamification_state_v1');
   } catch {
     // ignore
   }
+  gamificationEngine.invalidateCache();
   invalidateSmartReviewCache();
 }
 

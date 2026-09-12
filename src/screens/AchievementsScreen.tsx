@@ -30,7 +30,7 @@ import { RecentlyUnlockedList } from '../components/gamification/RecentlyUnlocke
 import { BadgeDetailModal } from '../components/gamification/BadgeDetailModal';
 import { StagesRoadmapModal } from '../components/gamification/StagesRoadmapModal';
 import { sound } from '../utils/sound';
-import { getTrophyCupUrl, getTrophyCupFallbackUrl, getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
+import { getAssetUrl, getFallbackAssetUrl } from '../utils/assetPaths';
 
 interface AchievementsScreenProps {
   onNavigate: (screen: ScreenId) => void;
@@ -426,49 +426,6 @@ export const AchievementsScreen: React.FC<AchievementsScreenProps> = ({
               ))}
             </div>
           )}
-        </div>
-
-        {/* Grand Math Hero Supreme Milestone Banner */}
-        <div
-          id="grand-math-hero-milestone"
-          className="relative overflow-hidden bg-gradient-to-r from-amber-500 via-yellow-400 to-orange-500 text-slate-950 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-3"
-        >
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4 text-center sm:text-right">
-              <div className="w-16 h-16 rounded-2xl bg-white/40 p-1.5 flex items-center justify-center shadow-md shrink-0">
-                <img
-                  src={getTrophyCupUrl(6)}
-                  alt="جام الماسین قهرمان قهرمانان"
-                  className="w-full h-full object-contain filter drop-shadow animate-pulse"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    if (!target.dataset.fallback) {
-                      target.dataset.fallback = '1';
-                      target.src = getTrophyCupFallbackUrl(6);
-                    }
-                  }}
-                />
-              </div>
-              <div>
-                <span className="text-xs font-black uppercase tracking-wider bg-slate-950 text-amber-300 px-3 py-1 rounded-xl">
-                  اوج شکوه و قهرمانی
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black mt-1">
-                  قله افتخار: قهرمان قهرمانان ریاضی!
-                </h3>
-                <p className="text-xs sm:text-sm font-bold opacity-90 mt-0.5">
-                  با رسیدن به سطح ۱۵ و کسب ۱۵ نشان افتخار، تاج زرین قهرمان ریاضی را بر سر می‌گذاری!
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => onNavigate('quiz_setup')}
-              className="px-6 py-3 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black text-sm rounded-2xl shadow-xl transition-all shrink-0 hover:scale-105"
-            >
-              ادامه تمرین برای قهرمانی 🚀
-            </button>
-          </div>
         </div>
       </div>
 

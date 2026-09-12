@@ -273,34 +273,23 @@ export function getLevelFromXp(
   badgesCount?: number
 ): number {
   const rawLevel = getRawLevelByXp(xp);
-  if (masteredTiersCount === undefined) {
-    return rawLevel;
-  }
 
-  // Evaluate educational gating up to rawLevel
-  let allowedLevel = 1;
-  for (let lvl = 1; lvl <= rawLevel; lvl++) {
-    const def = LEVEL_DEFINITIONS[lvl - 1];
-    if (!def) break;
+  // Reserve educational capstone requirement for Level 15 / Grand Math Hero
+  if (rawLevel >= 15 && masteredTiersCount !== undefined) {
+    const def15 = LEVEL_DEFINITIONS[14];
+    const req15 = def15?.educationalRequirement;
+    if (req15) {
+      const tiersMet = masteredTiersCount >= req15.minMasteredTiers;
+      const opsMet = req15.minDistinctOperations ? (distinctOpsCount || 0) >= req15.minDistinctOperations : true;
+      const badgesMet = req15.minBadges ? (badgesCount || 0) >= req15.minBadges : true;
 
-    const req = def.educationalRequirement;
-    if (req) {
-      const tiersMet = masteredTiersCount >= req.minMasteredTiers;
-      const opsMet = req.minDistinctOperations ? (distinctOpsCount || 0) >= req.minDistinctOperations : true;
-      const badgesMet = req.minBadges ? (badgesCount || 0) >= req.minBadges : true;
-
-      if (tiersMet && opsMet && badgesMet) {
-        allowedLevel = lvl;
-      } else {
-        // Educational requirement for this level not yet met!
-        break;
+      if (!tiersMet || !opsMet || !badgesMet) {
+        return 14;
       }
-    } else {
-      allowedLevel = lvl;
     }
   }
 
-  return allowedLevel;
+  return rawLevel;
 }
 
 /**

@@ -70,7 +70,7 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] w-full h-full bg-slate-900/95 backdrop-blur-xl text-white flex flex-col justify-between overflow-y-auto overflow-x-hidden select-none"
+      className="fixed inset-0 z-[100] w-full h-full bg-gradient-to-br from-slate-50 via-indigo-50/70 to-amber-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 backdrop-blur-xl text-slate-900 dark:text-white flex flex-col justify-between overflow-y-auto overflow-x-hidden select-none"
       dir="rtl"
       style={{
         paddingTop: 'max(0.75rem, env(safe-area-inset-top, 0px))',
@@ -80,13 +80,13 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
       }}
     >
       {/* Background Ambient Glow Circles */}
-      <div className="absolute top-10 right-1/4 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 left-1/4 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-10 right-1/4 w-72 h-72 bg-indigo-400/20 dark:bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 left-1/4 w-80 h-80 bg-amber-400/20 dark:bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
 
       {/* 1. Top Header Bar: Status Badge and Exit Button */}
       <div className="relative z-10 w-full max-w-5xl mx-auto flex items-center justify-between px-2 sm:px-4 py-2 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-200 text-xs font-bold border border-indigo-500/30 backdrop-blur-md">
+          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-900 dark:text-indigo-200 text-xs font-bold border border-indigo-200 dark:border-indigo-500/30 backdrop-blur-md">
             <span>{isPractice ? 'حالت تمرینی' : 'حالت آزمون'}</span>
             <span>•</span>
             <span>{toPersianDigits(totalQuestions)} سوال</span>
@@ -96,7 +96,7 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
         <button
           type="button"
           onClick={onExit}
-          className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white/80 hover:text-white flex items-center justify-center transition-all cursor-pointer border border-white/15 shadow-sm"
+          className="w-10 h-10 rounded-full bg-slate-200/80 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-700 dark:text-white flex items-center justify-center transition-all cursor-pointer border border-slate-300/80 dark:border-white/15 shadow-sm"
           title="انصراف و بازگشت به خانه"
         >
           <span className="text-xl font-black leading-none">✕</span>
@@ -114,26 +114,26 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1, duration: 0.4 }}
-            className="w-full bg-gradient-to-br from-indigo-950/80 via-slate-900/90 to-slate-950/90 border border-indigo-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-3 sm:space-y-4 backdrop-blur-md"
+            className="w-full bg-white/95 dark:bg-gradient-to-br dark:from-indigo-950/80 dark:via-slate-900/90 dark:to-slate-950/90 border border-slate-200/90 dark:border-indigo-500/30 rounded-3xl p-5 sm:p-7 shadow-xl dark:shadow-2xl space-y-3 sm:space-y-4 backdrop-blur-md"
           >
-            <div className="flex items-center justify-center lg:justify-start gap-2 text-amber-400 font-black text-xs sm:text-sm">
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-amber-600 dark:text-amber-400 font-black text-xs sm:text-sm">
               <span className="text-lg">✨</span>
               <span>جمله‌ی انگیزشی برای تو</span>
             </div>
 
-            <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-white leading-relaxed sm:leading-loose">
+            <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-relaxed sm:leading-loose">
               « {motivationalText} »
             </h2>
 
-            <div className="pt-2 border-t border-white/10 flex items-center justify-center lg:justify-start gap-4 text-xs sm:text-sm text-indigo-200">
+            <div className="pt-2 border-t border-slate-100 dark:border-white/10 flex items-center justify-center lg:justify-start gap-4 text-xs sm:text-sm text-slate-600 dark:text-indigo-200">
               <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                 <span>{toPersianDigits(totalQuestions)} معما آماده پاسخگویی</span>
               </span>
             </div>
           </motion.div>
 
-          {/* Start Quiz Action Button (Visible on Desktop here; on Mobile stays with text or below) */}
+          {/* Start Quiz Action Button */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -154,19 +154,19 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
           </motion.div>
         </div>
 
-        {/* LEFT COLUMN (RTL): Big Standalone Owl Image (or CENTER on Mobile) */}
+        {/* LEFT COLUMN (RTL): Big Standalone Owl Image (Static, No Opacity Flashing) */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
           className="w-full lg:w-2/5 flex items-center justify-center select-none pointer-events-none"
         >
-          {/* Owl Character Image without any background box or circle */}
+          {/* Owl Character Image without background box */}
           <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-84 lg:h-84 flex items-center justify-center">
             <img
               src={owlImageSrc}
               alt="آقای جغد دانا"
-              className="w-full h-full object-contain filter drop-shadow-[0_15px_35px_rgba(0,0,0,0.5)] animate-pulse transition-transform duration-700"
+              className="w-full h-full object-contain filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_15px_35px_rgba(0,0,0,0.5)] transition-transform duration-700"
               onError={(e) => {
                 const target = e.currentTarget;
                 if (!target.dataset.fallback) {
@@ -182,7 +182,7 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
 
       {/* 3. Bottom Footer Note */}
       <div className="relative z-10 w-full max-w-5xl mx-auto text-center py-1 shrink-0">
-        <p className="text-[11px] sm:text-xs text-slate-400 font-medium">
+        <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
           هوش، دقت و سرعت عمل شما در پایان آزمون ارزیابی و ثبت خواهد شد.
         </p>
       </div>

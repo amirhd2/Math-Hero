@@ -40,11 +40,15 @@ import { ResetModal } from '../components/settings/ResetModal';
 import { CHANGELOG_ENTRIES } from '../utils/i18n';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
+import { gamificationEngine } from '../gamification/gamificationEngine';
+import { storage } from '../utils/storage';
+
 interface SettingsScreenProps {
   settings: AppSettings;
   profile?: UserProfile;
   appMode?: 'child' | 'parent';
   onUpdateSettings: (updated: AppSettings) => void;
+  onUpdateProfile?: (updated: UserProfile) => void;
   onNavigate: (screen: ScreenId) => void;
   onOpenParentGate?: () => void;
   onExitToChildMode?: () => void;
@@ -55,6 +59,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   profile,
   appMode = 'child',
   onUpdateSettings,
+  onUpdateProfile,
   onNavigate,
   onOpenParentGate,
   onExitToChildMode,
@@ -211,16 +216,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     try {
       const res = await restoreBackup(data, mode);
       if (res.success) {
+        gamificationEngine.invalidateCache();
         sound.playLevelUp(settings.soundEnabled);
         sound.vibrateSuccess(settings.hapticsEnabled);
         showToast(res.messageFa);
         setShowRestoreModal(false);
-        // Reload counts and settings
+
+        // Reload fresh counts, profile, and settings
+        const freshProfile = await storage.getProfile();
+        const freshSettings = await storage.getSettings();
         const freshCounts = await getStoredDataCounts();
         setDataCounts(freshCounts);
-        if (data.settings) {
-          onUpdateSettings({ ...settings, ...data.settings });
+
+        if (onUpdateProfile) {
+          onUpdateProfile(freshProfile);
         }
+        onUpdateSettings({ ...settings, ...freshSettings });
       } else {
         sound.playError(settings.soundEnabled);
         showToast(res.messageFa);
@@ -233,8 +244,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const handleConfirmReset = async () => {
     try {
       await resetApplicationData();
+      gamificationEngine.invalidateCache();
       sound.playClick(settings.soundEnabled);
       showToast('تمام اطلاعات برنامه با موفقیت پاک شد.');
+      const freshProfile = await storage.getProfile();
+      if (onUpdateProfile) {
+        onUpdateProfile(freshProfile);
+      }
       const freshCounts = await getStoredDataCounts();
       setDataCounts(freshCounts);
       onNavigate('onboarding');

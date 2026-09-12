@@ -26,6 +26,8 @@ import { ParentDashboardScreen } from './screens/ParentDashboardScreen';
 import { ParentGateModal } from './components/parent/ParentGateModal';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 import { IOSSwipeBackContainer } from './components/navigation/IOSSwipeBackContainer';
+import { BottomNavigation } from './components/navigation/BottomNavigation';
+import { TopDesktopNavigation } from './components/navigation/TopDesktopNavigation';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -484,6 +486,7 @@ export default function App() {
             onOpenSetup={handleOpenQuizSetup}
             onStartPattern={handleStartPattern}
             onStartQuiz={handleStartQuiz}
+            onStartSession={handleStartSession}
             onNavigate={handleNavigate}
             onStartSmartReview={handleStartSmartReview}
             onStartChildQuickOperation={handleStartChildQuickOperation}
@@ -586,6 +589,7 @@ export default function App() {
             profile={profile}
             appMode={appMode}
             onUpdateSettings={handleUpdateSettings}
+            onUpdateProfile={handleUpdateProfile}
             onNavigate={handleNavigate}
             onOpenParentGate={handleOpenParentGate}
             onExitToChildMode={handleExitToChildMode}
@@ -599,8 +603,7 @@ export default function App() {
   const hasBottomNav = (screenId: ScreenId) =>
     screenId !== 'quiz_active' &&
     screenId !== 'onboarding' &&
-    screenId !== 'quiz_setup' &&
-    screenId !== 'settings';
+    screenId !== 'quiz_setup';
 
   // Render the full screen view with its main container, desktop header, and mobile bottom nav
   const renderScreenView = (screenId: ScreenId, isBackground: boolean = false) => {
@@ -617,73 +620,13 @@ export default function App() {
               {/* Brand & Logo (Removed as requested) */}
 
               {/* Navigation Links */}
-              <nav className="flex items-center gap-1 lg:gap-2">
-                <button
-                  onClick={() => !isBackground && handleNavigate('home')}
-                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
-                    screenId === 'home'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span>🏠</span>
-                  <span>خانه</span>
-                </button>
-
-                {/* Removed میز مربی (Parent Dashboard) as requested */}
-                
-                {appMode !== 'parent' && (
-                  <button
-                    onClick={() => !isBackground && handleNavigate('mistakes')}
-                    className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
-                      screenId === 'mistakes'
-                        ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span>💡</span>
-                    <span>گنجینه اشتباهات</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={() => !isBackground && handleNavigate('progress')}
-                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
-                    screenId === 'progress'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span>📊</span>
-                  <span>کارنامه و آمار</span>
-                </button>
-
-                {/* Removed نشان‌ها و افتخارات (Level/Badges button) as requested */}
-                
-                <button
-                  onClick={() => !isBackground && handleNavigate('achievements')}
-                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
-                    screenId === 'achievements'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span>🏆</span>
-                  <span>تالار نشان‌ها</span>
-                </button>
-
-                <button
-                  onClick={() => !isBackground && handleNavigate('settings')}
-                  className={`px-3 py-2 rounded-xl text-xs lg:text-sm font-black flex items-center gap-1.5 transition-all ${
-                    screenId === 'settings'
-                      ? 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span>⚙️</span>
-                  <span>تنظیمات</span>
-                </button>
-              </nav>
+              <TopDesktopNavigation
+                currentScreen={screenId}
+                appMode={appMode}
+                onNavigate={(target) => !isBackground && handleNavigate(target)}
+                isBackground={isBackground}
+                soundEnabled={settings.soundEnabled}
+              />
 
               {/* Right Side Stats & Profile Button */}
               <div className="flex items-center gap-2.5 lg:gap-3 shrink-0">
@@ -733,7 +676,7 @@ export default function App() {
         )}
 
         <main
-          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' || screenId === 'onboarding' ? '' : 'pb-16 md:pb-8 pt-safe'}`}
+          className={`flex-1 w-full overflow-x-hidden ${screenId === 'quiz_active' || screenId === 'onboarding' ? '' : 'pb-16 sm:pb-16 md:pb-8 pt-safe'}`}
           style={{
             paddingTop: screenId === 'quiz_active' || screenId === 'onboarding' ? undefined : 'env(safe-area-inset-top, 0px)',
           }}
@@ -742,56 +685,13 @@ export default function App() {
         </main>
 
         {hasBottomNav(screenId) && (
-          <nav 
-            className={`fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-1 px-4 z-40 flex justify-around items-center max-w-lg mx-auto md:hidden rounded-t-2xl shadow-lg ${isBackground ? 'pointer-events-none' : ''}`}
-            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 4px)' }}
-          >
-            <button
-              onClick={() => !isBackground && handleNavigate('home')}
-              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'home' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <span className="text-lg leading-none">🏠</span>
-              <span className="text-[10px] font-medium leading-tight">خانه</span>
-            </button>
-            {appMode === 'parent' ? (
-              <button
-                onClick={() => !isBackground && handleNavigate('parent_dashboard')}
-                className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'parent_dashboard' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                <span className="text-lg leading-none">👨‍🏫</span>
-                <span className="text-[10px] font-medium leading-tight">میز مربی</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => !isBackground && handleNavigate('mistakes')}
-                className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'mistakes' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-              >
-                <span className="text-lg leading-none">💡</span>
-                <span className="text-[10px] font-medium leading-tight">گنجینه</span>
-              </button>
-            )}
-            <button
-              onClick={() => !isBackground && handleNavigate('progress')}
-              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'progress' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <span className="text-lg leading-none">📊</span>
-              <span className="text-[10px] font-medium leading-tight">آمار</span>
-            </button>
-            <button
-              onClick={() => !isBackground && handleNavigate('achievements')}
-              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${screenId === 'achievements' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <span className="text-lg leading-none">🏆</span>
-              <span className="text-[10px] font-medium leading-tight">نشان‌ها</span>
-            </button>
-            <button
-              onClick={() => !isBackground && handleNavigate('settings')}
-              className={`flex flex-col items-center py-0.5 px-2 rounded-xl transition-all ${(screenId as string) === 'settings' ? 'text-indigo-600 dark:text-indigo-400 font-extrabold' : 'text-slate-400 hover:text-slate-600'}`}
-            >
-              <span className="text-lg leading-none">⚙️</span>
-              <span className="text-[10px] font-medium leading-tight">تنظیمات</span>
-            </button>
-          </nav>
+          <BottomNavigation
+            currentScreen={screenId}
+            appMode={appMode}
+            onNavigate={(target) => !isBackground && handleNavigate(target)}
+            isBackground={isBackground}
+            soundEnabled={settings.soundEnabled}
+          />
         )}
       </div>
     );

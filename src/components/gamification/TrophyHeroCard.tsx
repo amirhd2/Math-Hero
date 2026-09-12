@@ -38,10 +38,11 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
 }) => {
   const gender = profile.gender === 'girl' ? 'girl' : 'boy';
   const streakDays = streak ?? profile.streakDays ?? 1;
-  const nextThreshold =
-    levelInfo.nextLevelXpThreshold ||
-    levelInfo.currentLevelXpFloor + levelInfo.xpRequiredForNextLevel;
-  const remainingXp = Math.max(0, nextThreshold - (levelInfo.totalXp || profile.xp || 0));
+  const xpInLevel = levelInfo.xpInCurrentLevel;
+  const xpRequiredInLevel = levelInfo.xpRequiredForNextLevel;
+  const remainingXp = levelInfo.isMaxLevel
+    ? 0
+    : Math.max(0, xpRequiredInLevel - xpInLevel);
 
   // Trophy styling theme per stage
   const getStageTheme = (stage: number) => {
@@ -134,7 +135,7 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
                   {/* If yellow bar >= 38% wide, place text centered inside yellow bar */}
                   {levelInfo.progressPercent >= 38 && (
                     <span className="font-black text-amber-950 text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 drop-shadow-xs">
-                      {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(nextThreshold, 'persian')} XP
+                      {formatNumber(xpInLevel, 'persian')} / {formatNumber(xpRequiredInLevel, 'persian')} XP
                     </span>
                   )}
                 </div>
@@ -142,7 +143,7 @@ export const TrophyHeroCard: React.FC<TrophyHeroCardProps> = ({
                 {/* If yellow bar < 38% wide, place text outside yellow bar to its left */}
                 {levelInfo.progressPercent < 38 && (
                   <div className="flex-1 flex items-center justify-center font-black text-white text-[11px] sm:text-xs md:text-sm whitespace-nowrap px-2 drop-shadow-md z-10">
-                    {formatNumber(levelInfo.totalXp || profile.xp, 'persian')} / {formatNumber(nextThreshold, 'persian')} XP
+                    {formatNumber(xpInLevel, 'persian')} / {formatNumber(xpRequiredInLevel, 'persian')} XP
                   </div>
                 )}
               </div>
