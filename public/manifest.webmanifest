@@ -1,101 +1,43 @@
 {
-  "id": "/",
   "name": "قهرمان ریاضی | Math Hero",
   "short_name": "قهرمان ریاضی",
   "description": "پلتفرم آموزشی و بازی‌وارسازی ریاضی برای کودکان و دانش‌آموزان (Math Hero Offline-First Educational Math PWA)",
-  "theme_color": "#4f46e5",
-  "background_color": "#0f172a",
+  "start_url": "/",
+  "id": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "background_color": "#090d16",
+  "theme_color": "#4f46e5",
+  "orientation": "any",
   "dir": "rtl",
   "lang": "fa",
-  "start_url": "/",
-  "scope": "/",
   "categories": ["education", "kids", "games"],
-  "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/pwa-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/pwa-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/pwa-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/pwa-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
+      "src": "/assets/icons/favicon-16x16.png",
+      "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "/favicon-32x32.png",
+      "src": "/assets/icons/favicon-32x32.png",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/favicon-16x16.png",
-      "sizes": "16x16",
+      "src": "/assets/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/icons/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-mobile.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "صفحه اصلی و نقشه‌های بازی قهرمان ریاضی"
-    },
-    {
-      "src": "/screenshot-desktop.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "داشبورد پیشرفت و گزارش تمرینات"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "شروع مسابقه ریاضی",
-      "short_name": "مسابقه",
-      "description": "حل چالش‌های ریاضی و کسب امتیاز قهرمانی",
-      "url": "/?mode=quiz",
-      "icons": [
-        {
-          "src": "/pwa-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "فلش کارت‌های آموزشی",
-      "short_name": "کارت‌ها",
-      "description": "آموزش و یادگیری مفاهیم ریاضی با کارت‌های هوشمند",
-      "url": "/?mode=cards",
-      "icons": [
-        {
-          "src": "/pwa-192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
     }
   ]
 }
