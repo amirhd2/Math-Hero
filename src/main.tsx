@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { registerSW } from 'virtual:pwa-register';
 import App from './App.tsx';
 import './index.css';
 import { preloadAllAssets } from './utils/assetPreloader';
@@ -7,14 +8,23 @@ import { preloadAllAssets } from './utils/assetPreloader';
 // Initialize background asset preloader for 100% offline support
 preloadAllAssets();
 
-// In development mode only, clean up any old dev service workers so live preview updates immediately.
-// In production / PWA standalone mode, preserve the PWA service worker and image cache.
-if (import.meta.env.DEV && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (const registration of registrations) {
-      registration.unregister();
-    }
-  });
+// Register PWA Service Worker for 100% offline support and PWABuilder compliance
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  try {
+    registerSW({
+      immediate: true,
+      onOfflineReady() {
+        console.log('PWA is ready for 100% offline usage!');
+      },
+    });
+  } catch {
+    // Fallback standard service worker registration
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('Service worker registration fallback info:', err);
+      });
+    });
+  }
 }
 
 createRoot(document.getElementById('root')!).render(
