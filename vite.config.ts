@@ -163,6 +163,34 @@ export default defineConfig(() => {
               label: 'داشبورد پیشرفت و گزارش تمرینات',
             },
           ],
+          shortcuts: [
+            {
+              name: 'شروع مسابقه ریاضی',
+              short_name: 'مسابقه',
+              description: 'حل چالش‌های ریاضی و کسب امتیاز قهرمانی',
+              url: '/?mode=quiz',
+              icons: [
+                {
+                  src: '/pwa-192x192.png',
+                  sizes: '192x192',
+                  type: 'image/png',
+                },
+              ],
+            },
+            {
+              name: 'فلش کارت‌های آموزشی',
+              short_name: 'کارت‌ها',
+              description: 'آموزش و یادگیری مفاهیم ریاضی با کارت‌های هوشمند',
+              url: '/?mode=cards',
+              icons: [
+                {
+                  src: '/pwa-192x192.png',
+                  sizes: '192x192',
+                  type: 'image/png',
+                },
+              ],
+            },
+          ],
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2,webmanifest}'],
