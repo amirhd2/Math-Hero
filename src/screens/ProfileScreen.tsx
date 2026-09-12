@@ -64,7 +64,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   };
 
   const levelInfo = levelProgressData || getLevelProgress(profile.xp);
-  const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount);
+  const trophyInfo = trophyProgressData || getTrophyInfo(levelInfo.level, unlockedBadgesCount, 0, 0, false, Math.floor((levelInfo.level - 1) / 3) + 1);
 
   return (
     <div className="w-full max-w-7xl 2xl:max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8 overflow-x-clip md:h-[calc(100vh-5rem)] md:overflow-hidden md:flex md:flex-col">

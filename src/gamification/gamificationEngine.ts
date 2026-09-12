@@ -452,7 +452,8 @@ class GamificationEngineService {
       state.unlockedBadges.length,
       eduSummary.masteredTiersCount,
       eduSummary.distinctOperationsCount,
-      mathHeroEligibility.isEligible
+      mathHeroEligibility.isEligible,
+      state.trophyStage
     );
 
     // Evaluate all badges with progress against current state

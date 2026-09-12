@@ -108,7 +108,8 @@ export function synchronizeAppState(
     masteredTiersCount,
     distinctOpsCount
   );
-  const finalTrophyStage = Math.max(gamification?.trophyStage || 1, computedTrophyStage);
+  const levelFloorStage = Math.min(6, Math.floor((finalLevel - 1) / 3) + 1);
+  const finalTrophyStage = Math.max(gamification?.trophyStage || 1, computedTrophyStage, levelFloorStage);
 
   const syncedGamification: GamificationState = {
     totalXp: finalXp,
@@ -346,6 +347,8 @@ export function migrateBackup(raw: any): MathHeroBackupData {
       achievements: Array.isArray(raw.achievements) ? raw.achievements : [],
       testPatterns: Array.isArray(raw.testPatterns) ? raw.testPatterns : [],
       gamification: raw.gamification,
+      learningPlan: raw.learningPlan,
+      promotions: Array.isArray(raw.promotions) ? raw.promotions : [],
     };
   }
 
@@ -371,6 +374,8 @@ export function migrateBackup(raw: any): MathHeroBackupData {
     achievements: Array.isArray(raw.achievements) ? raw.achievements : [],
     testPatterns: Array.isArray(raw.testPatterns) ? raw.testPatterns : [],
     gamification: raw.gamification,
+    learningPlan: raw.learningPlan,
+    promotions: Array.isArray(raw.promotions) ? raw.promotions : [],
   };
 }
 

@@ -139,12 +139,12 @@ export function calculateTrophyStage(
       break;
     }
 
-    if (
-      currentLevel >= config.levelRequired &&
-      unlockedBadgesCount >= config.badgesRequired &&
-      masteredTiersCount >= tiersReq &&
-      distinctOpsCount >= opsReq
-    ) {
+    // Flexible criteria for Stages 2-5:
+    // User qualifies if Level & Badges are met OR if Mastered Tiers & Operations & Level floor are met.
+    const levelAndBadgesMet = currentLevel >= config.levelRequired && unlockedBadgesCount >= config.badgesRequired;
+    const skillTiersMet = masteredTiersCount >= tiersReq && distinctOpsCount >= opsReq && currentLevel >= Math.max(1, config.levelRequired - 2);
+
+    if (levelAndBadgesMet || skillTiersMet) {
       stage = config.stage;
     } else {
       break;
@@ -161,15 +161,18 @@ export function getTrophyInfo(
   unlockedBadgesCount: number,
   masteredTiersCount = 0,
   distinctOpsCount = 0,
-  mathHeroEligible = false
+  mathHeroEligible = false,
+  savedTrophyStage?: number
 ): TrophyInfo {
-  const stageNumber = calculateTrophyStage(
+  const calculatedStage = calculateTrophyStage(
     currentLevel,
     unlockedBadgesCount,
     masteredTiersCount,
     distinctOpsCount,
     mathHeroEligible
   );
+  // Guarantee that savedTrophyStage is never downgraded
+  const stageNumber = Math.max(savedTrophyStage || 1, calculatedStage);
   const currentConfig = TROPHY_STAGES[stageNumber - 1] || TROPHY_STAGES[0];
   const isMax = stageNumber >= MAX_TROPHY_STAGE;
 
