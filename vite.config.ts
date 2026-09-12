@@ -1,13 +1,72 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+function pwaHeadersPlugin(): Plugin {
+  return {
+    name: 'pwa-headers-plugin',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url?.split('?')[0];
+
+        // Handle CORS Preflight
+        if (req.method === 'OPTIONS') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', '*');
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+
+        // Set CORS and correct MIME types for PWA validator bots (e.g. PWABuilder)
+        if (url === '/manifest.json' || url === '/manifest.webmanifest') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+        } else if (url === '/sw.js') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+          res.setHeader('Service-Worker-Allowed', '/');
+          res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+        } else if (
+          url?.startsWith('/pwa-') ||
+          url?.startsWith('/screenshot-') ||
+          url?.startsWith('/apple-touch-icon') ||
+          url?.startsWith('/favicon')
+        ) {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+        }
+
+        next();
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url?.split('?')[0];
+        if (url === '/manifest.json' || url === '/manifest.webmanifest') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Content-Type', 'application/manifest+json; charset=utf-8');
+        } else if (url === '/sw.js') {
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+          res.setHeader('Service-Worker-Allowed', '/');
+        }
+        next();
+      });
+    },
+  };
+}
 
 export default defineConfig(() => {
   return {
     base: '/',
     plugins: [
+      pwaHeadersPlugin(),
       react(),
       tailwindcss(),
       VitePWA({
@@ -166,7 +225,19 @@ export default defineConfig(() => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      cors: true,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
       hmr: process.env.DISABLE_HMR !== 'true',
+    },
+    preview: {
+      port: 3000,
+      host: '0.0.0.0',
+      cors: true,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
     },
   };
 });

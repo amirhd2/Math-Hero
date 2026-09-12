@@ -92,25 +92,39 @@ const imageMemoryCache = new Map<string, HTMLImageElement>();
 let preloadingStarted = false;
 
 /**
- * Preloads and decodes all core assets immediately in memory.
+ * Preloads and decodes core assets gently in small batches so network is never saturated.
  */
 export function preloadAllAssets(): void {
   if (preloadingStarted || typeof window === 'undefined') return;
   preloadingStarted = true;
 
-  PRELOAD_ASSETS.forEach((assetPath) => {
-    const url = getAssetUrl(assetPath);
-    if (!imageMemoryCache.has(url)) {
-      const img = new Image();
-      img.src = url;
-      // Pre-decode image asynchronously if browser supports it
-      if ('decode' in img) {
-        img.decode().catch(() => {
-          // Ignore decoding errors for uncached items
-        });
+  let currentIndex = 0;
+  const BATCH_SIZE = 4;
+  const BATCH_INTERVAL_MS = 250;
+
+  function loadNextBatch() {
+    if (currentIndex >= PRELOAD_ASSETS.length) return;
+
+    const batch = PRELOAD_ASSETS.slice(currentIndex, currentIndex + BATCH_SIZE);
+    currentIndex += BATCH_SIZE;
+
+    batch.forEach((assetPath) => {
+      const url = getAssetUrl(assetPath);
+      if (!imageMemoryCache.has(url)) {
+        const img = new Image();
+        img.src = url;
+        if ('decode' in img) {
+          img.decode().catch(() => {});
+        }
+        imageMemoryCache.set(url, img);
       }
-      imageMemoryCache.set(url, img);
+    });
+
+    if (currentIndex < PRELOAD_ASSETS.length) {
+      setTimeout(loadNextBatch, BATCH_INTERVAL_MS);
     }
-  });
+  }
+
+  loadNextBatch();
 }
 
