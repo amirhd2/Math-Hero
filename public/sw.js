@@ -1,11 +1,17 @@
-const CACHE_NAME = 'math-hero-pwa-v1';
+const CACHE_NAME = 'math-hero-pwa-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/assets/icons/favicon.ico',
-  '/assets/icons/favicon-16x16.png',
-  '/assets/icons/favicon-32x32.png',
+  '/manifest.json',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon.ico',
+  '/favicon-16x16.png',
+  '/favicon-32x32.png',
+  '/screenshot-mobile.png',
+  '/screenshot-desktop.png',
   '/assets/icons/android-chrome-192x192.png',
   '/assets/icons/android-chrome-512x512.png',
   '/assets/icons/apple-touch-icon.png',

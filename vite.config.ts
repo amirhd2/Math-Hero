@@ -6,17 +6,21 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
   return {
-    base: './',
+    base: '/',
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: [
-          'assets/icons/favicon.ico',
-          'assets/icons/favicon-16x16.png',
-          'assets/icons/favicon-32x32.png',
-          'assets/icons/apple-touch-icon.png',
+          'pwa-192x192.png',
+          'pwa-512x512.png',
+          'apple-touch-icon.png',
+          'favicon.ico',
+          'favicon-16x16.png',
+          'favicon-32x32.png',
+          'screenshot-mobile.png',
+          'screenshot-desktop.png',
           'assets/icons/android-chrome-192x192.png',
           'assets/icons/android-chrome-512x512.png',
           'assets/screenshots/mobile-1.png',
@@ -45,55 +49,55 @@ export default defineConfig(() => {
           prefer_related_applications: false,
           icons: [
             {
-              src: '/assets/icons/favicon-16x16.png',
-              sizes: '16x16',
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'any',
+            },
+            {
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+            {
+              src: '/apple-touch-icon.png',
+              sizes: '180x180',
               type: 'image/png',
             },
             {
-              src: '/assets/icons/favicon-32x32.png',
+              src: '/favicon-32x32.png',
               sizes: '32x32',
               type: 'image/png',
             },
             {
-              src: '/assets/icons/android-chrome-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'any',
-            },
-            {
-              src: '/assets/icons/android-chrome-192x192.png',
-              sizes: '192x192',
-              type: 'image/png',
-              purpose: 'maskable',
-            },
-            {
-              src: '/assets/icons/android-chrome-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any',
-            },
-            {
-              src: '/assets/icons/android-chrome-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'maskable',
-            },
-            {
-              src: '/assets/icons/apple-touch-icon.png',
-              sizes: '180x180',
+              src: '/favicon-16x16.png',
+              sizes: '16x16',
               type: 'image/png',
             },
           ],
           screenshots: [
             {
-              src: '/assets/screenshots/mobile-1.png',
+              src: '/screenshot-mobile.png',
               sizes: '1080x1920',
               type: 'image/png',
               form_factor: 'narrow',
               label: 'صفحه اصلی و نقشه‌های بازی قهرمان ریاضی',
             },
             {
-              src: '/assets/screenshots/desktop-1.png',
+              src: '/screenshot-desktop.png',
               sizes: '1920x1080',
               type: 'image/png',
               form_factor: 'wide',
