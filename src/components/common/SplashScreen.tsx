@@ -13,7 +13,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 1.03, filter: 'blur(6px)' }}
       transition={{ duration: 0.45, ease: 'easeInOut' }}
