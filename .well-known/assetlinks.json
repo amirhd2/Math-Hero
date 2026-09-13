@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.amirhd2.twa",
+        "sha256_cert_fingerprints": ["B3:CD:5B:6F:AC:C2:92:22:78:03:B1:26:64:82:C6:5A:FF:69:62:7A:1E:08:B3:E9:D4:40:B9:5A:5E:D0:0F:54"]
+      }
+    }]
