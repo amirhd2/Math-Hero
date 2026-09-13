@@ -20,7 +20,7 @@ export default defineConfig(() => {
           'assets/**/*',
         ],
         manifest: {
-          id: '/',
+          id: '/Math-Hero/',
           name: 'قهرمان ریاضی | Math Hero',
           short_name: 'قهرمان ریاضی',
           description: 'پلتفرم آموزشی و بازی‌وارسازی ریاضی برای کودکان و دانش‌آموزان',
@@ -30,23 +30,24 @@ export default defineConfig(() => {
           orientation: 'portrait',
           dir: 'rtl',
           lang: 'fa',
-          start_url: '/',
-          scope: '/',
+          start_url: '.',
+          scope: '.',
+          categories: ['education', 'games', 'kids'],
           icons: [
             {
-              src: '/assets/icons/android-chrome-192x192.png',
+              src: 'assets/icons/android-chrome-192x192.png',
               sizes: '192x192',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/assets/icons/android-chrome-512x512.png',
+              src: 'assets/icons/android-chrome-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
-              src: '/assets/icons/android-chrome-512x512.png',
+              src: 'assets/icons/android-chrome-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'maskable',
