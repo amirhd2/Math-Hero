@@ -183,9 +183,17 @@ class StorageService {
         return reject(new Error('IndexedDB is not supported in this environment.'));
       }
 
+      // Safety timeout: if IndexedDB open hangs or blocks, fail gracefully to localStorage
+      const timeoutId = setTimeout(() => {
+        this.dbPromise = null;
+        this.currentDb = null;
+        reject(new Error('IndexedDB open timed out after 1500ms'));
+      }, 1500);
+
       const request = indexedDB.open(DB_NAME, DB_VERSION);
 
       request.onerror = () => {
+        clearTimeout(timeoutId);
         this.dbPromise = null;
         this.currentDb = null;
         reject(request.error || new Error('Failed to open IndexedDB'));
@@ -196,6 +204,7 @@ class StorageService {
       };
 
       request.onsuccess = () => {
+        clearTimeout(timeoutId);
         const db = request.result;
         this.currentDb = db;
 

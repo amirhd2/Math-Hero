@@ -28,6 +28,8 @@ import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 import { IOSSwipeBackContainer } from './components/navigation/IOSSwipeBackContainer';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
 import { TopDesktopNavigation } from './components/navigation/TopDesktopNavigation';
+import { AnimatePresence } from 'motion/react';
+import { SplashScreen } from './components/common/SplashScreen';
 
 export default function App() {
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE);
@@ -135,6 +137,7 @@ export default function App() {
   // Load initial data from storage
   useEffect(() => {
     async function loadData() {
+      const startTime = Date.now();
       try {
         const [loadedProfile, loadedSettings, loadedPresets, loadedPatterns] = await Promise.all([
           storage.getProfile(),
@@ -156,7 +159,12 @@ export default function App() {
       } catch (err) {
         console.error('Error loading initial storage data:', err);
       } finally {
-        setIsLoading(false);
+        // Allow a comfortable 1800ms duration so the cheerful splash screen is enjoyed smoothly
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 1800 - elapsed);
+        setTimeout(() => {
+          setIsLoading(false);
+        }, remaining);
       }
     }
     loadData();
@@ -458,19 +466,6 @@ export default function App() {
     setCurrentScreen('quiz_results');
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-3xl bg-indigo-600 text-white flex items-center justify-center text-3xl font-black mx-auto animate-bounce shadow-xl shadow-indigo-500/30">
-            🧮
-          </div>
-          <p className="font-bold text-slate-600 dark:text-slate-400">در حال آماده‌سازی قهرمان ریاضی...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Render individual screen component
   const renderScreen = (screenId: ScreenId) => {
     switch (screenId) {
@@ -699,6 +694,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col font-['Vazirmatn',sans-serif] selection:bg-amber-400 selection:text-slate-900 transition-colors">
+      {/* Animated App Splash Screen */}
+      <AnimatePresence>
+        {isLoading && <SplashScreen key="app-splash" />}
+      </AnimatePresence>
+
       {/* iOS Interactive Swipe-Back Navigation View */}
       <IOSSwipeBackContainer
         currentScreenId={currentScreen}

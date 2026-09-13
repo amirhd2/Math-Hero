@@ -91,26 +91,56 @@ const PRELOAD_ASSETS: string[] = [
 const imageMemoryCache = new Map<string, HTMLImageElement>();
 let preloadingStarted = false;
 
+function preloadSingleAsset(assetPath: string) {
+  const url = getAssetUrl(assetPath);
+  if (!imageMemoryCache.has(url)) {
+    const img = new Image();
+    img.src = url;
+    if ('decode' in img) {
+      img.decode().catch(() => {});
+    }
+    imageMemoryCache.set(url, img);
+  }
+}
+
 /**
- * Preloads and decodes all core assets immediately in memory.
+ * Preloads and decodes assets in non-blocking batches in memory.
  */
 export function preloadAllAssets(): void {
   if (preloadingStarted || typeof window === 'undefined') return;
   preloadingStarted = true;
 
-  PRELOAD_ASSETS.forEach((assetPath) => {
-    const url = getAssetUrl(assetPath);
-    if (!imageMemoryCache.has(url)) {
-      const img = new Image();
-      img.src = url;
-      // Pre-decode image asynchronously if browser supports it
-      if ('decode' in img) {
-        img.decode().catch(() => {
-          // Ignore decoding errors for uncached items
-        });
+  // 1. Critical assets (avatars & owl greeting/teaching)
+  const criticalAssets = [
+    'assets/characters/owl/Teaching.webp',
+    'assets/characters/boy/head.webp',
+    'assets/characters/girl/head.webp',
+    'assets/characters/boy/greeting.webp',
+    'assets/characters/girl/greeting.webp',
+    'assets/characters/owl/Greeting.webp',
+  ];
+  criticalAssets.forEach(preloadSingleAsset);
+
+  // 2. Schedule the rest progressively so the UI stays 100% smooth and fast
+  const remaining = PRELOAD_ASSETS.filter(a => !criticalAssets.includes(a));
+  let index = 0;
+  const BATCH_SIZE = 6;
+
+  function loadNextBatch() {
+    if (index >= remaining.length) return;
+    const batch = remaining.slice(index, index + BATCH_SIZE);
+    index += BATCH_SIZE;
+    batch.forEach(preloadSingleAsset);
+
+    if (index < remaining.length) {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(loadNextBatch, { timeout: 1000 });
+      } else {
+        setTimeout(loadNextBatch, 300);
       }
-      imageMemoryCache.set(url, img);
     }
-  });
+  }
+
+  setTimeout(loadNextBatch, 1500);
 }
 

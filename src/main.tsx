@@ -23,18 +23,34 @@ if (rootElement) {
   );
 }
 
-// 2. Preload game assets in background (non-blocking)
-try {
-  preloadAllAssets();
-} catch (preloadErr) {
-  console.warn('[Assets] Preload warning:', preloadErr);
+// 2. Preload game assets in background after UI is mounted
+if (typeof window !== 'undefined') {
+  const schedulePreload = () => {
+    try {
+      preloadAllAssets();
+    } catch (preloadErr) {
+      console.warn('[Assets] Preload warning:', preloadErr);
+    }
+  };
+
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(schedulePreload, { timeout: 3000 });
+  } else {
+    setTimeout(schedulePreload, 2000);
+  }
 }
 
-// 3. Register Service Worker natively for 100% offline support
+// 3. Register Service Worker for 100% offline support
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    const swUrl = import.meta.env.DEV ? '/dev-sw.js?dev-sw' : '/sw.js';
+    const swOptions: RegistrationOptions = {
+      scope: '/',
+      type: import.meta.env.DEV ? 'module' : 'classic',
+    };
+
     navigator.serviceWorker
-      .register('/sw.js', { scope: '/' })
+      .register(swUrl, swOptions)
       .then((registration) => {
         console.log('[PWA] Service Worker registered successfully:', registration.scope);
 
@@ -54,7 +70,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         });
       })
       .catch((err) => {
-        console.warn('[PWA] Service Worker registration skipped:', err);
+        console.warn('[PWA] Service Worker registration info:', err?.message || err);
       });
   });
 }
