@@ -10,7 +10,6 @@ import './index.css';
 import App from './App.tsx';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import { preloadAllAssets } from './utils/assetPreloader';
-import { registerSW } from 'virtual:pwa-register';
 
 // 1. Mount React application inside ErrorBoundary first
 const rootElement = document.getElementById('root');
@@ -24,37 +23,39 @@ if (rootElement) {
   );
 }
 
-// 2. Preload game assets in background
+// 2. Preload game assets in background (non-blocking)
 try {
   preloadAllAssets();
 } catch (preloadErr) {
   console.warn('[Assets] Preload warning:', preloadErr);
 }
 
-// 3. Register Service Worker safely for 100% offline support
+// 3. Register Service Worker natively for 100% offline support
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  try {
-    let updateSWFunc: ((reloadPage?: boolean) => Promise<void>) | undefined;
-    updateSWFunc = registerSW({
-      immediate: true,
-      onNeedRefresh() {
-        console.log('[PWA] New version ready');
-        if (typeof updateSWFunc === 'function') {
-          updateSWFunc(true).catch(() => {});
-        }
-      },
-      onOfflineReady() {
-        console.log('[PWA] Math Hero is fully cached and ready for offline use!');
-      },
-      onRegistered(r) {
-        console.log('[PWA] Service Worker registered:', r);
-      },
-      onRegisterError(error) {
-        console.warn('[PWA] Service Worker registration skipped:', error);
-      },
-    });
-  } catch (err) {
-    console.warn('[PWA] registerSW skipped:', err);
-  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/' })
+      .then((registration) => {
+        console.log('[PWA] Service Worker registered successfully:', registration.scope);
+
+        // Force check for updates
+        registration.update().catch(() => {});
+
+        // Listen for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] New version available and ready.');
+              }
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        console.warn('[PWA] Service Worker registration skipped:', err);
+      });
+  });
 }
 

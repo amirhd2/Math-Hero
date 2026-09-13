@@ -21,22 +21,92 @@
     <link rel="icon" type="image/png" sizes="512x512" href="/assets/icons/android-chrome-512x512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <style>
+      @keyframes spinSlow { to { transform: rotate(360deg); } }
+      @keyframes pulseGlow { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
+      #app-fallback-loader {
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+        color: #f8fafc;
+        font-family: 'Vazirmatn', system-ui, -apple-system, sans-serif;
+        text-align: center;
+        padding: 1.5rem;
+        box-sizing: border-box;
+      }
+    </style>
     <script>
-      // Clean up any stale dev service workers from previous testing
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for (var i = 0; i < registrations.length; i++) {
-            var reg = registrations[i];
-            if (reg.active && reg.active.scriptURL && reg.active.scriptURL.indexOf('dev-sw') !== -1) {
-              reg.unregister();
+      // 1. Purge legacy broken caches if any exist
+      if (typeof caches !== 'undefined') {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            if (key === 'static-assets-cache' || key === 'navigation-cache') {
+              caches.delete(key);
             }
-          }
+          });
         }).catch(function() {});
       }
+
+      // 2. Global self-healing reset function
+      window.hardResetApp = function() {
+        if (typeof caches !== 'undefined') {
+          caches.keys().then(function(names) {
+            return Promise.all(names.map(function(n) { return caches.delete(n); }));
+          }).catch(function() {});
+        }
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (var i = 0; i < registrations.length; i++) {
+              registrations[i].unregister();
+            }
+          }).catch(function() {});
+        }
+        setTimeout(function() {
+          window.location.reload();
+        }, 300);
+      };
+
+      // 3. Reveal recovery action if React loading takes longer than 3.5 seconds
+      setTimeout(function() {
+        var recoveryBox = document.getElementById('fallback-recovery-action');
+        var statusTxt = document.getElementById('fallback-status-text');
+        if (recoveryBox) recoveryBox.style.display = 'block';
+        if (statusTxt) statusTxt.innerText = 'بارگذاری کمی طول کشید. اگر صفحه باز نشد دکمه زیر را لمس کنید:';
+      }, 3500);
+
+      // 4. Reveal recovery action immediately on unhandled errors
+      window.addEventListener('error', function(err) {
+        console.error('Fatal load error:', err);
+        var recoveryBox = document.getElementById('fallback-recovery-action');
+        var statusTxt = document.getElementById('fallback-status-text');
+        if (recoveryBox) recoveryBox.style.display = 'block';
+        if (statusTxt) statusTxt.innerText = 'خطایی در اجرای فایل‌های برنامه رخ داد.';
+      });
     </script>
   </head>
   <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 font-['Vazirmatn',sans-serif] selection:bg-amber-400 selection:text-slate-900 antialiased overflow-x-hidden select-none">
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-fallback-loader">
+        <div style="width: 88px; height: 88px; border-radius: 28px; background: linear-gradient(135deg, #4f46e5, #9333ea); display: flex; align-items: center; justify-content: center; font-size: 44px; margin-bottom: 20px; box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4); animation: pulseGlow 2.5s ease-in-out infinite;">
+          🧮
+        </div>
+        <h1 style="font-size: 24px; font-weight: 900; margin: 0 0 8px 0; color: #ffffff; letter-spacing: -0.5px;">قهرمان ریاضی</h1>
+        <p style="font-size: 14px; color: #a5b4fc; margin: 0 0 24px 0; font-weight: 500;">Math Hero - پلتفرم هوشمند آموزش ریاضی</p>
+        
+        <div style="width: 40px; height: 40px; border: 3px solid rgba(255, 255, 255, 0.15); border-top-color: #fbbf24; border-radius: 50%; animation: spinSlow 0.9s linear infinite; margin-bottom: 16px;"></div>
+        <p id="fallback-status-text" style="font-size: 13px; color: #94a3b8; margin: 0; max-width: 320px; line-height: 1.6;">در حال آماده‌سازی و بارگذاری آفلاین...</p>
+
+        <div id="fallback-recovery-action" style="display: none; margin-top: 24px; background: rgba(30, 41, 59, 0.85); border: 1px solid #334155; border-radius: 18px; padding: 18px; max-width: 330px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
+          <button type="button" onclick="window.hardResetApp()" style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: #ffffff; border: none; padding: 12px 20px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);">
+            🔄 پاکسازی حافظه موقت و بارگذاری مجدد
+          </button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
