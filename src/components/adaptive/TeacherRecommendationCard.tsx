@@ -64,39 +64,36 @@ const TeacherCardContent: React.FC<{
       <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
 
       {/* Content Row: Badges, Title & Description on Right; Owl Avatar on Top-Left (in RTL) */}
-      <div className="relative z-10 my-auto flex items-start justify-between gap-3 sm:gap-4">
-        {/* Right Side: Badges, Title, Pedagogical Description (Position & structure unchanged) */}
-        <div className="flex-1 min-w-0 flex flex-col justify-start text-right space-y-1 sm:space-y-1.5 pt-0.5">
-          {/* Badges */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-[11px] sm:text-xs font-black shadow-xs shrink-0">
-              <span>✨</span>
-              <span>پیشنهاد معلم هوشمند</span>
-            </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black shadow-xs shrink-0 ${
-                card.badgeColor || 'bg-amber-100 text-amber-900'
-              }`}
-            >
-              {card.badgeText}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
-            {card.title}
-          </h4>
-
-          {/* Pedagogical Description */}
-          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 line-clamp-2 leading-relaxed">
-            {card.description}
-          </p>
+      <div className="relative z-10 flex flex-col justify-start text-right space-y-2 pt-0.5 w-full">
+        {/* Badges */}
+        <div className="flex items-center gap-1.5 flex-wrap pl-[90px]">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-[11px] sm:text-xs font-black shadow-xs shrink-0">
+            <span>✨</span>
+            <span>پیشنهاد آموزشی جغد دانا</span>
+          </span>
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black shadow-xs shrink-0 ${
+              card.badgeColor || 'bg-amber-100 text-amber-900'
+            }`}
+          >
+            {card.badgeText}
+          </span>
         </div>
 
-        {/* Left Side (in RTL): 3D Pop-out Owl Avatar at Top-Left */}
-        <div className="shrink-0 self-start -mt-2 sm:-mt-3 -ml-0.5 sm:-ml-1">
-          <PopoutOwlAvatar sizeClassName="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26" />
-        </div>
+        {/* Title */}
+        <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white pl-[90px]">
+          {card.title}
+        </h4>
+
+        {/* Pedagogical Description */}
+        <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+          {card.description}
+        </p>
+      </div>
+
+      {/* 3D Pop-out Owl Avatar Overlay at Top-Left */}
+      <div className="absolute top-[12px] left-[12px] z-20 pointer-events-none">
+        <PopoutOwlAvatar sizeClassName="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26" />
       </div>
 
       {/* Bottom Row: Full-width Action Button */}
@@ -471,24 +468,23 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
       {/* Header bar: Title & Pagination / Arrows */}
       {showHeader && (
         <div className="flex items-center justify-between mb-3 px-1 h-8">
-          <div className="flex items-center gap-2">
-            <span className="text-xl sm:text-2xl">🦉</span>
-            <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <span>پیشنهاد معلم هوشمند</span>
-              {total > 1 && (
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  ({toPersianDigits(currentIndex + 1)} از {toPersianDigits(total)})
+          <div className="flex items-center gap-2 relative">
+            <span className="text-xl sm:text-2xl relative z-10">🦉</span>
+            {total > 1 && (
+              <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 z-20">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 text-[8px] font-black items-center justify-center text-white leading-none">
+                  {toPersianDigits(total)}
                 </span>
-              )}
+              </span>
+            )}
+            <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <span>پیشنهادهای آموزشی جغد دانا</span>
             </h3>
           </div>
 
           {/* Stack Navigation: Dots & Arrows */}
           <div className="flex items-center gap-2">
-            <span className="hidden sm:inline-block text-xs font-bold text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40">
-              یادگیری اختصاصی
-            </span>
-
             {total > 1 && (
               <>
                 {/* Pagination Indicator Dots */}
@@ -506,26 +502,6 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
                       }`}
                     />
                   ))}
-                </div>
-
-                {/* Arrow Controls */}
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={handlePrev}
-                    aria-label="پیشنهاد قبلی"
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-                  >
-                    <span className="text-xs font-black">→</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    aria-label="پیشنهاد بعدی"
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-                  >
-                    <span className="text-xs font-black">←</span>
-                  </button>
                 </div>
               </>
             )}

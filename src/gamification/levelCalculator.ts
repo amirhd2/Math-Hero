@@ -37,13 +37,12 @@ export interface LevelDefinition {
 
 export const LEVEL_DEFINITIONS: LevelDefinition[] = [
   { level: 1, xpThreshold: 0, title: 'نوآموز ریاضی', icon: '🌱', image: getStageIconPath(1) },
-  { level: 2, xpThreshold: 120, title: 'نوآموز کوشا', icon: '🌱', image: getStageIconPath(2) },
-  { level: 3, xpThreshold: 280, title: 'یادگیرنده باهوش', icon: '⭐', image: getStageIconPath(3) },
-  { level: 4, xpThreshold: 500, title: 'حل‌کننده مسائل', icon: '🏅', image: getStageIconPath(4) },
-  { level: 5, xpThreshold: 800, title: 'مهارت‌آموز پرتوان', icon: '🥇', image: getStageIconPath(5) },
+  { level: 2, xpThreshold: 350, title: 'نوآموز کوشا', icon: '🌱', image: getStageIconPath(2) },
+  { level: 3, xpThreshold: 850, title: 'یادگیرنده باهوش', icon: '⭐', image: getStageIconPath(3) },
+  { level: 4, xpThreshold: 1500, title: 'حل‌کننده مسائل', icon: '🏅', image: getStageIconPath(4) },
+  { level: 5, xpThreshold: 2400, title: 'مهارت‌آموز پرتوان', icon: '🥇', image: getStageIconPath(5) },
   {
-    level: 6,
-    xpThreshold: 1200,
+    level: 6, xpThreshold: 3600,
     title: 'ستاره درخشان ریاضی',
     icon: '🌟',
     image: getStageIconPath(6),
@@ -54,8 +53,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 7,
-    xpThreshold: 1650,
+    level: 7, xpThreshold: 5000,
     title: 'ماجراجوی محاسبات',
     icon: '🚀',
     image: getStageIconPath(7),
@@ -66,8 +64,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 8,
-    xpThreshold: 2150,
+    level: 8, xpThreshold: 6600,
     title: 'ذهن طلایی',
     icon: '💡',
     image: getStageIconPath(8),
@@ -78,8 +75,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 9,
-    xpThreshold: 2750,
+    level: 9, xpThreshold: 8400,
     title: 'استاد چالش‌ها',
     icon: '⚡',
     image: getStageIconPath(9),
@@ -90,8 +86,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 10,
-    xpThreshold: 3450,
+    level: 10, xpThreshold: 10500,
     title: 'پیشتاز ریاضی',
     icon: '🎖️',
     image: getStageIconPath(10),
@@ -103,8 +98,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 11,
-    xpThreshold: 4250,
+    level: 11, xpThreshold: 13000,
     title: 'قهرمان تیزبین',
     icon: '🛡️',
     image: getStageIconPath(11),
@@ -116,8 +110,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 12,
-    xpThreshold: 5150,
+    level: 12, xpThreshold: 15800,
     title: 'استاد عملیات‌ها',
     icon: '🔮',
     image: getStageIconPath(12),
@@ -129,8 +122,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 13,
-    xpThreshold: 6150,
+    level: 13, xpThreshold: 19000,
     title: 'فاتح معماها',
     icon: '⚔️',
     image: getStageIconPath(13),
@@ -142,8 +134,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 14,
-    xpThreshold: 7250,
+    level: 14, xpThreshold: 22500,
     title: 'قهرمان پیشتاز',
     icon: '🏆',
     image: getStageIconPath(14),
@@ -155,8 +146,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 15,
-    xpThreshold: 8500,
+    level: 15, xpThreshold: 26500,
     title: 'قهرمان قهرمانان ریاضی',
     icon: '👑',
     image: getStageIconPath(15),
@@ -169,8 +159,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 16,
-    xpThreshold: 10000,
+    level: 16, xpThreshold: 31000,
     title: 'استاد اعظم اعداد',
     icon: '🌌',
     image: getStageIconPath(16),
@@ -182,8 +171,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 17,
-    xpThreshold: 11800,
+    level: 17, xpThreshold: 36500,
     title: 'افسانه محاسبات',
     icon: '💎',
     image: getStageIconPath(17),
@@ -195,8 +183,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 18,
-    xpThreshold: 13800,
+    level: 18, xpThreshold: 43000,
     title: 'نابغه بی‌مرز',
     icon: '🌠',
     image: getStageIconPath(18),
@@ -208,8 +195,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 19,
-    xpThreshold: 16000,
+    level: 19, xpThreshold: 50000,
     title: 'خورشید دانایی',
     icon: '☀️',
     image: getStageIconPath(19),
@@ -221,8 +207,7 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     },
   },
   {
-    level: 20,
-    xpThreshold: 18500,
+    level: 20, xpThreshold: 60000,
     title: 'قهرمان جاویدان ریاضی',
     icon: '🌟',
     image: getStageIconPath(20),

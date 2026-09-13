@@ -370,19 +370,24 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     >
       {/* Header bar: Title & Pagination / Arrows */}
       <div className="flex items-center justify-between mb-3 px-1 h-8">
-        <div className="flex items-center gap-2">
-          <span className="text-xl sm:text-2xl animate-pulse">⚡</span>
+        <div className="flex items-center gap-2 relative">
+          <span className="text-xl sm:text-2xl animate-pulse relative z-10">⚡</span>
+          {total > 1 && (
+             <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 z-20">
+               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+               <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-indigo-500 text-[8px] font-black items-center justify-center text-white leading-none">
+                 {toPersianDigits(total)}
+               </span>
+             </span>
+          )}
           <div>
             <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>چالش‌های روزانه</span>
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                ({toPersianDigits(safeIndex + 1)} از {toPersianDigits(total)})
-              </span>
             </h3>
           </div>
         </div>
 
-        {/* Stack Navigation: Dots & Arrows */}
+        {/* Stack Navigation: Dots */}
         {total > 1 && (
           <div className="flex items-center gap-2">
             {/* Pagination Indicator Dots */}
@@ -400,25 +405,6 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
                   }`}
                 />
               ))}
-            </div>
-
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={handlePrev}
-                aria-label="چالش قبلی"
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-              >
-                <span className="text-xs font-black">→</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                aria-label="چالش بعدی"
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-all shadow-xs active:scale-90 cursor-pointer"
-              >
-                <span className="text-xs font-black">←</span>
-              </button>
             </div>
           </div>
         )}

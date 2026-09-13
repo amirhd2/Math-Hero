@@ -43,6 +43,17 @@ if (typeof window !== 'undefined') {
 // 3. Register Service Worker for 100% offline support
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    if (import.meta.env.DEV) {
+      // In dev mode, unregister any active service workers to prevent caching issues
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+          console.log('[PWA] Unregistered service worker in dev mode');
+        }
+      });
+      return;
+    }
+
     const swUrl = import.meta.env.DEV ? '/dev-sw.js?dev-sw' : '/sw.js';
     const swOptions: RegistrationOptions = {
       scope: '/',
