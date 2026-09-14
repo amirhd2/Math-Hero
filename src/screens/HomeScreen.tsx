@@ -921,18 +921,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
             {/* Left Side: 4 Operation Symbols mini cluster */}
             <div className="flex items-center gap-2 shrink-0">
-              <div className="grid grid-cols-2 gap-1 p-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-105 transition-all">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center p-1">
-                  <img src={getAssetUrl('assets/icons/addition.png')} alt="جمع" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/addition.png') }} />
+              <div className="grid grid-cols-2 gap-0 p-0.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-105 transition-all">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
+                  <img src={getAssetUrl('assets/icons/addition.png')} alt="جمع" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/addition.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center p-1">
-                  <img src={getAssetUrl('assets/icons/deduction.png')} alt="تفریق" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/deduction.png') }} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
+                  <img src={getAssetUrl('assets/icons/deduction.png')} alt="تفریق" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/deduction.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center p-1">
-                  <img src={getAssetUrl('assets/icons/multiply.png')} alt="ضرب" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/multiply.png') }} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
+                  <img src={getAssetUrl('assets/icons/multiply.png')} alt="ضرب" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/multiply.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center p-1">
-                  <img src={getAssetUrl('assets/icons/fraction.png')} alt="تقسیم" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/fraction.png') }} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
+                  <img src={getAssetUrl('assets/icons/fraction.png')} alt="تقسیم" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/fraction.png') }} />
                 </div>
               </div>
             </div>
@@ -1010,9 +1010,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                   {/* Operation Icon positioned to the left of texts */}
                   <div
-                    className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${op.color} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform p-2`}
+                    className={`shrink-0 w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center group-hover:scale-110 transition-transform drop-shadow-lg -mt-3 -ml-3`}
                   >
-                    <img src={op.icon} alt={op.title} className="w-full h-full object-contain filter drop-shadow-md" onError={(e) => { e.currentTarget.src = op.fallbackIcon }} />
+                    <img src={op.icon} alt={op.title} className="w-[110%] h-[110%] object-contain" onError={(e) => { e.currentTarget.src = op.fallbackIcon }} />
                   </div>
                 </div>
 
