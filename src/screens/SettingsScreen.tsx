@@ -25,7 +25,6 @@ import {
   resetApplicationData,
   exportQuizHistoryCSV,
   exportLearningStatsJSON,
-  clearTemporaryCache,
   getStoredDataCounts,
   StoredDataCounts,
   BackupValidationResult,
@@ -38,7 +37,6 @@ import { ToggleSwitch } from '../components/settings/ToggleSwitch';
 import { RestoreModal } from '../components/settings/RestoreModal';
 import { ResetModal } from '../components/settings/ResetModal';
 import { CHANGELOG_ENTRIES } from '../utils/i18n';
-import { usePWAInstall } from '../hooks/usePWAInstall';
 
 import { gamificationEngine } from '../gamification/gamificationEngine';
 import { storage } from '../utils/storage';
@@ -76,7 +74,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     quiz_learning: false,
     lang_num: false,
     patterns: false,
-    app_management: false,
     about: false,
     changelog: false,
   });
@@ -108,9 +105,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // Hidden file input ref for backup upload
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // PWA Install hook
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
 
   // Load data counts on mount
   useEffect(() => {
@@ -147,13 +141,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   const handleThemeChange = (theme: 'system' | 'light' | 'dark') => {
     sound.playClick(settings.soundEnabled);
     onUpdateSettings({ ...settings, theme });
-  };
-
-  // 2. Language & Numeral updates
-  const handleLanguageChange = (newLang: 'fa' | 'en') => {
-    sound.playClick(settings.soundEnabled);
-    onUpdateSettings({ ...settings, language: newLang });
-    showToast(newLang === 'fa' ? 'زبان برنامه به فارسی تغییر یافت.' : 'Language set to English.');
   };
 
   const handleNumeralChange = (newFormat: 'persian' | 'english') => {
@@ -276,24 +263,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       showToast('خروجی پرونده یادگیری دانلود شد.');
     } catch (err: any) {
       showToast(`خطا: ${err?.message || ''}`);
-    }
-  };
-
-  // App Management
-  const handleClearCache = async () => {
-    sound.playClick(settings.soundEnabled);
-    const { count, success } = await clearTemporaryCache();
-    if (success) {
-      showToast(`حافظه موقت پاکسازی شد (${formatNumber(count, numPref)} مورد). اطلاعات پیشرفت شما دست‌نخورده باقی ماند.`);
-    } else {
-      showToast('مرورگر از پاکسازی مستقیم کش پشتیبانی نمی‌کند یا خطایی رخ داد.');
-    }
-  };
-
-  const handleReloadApp = () => {
-    sound.playClick(settings.soundEnabled);
-    if (typeof window !== 'undefined') {
-      window.location.reload();
     }
   };
 
@@ -506,37 +475,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onToggle={() => toggleSection('lang_num')}
             >
               <div className="space-y-4 pt-2">
-                {/* Language selection */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
-                    {t('language_label', lang)}
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleLanguageChange('fa')}
-                      className={`p-3 rounded-2xl font-black text-xs transition-all border ${
-                        lang === 'fa'
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                          : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                      }`}
-                    >
-                      🇮🇷 {t('lang_fa', lang)}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleLanguageChange('en')}
-                      className={`p-3 rounded-2xl font-black text-xs transition-all border ${
-                        lang === 'en'
-                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                          : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                      }`}
-                    >
-                      🇬🇧 {t('lang_en', lang)}
-                    </button>
-                  </div>
-                </div>
-
                 {/* Numeral System selection */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
@@ -835,103 +773,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   >
                     <span>⚠️</span>
                     <span>{t('reset_data_btn', lang)}</span>
-                  </button>
-                </div>
-              </div>
-            </AccordionSection>
-
-            {/* 7. APP MANAGEMENT & OFFLINE */}
-            <AccordionSection
-              id="accordion-app-management"
-              icon="📱"
-              title={t('app_management_title', lang)}
-              subtitle={t('app_management_desc', lang)}
-              badge={isInstalled ? 'نصب شده ✓' : isOnline ? 'آنلاین' : 'آفلاین'}
-              isOpen={!!openSections.app_management}
-              onToggle={() => toggleSection('app_management')}
-            >
-              <div className="space-y-4 pt-2 text-xs">
-                {/* Version & Environment info */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between">
-                  <span className="font-bold text-slate-700 dark:text-slate-300">
-                    {t('version_label', lang)}
-                  </span>
-                  <span className="font-black text-indigo-600 dark:text-indigo-400">
-                    v{APP_VERSION} (Math Hero PWA)
-                  </span>
-                </div>
-
-                {/* Connectivity Status Banner */}
-                <div
-                  className={`p-3.5 rounded-2xl border flex items-start gap-2.5 ${
-                    isOnline
-                      ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60'
-                      : 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/60'
-                  }`}
-                >
-                  <span className="text-lg shrink-0">{isOnline ? '🟢' : '🟠'}</span>
-                  <div>
-                    <span className="font-bold block text-slate-800 dark:text-slate-100">
-                      {isOnline ? t('offline_status_online', lang) : t('offline_status_offline', lang)}
-                    </span>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                      {t('offline_explanation', lang)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* PWA Installation Card */}
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 space-y-2">
-                  <span className="font-bold text-slate-700 dark:text-slate-300 block">
-                    نصب به عنوان برنامه مستقل (PWA)
-                  </span>
-
-                  {isInstalled ? (
-                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-black">
-                      <span>✓</span>
-                      <span>{t('pwa_installed_badge', lang)}</span>
-                    </div>
-                  ) : isInstallable ? (
-                    <button
-                      type="button"
-                      onClick={install}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <span>📲</span>
-                      <span>{t('install_pwa_btn', lang)}</span>
-                    </button>
-                  ) : isIOS ? (
-                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 space-y-1 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                      <p className="font-bold text-slate-800 dark:text-slate-200">
-                        {t('ios_install_title', lang)}
-                      </p>
-                      <p>{t('ios_install_step1', lang)}</p>
-                      <p>{t('ios_install_step2', lang)}</p>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] text-slate-500">
-                      برنامه در مرورگر با قابلیت دسترسی آفلاین در حال اجراست.
-                    </p>
-                  )}
-                </div>
-
-                {/* Safe Cache Clearing & Reload */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleClearCache}
-                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <span>🧹</span>
-                    <span>پاکسازی حافظه موقت</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleReloadApp}
-                    className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <span>🔄</span>
-                    <span>بارگذاری مجدد برنامه</span>
                   </button>
                 </div>
               </div>

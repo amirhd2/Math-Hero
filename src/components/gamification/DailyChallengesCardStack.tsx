@@ -269,36 +269,6 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
     }
   };
 
-  const handleNext = useCallback(async () => {
-    if (isAnimatingRef.current || total <= 1) return;
-    isAnimatingRef.current = true;
-    setOverrideUnderneathIndex((safeIndex + 1) % total);
-    await animate(x, -580, {
-      duration: 0.28,
-      ease: [0.22, 1, 0.36, 1],
-    });
-    setCurrentIndex((prev) => (prev + 1) % total);
-    x.set(0);
-    setOverrideUnderneathIndex(null);
-    setDragDir('next');
-    isAnimatingRef.current = false;
-  }, [safeIndex, total, x]);
-
-  const handlePrev = useCallback(async () => {
-    if (isAnimatingRef.current || total <= 1) return;
-    isAnimatingRef.current = true;
-    setOverrideUnderneathIndex((safeIndex - 1 + total) % total);
-    await animate(x, 580, {
-      duration: 0.28,
-      ease: [0.22, 1, 0.36, 1],
-    });
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-    x.set(0);
-    setOverrideUnderneathIndex(null);
-    setDragDir('next');
-    isAnimatingRef.current = false;
-  }, [safeIndex, total, x]);
-
   const handleDotClick = useCallback(
     async (targetIndex: number) => {
       if (isAnimatingRef.current || targetIndex === safeIndex || total <= 1) return;

@@ -203,7 +203,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
         isOpen: true,
         title: `آزمون ${op.title}`,
         subtitle: 'تعداد سوالات آزمون رو انتخاب کن. در حالت آزمون، دقت و سرعت تو سنجیده می‌شه!',
-        icon: op.symbol,
+        icon: '🧮',
         mode: 'test',
         colorGradient: op.color,
         badgeText: '🏆 حالت آزمون',
