@@ -572,7 +572,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       id: 'addition',
       title: 'جمع اعداد',
       enTitle: 'Addition',
-      symbol: '➕',
+      icon: getAssetUrl('assets/icons/addition.png'),
+      fallbackIcon: getFallbackAssetUrl('assets/icons/addition.png'),
       color: 'from-emerald-500 to-teal-600',
       borderLight: 'border-emerald-200 dark:border-emerald-800',
       textColor: 'text-emerald-600 dark:text-emerald-400',
@@ -582,7 +583,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       id: 'subtraction',
       title: 'تفریق و منها',
       enTitle: 'Subtraction',
-      symbol: '➖',
+      icon: getAssetUrl('assets/icons/deduction.png'),
+      fallbackIcon: getFallbackAssetUrl('assets/icons/deduction.png'),
       color: 'from-sky-500 to-blue-600',
       borderLight: 'border-sky-200 dark:border-sky-800',
       textColor: 'text-sky-600 dark:text-sky-400',
@@ -592,7 +594,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       id: 'multiplication',
       title: 'جدول ضرب',
       enTitle: 'Multiplication',
-      symbol: '✖️',
+      icon: getAssetUrl('assets/icons/multiply.png'),
+      fallbackIcon: getFallbackAssetUrl('assets/icons/multiply.png'),
       color: 'from-amber-500 to-orange-600',
       borderLight: 'border-amber-200 dark:border-amber-800',
       textColor: 'text-amber-600 dark:text-amber-400',
@@ -602,7 +605,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       id: 'division',
       title: 'تقسیم هوشمند',
       enTitle: 'Division',
-      symbol: '➗',
+      icon: getAssetUrl('assets/icons/fraction.png'),
+      fallbackIcon: getFallbackAssetUrl('assets/icons/fraction.png'),
       color: 'from-violet-500 to-purple-600',
       borderLight: 'border-violet-200 dark:border-violet-800',
       textColor: 'text-violet-600 dark:text-violet-400',
@@ -918,17 +922,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             {/* Left Side: 4 Operation Symbols mini cluster */}
             <div className="flex items-center gap-2 shrink-0">
               <div className="grid grid-cols-2 gap-1 p-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-105 transition-all">
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-[10px] sm:text-xs font-black text-white">
-                  ➕
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center p-1">
+                  <img src={getAssetUrl('assets/icons/addition.png')} alt="جمع" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/addition.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-[10px] sm:text-xs font-black text-white">
-                  ➖
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center p-1">
+                  <img src={getAssetUrl('assets/icons/deduction.png')} alt="تفریق" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/deduction.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-[10px] sm:text-xs font-black text-white">
-                  ✖️
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center p-1">
+                  <img src={getAssetUrl('assets/icons/multiply.png')} alt="ضرب" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/multiply.png') }} />
                 </div>
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-[10px] sm:text-xs font-black text-white">
-                  ➗
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center p-1">
+                  <img src={getAssetUrl('assets/icons/fraction.png')} alt="تقسیم" className="w-full h-full object-contain filter drop-shadow-sm" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/fraction.png') }} />
                 </div>
               </div>
             </div>
@@ -1006,9 +1010,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
 
                   {/* Operation Icon positioned to the left of texts */}
                   <div
-                    className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${op.color} flex items-center justify-center text-lg sm:text-xl text-white shadow-sm group-hover:scale-105 transition-transform`}
+                    className={`shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${op.color} flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform p-2`}
                   >
-                    {op.symbol}
+                    <img src={op.icon} alt={op.title} className="w-full h-full object-contain filter drop-shadow-md" onError={(e) => { e.currentTarget.src = op.fallbackIcon }} />
                   </div>
                 </div>
 
