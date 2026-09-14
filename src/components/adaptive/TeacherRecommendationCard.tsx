@@ -424,10 +424,10 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
             <span>✨</span>
             <span>پیشنهاد معلم هوشمند</span>
           </div>
-          <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">
+          <h4 className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100">
             {card.title}
           </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
             {card.description}
           </p>
         </div>

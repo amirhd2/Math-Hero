@@ -81,10 +81,10 @@ const ChallengeCardContent: React.FC<{
         {/* Middle Content: Title, Description */}
         <div className="relative z-10 my-auto py-2 flex items-center justify-between gap-4">
           <div className="space-y-1 max-w-xl text-right">
-            <h4 className="text-base sm:text-xl font-black tracking-tight text-slate-950 dark:text-white line-clamp-1">
+            <h4 className="text-base sm:text-xl font-black tracking-tight text-slate-950 dark:text-white">
               {card.title}
             </h4>
-            <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-2 leading-relaxed">
+            <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
               {card.description}
             </p>
           </div>
