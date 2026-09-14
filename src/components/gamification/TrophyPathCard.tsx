@@ -38,15 +38,12 @@ export const TrophyPathCard: React.FC<TrophyPathCardProps> = ({
         {!trophyInfo.isMax && (
           <button
             onClick={() => setShowGuideModal(true)}
-            className="group relative flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-95 animate-bounce shrink-0 cursor-pointer border border-amber-300 dark:border-amber-600"
+            className="group relative flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-95 animate-bounce shrink-0 cursor-pointer border border-amber-300 dark:border-amber-600"
             title="راهنمای هوشمند دریافت جام بعدی"
           >
-            <span className="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
-              <PopoutOwlAvatar sizeClassName="w-7 h-7 sm:w-8 sm:h-8" />
-            </span>
-            <span className="flex items-center gap-1">
-              <span>راهنما</span>
-              <span className="text-xs sm:text-sm">🦉</span>
+            <span>راهنما</span>
+            <span className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center shrink-0 -my-1.5">
+              <PopoutOwlAvatar sizeClassName="w-9 h-9 sm:w-11 sm:h-11" />
             </span>
           </button>
         )}

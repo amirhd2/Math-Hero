@@ -568,6 +568,7 @@ export default function App() {
             onNavigate={handleNavigate}
             onOpenSetup={handleOpenQuizSetup}
             onStartChildQuickOperation={handleStartChildQuickOperation}
+            onStartSmartTeacherPractice={handleStartSmartTeacherPractice}
           />
         );
       case 'achievements':

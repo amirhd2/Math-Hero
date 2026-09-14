@@ -46,9 +46,22 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     if (import.meta.env.DEV) {
       // In dev mode, unregister any active service workers to prevent caching issues
       navigator.serviceWorker.getRegistrations().then((registrations) => {
+        let unregistered = false;
         for (const registration of registrations) {
           registration.unregister();
+          unregistered = true;
           console.log('[PWA] Unregistered service worker in dev mode');
+        }
+        if (unregistered) {
+          // Clear caches if there were active SWs
+          caches.keys().then((names) => {
+            for (const name of names) {
+              caches.delete(name);
+            }
+          }).finally(() => {
+            // Optional: force reload once to get fresh assets
+            window.location.reload();
+          });
         }
       });
       return;

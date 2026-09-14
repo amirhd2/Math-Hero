@@ -55,67 +55,92 @@ const OP_TITLES: Record<OperationType, string> = {
  */
 const TeacherCardContent: React.FC<{
   card: TeacherRecommendationItem;
+  cardIndex?: number;
+  totalCards?: number;
   onAction?: () => void;
   isInteractive?: boolean;
-}> = ({ card, onAction, isInteractive = true }) => {
+}> = ({ card, cardIndex, totalCards, onAction, isInteractive = true }) => {
   return (
     <>
-      {/* Background decorative watermark */}
-      <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+      {/* Background decorative watermark clipped inside rounded container */}
+      <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+        <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-orange-200/20 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
+      </div>
 
-      {/* Content Row: Badges, Title & Description on Right; Owl Avatar on Top-Left (in RTL) */}
-      <div className="relative z-10 flex flex-col justify-start text-right space-y-2 pt-0.5 w-full">
-        {/* Badges */}
-        <div className="flex items-center gap-1.5 flex-wrap pl-[90px]">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-950 dark:text-amber-200 text-[11px] sm:text-xs font-black shadow-xs shrink-0">
-            <span>✨</span>
-            <span>پیشنهاد آموزشی جغد دانا</span>
+      {/* Prominent Floating Capsule Badge on the Top Border (Straddling half above, half inside card) */}
+      <div className="absolute top-0 right-4 sm:right-6 -translate-y-1/2 z-30 pointer-events-none select-none">
+        <div className="animate-badge-throb inline-flex items-center gap-2 px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full font-black text-xs sm:text-sm shadow-md border border-amber-300/70 dark:border-amber-400/30 backdrop-blur-md bg-gradient-to-r from-amber-500 via-amber-400 to-orange-500 text-slate-950 transition-all">
+          {/* Active Pulsing Beacon Light */}
+          <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-100 opacity-90" />
+            <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-amber-100 shadow-xs" />
           </span>
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black shadow-xs shrink-0 ${
-              card.badgeColor || 'bg-amber-100 text-amber-900'
-            }`}
-          >
-            {card.badgeText}
+          <span className="text-sm sm:text-base leading-none">🦉</span>
+          <span className="tracking-tight whitespace-nowrap leading-none">
+            پیشنهاد معلم هوشمند
           </span>
+          {card.badgeText && (
+            <>
+              <span className="h-3 w-px bg-slate-950/25" />
+              <span className="text-[11px] sm:text-xs font-black px-2 py-0.5 rounded-full bg-slate-950/15 text-slate-950 leading-none whitespace-nowrap">
+                {card.badgeText}
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Main card content */}
+      <div className="flex flex-col justify-between h-full transition-all duration-300">
+        {/* Top Row: Stack Counter on Right (if totalCards > 1) */}
+        <div className="relative z-10 flex items-center justify-between gap-2 pt-1.5 sm:pt-2">
+          {Boolean(totalCards && totalCards > 1 && typeof cardIndex === 'number') ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 dark:bg-amber-400/20 backdrop-blur-md text-amber-950 dark:text-amber-100 border border-amber-500/30 text-[10px] sm:text-xs font-black shadow-2xs">
+              <span>{toPersianDigits((cardIndex ?? 0) + 1)}</span>
+              <span className="text-[9px] opacity-70">از</span>
+              <span>{toPersianDigits(totalCards ?? 0)}</span>
+            </span>
+          ) : (
+            <div />
+          )}
         </div>
 
-        {/* Title */}
-        <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white pl-[90px]">
-          {card.title}
-        </h4>
+        {/* Middle Content: Title & Pedagogical Description */}
+        <div className="relative z-10 my-auto py-1 flex flex-col justify-center text-right space-y-1.5 w-full">
+          <h4 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-950 dark:text-white pl-[84px] sm:pl-[104px]">
+            {card.title}
+          </h4>
+          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed pl-2 sm:pl-4">
+            {card.description}
+          </p>
+        </div>
 
-        {/* Pedagogical Description */}
-        <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-          {card.description}
-        </p>
+        {/* Bottom Row: Full-width Action Button */}
+        <div className="relative z-10 pt-1">
+          <button
+            type="button"
+            tabIndex={isInteractive ? 0 : -1}
+            onPointerDown={(e) => {
+              if (!isInteractive) return;
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              if (!isInteractive) return;
+              e.stopPropagation();
+              onAction?.();
+            }}
+            className={`w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 ${
+              isInteractive ? 'cursor-pointer' : 'pointer-events-none'
+            }`}
+          >
+            <span>{card.actionText}</span>
+          </button>
+        </div>
       </div>
 
       {/* 3D Pop-out Owl Avatar Overlay at Top-Left */}
-      <div className="absolute top-[12px] left-[12px] z-20 pointer-events-none">
+      <div className="absolute top-[10px] left-[10px] sm:top-[12px] sm:left-[12px] z-20 pointer-events-none">
         <PopoutOwlAvatar sizeClassName="w-20 h-20 sm:w-24 sm:h-24 md:w-26 md:h-26" />
-      </div>
-
-      {/* Bottom Row: Full-width Action Button */}
-      <div className="relative z-10 pt-1">
-        <button
-          type="button"
-          tabIndex={isInteractive ? 0 : -1}
-          onPointerDown={(e) => {
-            if (!isInteractive) return;
-            e.stopPropagation();
-          }}
-          onClick={(e) => {
-            if (!isInteractive) return;
-            e.stopPropagation();
-            onAction?.();
-          }}
-          className={`w-full py-2.5 sm:py-3 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 ${
-            isInteractive ? 'cursor-pointer' : 'pointer-events-none'
-          }`}
-        >
-          <span>{card.actionText}</span>
-        </button>
       </div>
     </>
   );
@@ -437,17 +462,9 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
     >
       {/* Header bar: Title & Pagination / Arrows */}
       {showHeader && (
-        <div className="flex items-center justify-between mb-3 px-1 h-8">
-          <div className="flex items-center gap-2 relative">
-            <span className="text-xl sm:text-2xl relative z-10">🦉</span>
-            {total > 1 && (
-              <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 z-20">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-500 text-[8px] font-black items-center justify-center text-white leading-none">
-                  {toPersianDigits(total)}
-                </span>
-              </span>
-            )}
+        <div className="flex items-center justify-between mb-4 sm:mb-5 px-1 h-8">
+          <div className="flex items-center gap-2">
+            <span className="text-xl sm:text-2xl">🦉</span>
             <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>پیشنهادهای آموزشی جغد دانا</span>
             </h3>
@@ -480,7 +497,7 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
       )}
 
       {/* Card Stack Deck Container (Preserving original card dimensions and peeking stacked deck appearance) */}
-      <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pb-3.5 overflow-visible">
+      <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pt-1 pb-3.5 overflow-visible">
         {/* Layer 1: Underneath Card peeking out at bottom as a stacked card (when total > 1) */}
         {total > 1 && (
           <motion.div
@@ -493,10 +510,12 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
               opacity: underneathOpacity,
               zIndex: 10,
             }}
-            className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-md border bg-white dark:bg-slate-900 pointer-events-none select-none ${underneathCard.borderAccent} ${underneathCard.bgGradient}`}
+            className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-visible shadow-md border bg-white dark:bg-slate-900 pointer-events-none select-none ${underneathCard.borderAccent} ${underneathCard.bgGradient}`}
           >
             <TeacherCardContent
               card={underneathCard}
+              cardIndex={underneathIndex}
+              totalCards={total}
               isInteractive={false}
             />
           </motion.div>
@@ -517,10 +536,12 @@ export const TeacherRecommendationCard: React.FC<TeacherRecommendationCardProps>
           dragMomentum={false}
           dragElastic={0.85}
           onDragEnd={handleDragEnd}
-          className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-xl border bg-white dark:bg-slate-900 cursor-grab active:cursor-grabbing touch-pan-y ${currentCard.borderAccent} ${currentCard.bgGradient}`}
+          className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-visible shadow-xl border bg-white dark:bg-slate-900 cursor-grab active:cursor-grabbing touch-pan-y ${currentCard.borderAccent} ${currentCard.bgGradient}`}
         >
           <TeacherCardContent
             card={currentCard}
+            cardIndex={currentIndex}
+            totalCards={total}
             onAction={() => onStartRecommended(currentCard.targetOp)}
             isInteractive={true}
           />

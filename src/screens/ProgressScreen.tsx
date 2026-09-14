@@ -26,6 +26,7 @@ interface ProgressScreenProps {
   onNavigate: (screen: ScreenId) => void;
   onOpenSetup?: (config?: Partial<QuizConfiguration>) => void;
   onStartChildQuickOperation?: (op: OperationType, count?: number, mode?: QuizMode) => void;
+  onStartSmartTeacherPractice?: (op: OperationType, count?: number) => void;
 }
 
 const OP_CONFIGS: Record<OperationType, { title: string; symbol: string; color: string }> = {
@@ -42,6 +43,7 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
   onNavigate,
   onOpenSetup,
   onStartChildQuickOperation,
+  onStartSmartTeacherPractice,
 }) => {
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
   const [summary, setSummary] = useState<StatisticsSummary | null>(null);
@@ -125,11 +127,39 @@ export const ProgressScreen: React.FC<ProgressScreenProps> = ({
     }
   };
 
-  const handleStartQuiz = () => {
-    if (onOpenSetup) {
-      onOpenSetup();
+  const handleStartQuiz = async () => {
+    let plan = adaptivePlan;
+    if (!plan) {
+      try {
+        plan = await SmartTeacherEngine.getLearningPlan();
+      } catch (err) {
+        console.error('Error getting learning plan for initial recommendation', err);
+      }
+    }
+    const targetOp: OperationType =
+      (plan?.neglectedOperations && plan.neglectedOperations[0]) ||
+      plan?.primaryOperation ||
+      'addition';
+
+    if (appMode === 'child') {
+      if (onStartSmartTeacherPractice) {
+        onStartSmartTeacherPractice(targetOp, 10);
+      } else if (onStartChildQuickOperation) {
+        onStartChildQuickOperation(targetOp, 10, 'practice');
+      } else {
+        onNavigate('home');
+      }
     } else {
-      onNavigate('quiz_setup');
+      if (onOpenSetup) {
+        onOpenSetup({
+          selectedOperations: [targetOp],
+          mode: 'practice',
+          isAdaptive: true,
+          questionCount: 10,
+        });
+      } else {
+        onNavigate('quiz_setup');
+      }
     }
   };
 

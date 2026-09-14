@@ -42,36 +42,57 @@ interface DailyChallengesCardStackProps {
  */
 const ChallengeCardContent: React.FC<{
   card: DailyChallengeItem;
+  cardIndex?: number;
+  totalCards?: number;
   isInteractive?: boolean;
-}> = ({ card, isInteractive = true }) => {
+}> = ({ card, cardIndex, totalCards, isInteractive = true }) => {
   return (
     <>
-      {/* Background decorative watermarks */}
-      <div className="absolute -top-10 -left-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-black/5 rounded-full blur-2xl pointer-events-none" />
+      {/* Background decorative watermarks clipped neatly inside rounded-3xl container */}
+      <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+        <div className="absolute -top-10 -left-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-10 -right-10 w-36 h-36 bg-black/5 rounded-full blur-2xl pointer-events-none" />
+      </div>
+
+      {/* Prominent Floating Capsule Badge on the Top Border (Straddling half above, half inside card) */}
+      <div className="absolute top-0 right-4 sm:right-6 -translate-y-1/2 z-30 pointer-events-none select-none">
+        <div
+          className={`animate-badge-throb inline-flex items-center gap-2 px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full font-black text-xs sm:text-sm shadow-md border border-white/60 dark:border-white/20 backdrop-blur-md transition-all ${
+            card.badgeColor || 'bg-slate-950 text-white dark:bg-amber-400 dark:text-slate-950'
+          }`}
+        >
+          {/* Active Pulsing Beacon Light */}
+          <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-80" />
+            <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-current shadow-xs" />
+          </span>
+          <span className="text-sm sm:text-base leading-none">{card.badgeIcon || '⚡'}</span>
+          <span className="tracking-tight whitespace-nowrap leading-none">{card.badgeText}</span>
+        </div>
+      </div>
 
       {/* Main card content */}
       <div className="flex flex-col justify-between h-full transition-all duration-300">
-        {/* Top Row: Category Badge & Reward Chips */}
-        <div className="relative z-10 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs ${
-                card.badgeColor || 'bg-slate-950/15 text-slate-900 dark:text-white'
-              }`}
-            >
-              <span>{card.badgeIcon}</span>
-              <span>{card.badgeText}</span>
+        {/* Top Row: Stack Counter on Right (under the capsule badge), Rewards on Left */}
+        <div className="relative z-10 flex items-center justify-between gap-2 pt-1.5 sm:pt-2">
+          {/* Stack Counter (if totalCards > 1) */}
+          {Boolean(totalCards && totalCards > 1 && typeof cardIndex === 'number') ? (
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-black/10 dark:bg-white/15 backdrop-blur-md text-slate-900 dark:text-slate-100 text-[10px] sm:text-xs font-black shadow-2xs">
+              <span>{toPersianDigits((cardIndex ?? 0) + 1)}</span>
+              <span className="text-[9px] opacity-70">از</span>
+              <span>{toPersianDigits(totalCards ?? 0)}</span>
             </span>
-          </div>
+          ) : (
+            <div />
+          )}
 
           {/* Rewards */}
           <div className="flex items-center gap-1.5 text-xs font-black">
-            <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full bg-black/10 dark:bg-white/15 backdrop-blur-md text-slate-950 dark:text-slate-100 border border-black/5 dark:border-white/10 flex items-center gap-1 shadow-2xs">
               <span>⭐</span>
               <span>+{toPersianDigits(card.rewardXp)} XP</span>
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-black/10 backdrop-blur-md text-amber-900 dark:text-amber-200 border border-black/5 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full bg-black/10 dark:bg-white/15 backdrop-blur-md text-slate-950 dark:text-slate-100 border border-black/5 dark:border-white/10 flex items-center gap-1 shadow-2xs">
               <span>🪙</span>
               <span>+{toPersianDigits(card.rewardCoins)}</span>
             </span>
@@ -127,17 +148,27 @@ const ChallengeCardContent: React.FC<{
  */
 const AllChallengesCompletedCard: React.FC = () => {
   return (
-    <div className="relative w-full h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-xl border border-emerald-400/60 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 dark:from-emerald-950/80 dark:via-slate-900 dark:to-teal-950/80 text-slate-900 dark:text-white select-none">
+    <div className="relative w-full h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-visible shadow-xl border border-emerald-400/60 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-100 via-teal-50 to-emerald-200 dark:from-emerald-950/80 dark:via-slate-900 dark:to-teal-950/80 text-slate-900 dark:text-white select-none">
       {/* Background decorative ambient glow */}
-      <div className="absolute -top-12 -left-12 w-40 h-40 bg-emerald-400/25 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-teal-400/25 rounded-full blur-2xl pointer-events-none" />
+      <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+        <div className="absolute -top-12 -left-12 w-40 h-40 bg-emerald-400/25 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-teal-400/25 rounded-full blur-2xl pointer-events-none" />
+      </div>
 
-      {/* Top Row: Celebration Badges */}
-      <div className="relative z-10 flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black shadow-xs bg-emerald-600 text-white">
-          <span>🎉</span>
-          <span>چالش‌های روزانه تکمیل شد</span>
-        </span>
+      {/* Floating Celebration Badge on Top Border */}
+      <div className="absolute top-0 right-4 sm:right-6 -translate-y-1/2 z-30 pointer-events-none select-none">
+        <div className="animate-badge-throb inline-flex items-center gap-2 px-3.5 sm:px-4.5 py-1.5 sm:py-2 rounded-full font-black text-xs sm:text-sm shadow-md border border-emerald-300/60 dark:border-emerald-500/40 backdrop-blur-md bg-emerald-600 text-white">
+          <span className="relative flex h-2 sm:h-2.5 w-2 sm:w-2.5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-90" />
+            <span className="relative inline-flex rounded-full h-2 sm:h-2.5 w-2 sm:w-2.5 bg-emerald-200 shadow-xs" />
+          </span>
+          <span className="text-sm sm:text-base leading-none">🎉</span>
+          <span className="tracking-tight whitespace-nowrap leading-none">چالش‌های امروز تکمیل شد</span>
+        </div>
+      </div>
+
+      {/* Top Row: Secondary Celebration Indicator */}
+      <div className="relative z-10 flex items-center justify-end gap-2 pt-1.5 sm:pt-2">
         <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 font-black text-xs border border-emerald-500/30 flex items-center gap-1">
           <span>🌟</span>
           <span>تمام جوایز دریافت شد</span>
@@ -339,17 +370,9 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
       className={`relative w-full select-none ${className}`}
     >
       {/* Header bar: Title & Pagination / Arrows */}
-      <div className="flex items-center justify-between mb-3 px-1 h-8">
-        <div className="flex items-center gap-2 relative">
-          <span className="text-xl sm:text-2xl animate-pulse relative z-10">⚡</span>
-          {total > 1 && (
-             <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 z-20">
-               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-               <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-indigo-500 text-[8px] font-black items-center justify-center text-white leading-none">
-                 {toPersianDigits(total)}
-               </span>
-             </span>
-          )}
+      <div className="flex items-center justify-between mb-4 sm:mb-5 px-1 h-8">
+        <div className="flex items-center gap-2">
+          <span className="text-xl sm:text-2xl animate-pulse">⚡</span>
           <div>
             <h3 className="text-base sm:text-lg lg:text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
               <span>چالش‌های روزانه</span>
@@ -381,7 +404,7 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
       </div>
 
       {/* Card Stack Deck Container (Preserving original card dimensions and peeking stacked deck appearance) */}
-      <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pb-3.5 overflow-visible">
+      <div className="relative w-full h-[258px] sm:h-[258px] md:h-[248px] pt-1 pb-3.5 overflow-visible">
         {/* Layer 1: Fully Preloaded Underneath Card peeking out at bottom as a stacked card (when total > 1) */}
         {total > 1 && (
           <motion.div
@@ -394,9 +417,14 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
               transformOrigin: 'top center',
               zIndex: 10,
             }}
-            className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-md border bg-white dark:bg-slate-900 pointer-events-none select-none ${underneathCard.borderAccent} ${underneathCard.bgGradient}`}
+            className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-visible shadow-md border bg-white dark:bg-slate-900 pointer-events-none select-none ${underneathCard.borderAccent} ${underneathCard.bgGradient}`}
           >
-            <ChallengeCardContent card={underneathCard} isInteractive={false} />
+            <ChallengeCardContent
+              card={underneathCard}
+              cardIndex={underneathIndex}
+              totalCards={total}
+              isInteractive={false}
+            />
           </motion.div>
         )}
 
@@ -415,9 +443,14 @@ export const DailyChallengesCardStack: React.FC<DailyChallengesCardStackProps> =
           dragMomentum={false}
           dragElastic={0.85}
           onDragEnd={handleDragEnd}
-          className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-hidden shadow-xl border bg-white dark:bg-slate-900 cursor-grab active:cursor-grabbing touch-pan-y ${currentCard.borderAccent} ${currentCard.bgGradient}`}
+          className={`absolute inset-x-0 top-0 h-[240px] sm:h-[240px] md:h-[230px] rounded-3xl p-5 sm:p-6 flex flex-col justify-between overflow-visible shadow-xl border bg-white dark:bg-slate-900 cursor-grab active:cursor-grabbing touch-pan-y ${currentCard.borderAccent} ${currentCard.bgGradient}`}
         >
-          <ChallengeCardContent card={currentCard} isInteractive={true} />
+          <ChallengeCardContent
+            card={currentCard}
+            cardIndex={safeIndex}
+            totalCards={total}
+            isInteractive={true}
+          />
         </motion.div>
       </div>
     </div>

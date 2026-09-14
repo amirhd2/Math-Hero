@@ -125,6 +125,35 @@
   animation: shakeAnimation 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
+/* Pulsing & Flashing Badge Animation (انیمیشن تپش و درخشش کپسول نشان‌ها) */
+@keyframes badgeThrobFlash {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+  }
+  25% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.55)) drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18));
+  }
+  40% {
+    transform: scale(0.98);
+  }
+  55% {
+    transform: scale(1.04);
+    filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.65)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+  }
+  75% {
+    transform: scale(1);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+  }
+}
+
+.animate-badge-throb {
+  animation: badgeThrobFlash 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: center center;
+  will-change: transform, filter;
+}
+
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-falling-leaf,

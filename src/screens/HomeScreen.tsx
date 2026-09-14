@@ -46,6 +46,7 @@ import {
 } from '../components/gamification/DailyChallengesCardStack';
 import { getTierDefinition } from '../adaptive/tierRegistry';
 import { QuickQuestionCountModal } from '../components/common/QuickQuestionCountModal';
+import { BackButton } from '../components/common/BackButton';
 
 interface HomeScreenProps {
   profile: UserProfile;
@@ -897,43 +898,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             title="شروع آزمون جامع چهار عمل اصلی"
           >
             {/* Right Side: Title & Description */}
-            <div className="flex items-center gap-3 sm:gap-4 text-right">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center text-xl sm:text-2xl shadow-inner shrink-0 group-hover:scale-110 transition-transform">
-                🌟
+            <div className="flex items-center gap-3 sm:gap-4 text-right min-w-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <img
+                  src={getAssetUrl('assets/icons/Combined.webp')}
+                  alt="چالش ترکیبی"
+                  className="w-full h-full object-contain drop-shadow-md"
+                  onError={(e) => {
+                    e.currentTarget.src = getFallbackAssetUrl('assets/icons/Combined.webp');
+                  }}
+                />
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-xs shrink-0">
                     چالش ترکیبی
                   </span>
-                  <span className="text-xs font-bold text-amber-200">
-                    ۲۰ سوال هوشمند
-                  </span>
                 </div>
-                <h4 className="text-sm sm:text-base font-black text-white group-hover:text-amber-200 transition-colors">
+                <h4 className="text-sm sm:text-base font-black text-white group-hover:text-amber-200 transition-colors truncate">
                   آزمون جامع چهار عمل اصلی
                 </h4>
                 <p className="text-[11px] sm:text-xs text-indigo-200 font-medium line-clamp-1">
                   ترکیب هم‌زمان جمع، تفریق، ضرب و تقسیم در یک چالش هیجان‌انگیز
                 </p>
-              </div>
-            </div>
-
-            {/* Left Side: 4 Operation Symbols mini cluster */}
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="grid grid-cols-2 gap-0 p-0.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner group-hover:scale-105 transition-all">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
-                  <img src={getAssetUrl('assets/icons/addition.png')} alt="جمع" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/addition.png') }} />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
-                  <img src={getAssetUrl('assets/icons/deduction.png')} alt="تفریق" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/deduction.png') }} />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
-                  <img src={getAssetUrl('assets/icons/multiply.png')} alt="ضرب" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/multiply.png') }} />
-                </div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center drop-shadow-md transition-transform group-hover:scale-110">
-                  <img src={getAssetUrl('assets/icons/fraction.png')} alt="تقسیم" className="w-[90%] h-[90%] object-contain" onError={(e) => { e.currentTarget.src = getFallbackAssetUrl('assets/icons/fraction.png') }} />
-                </div>
               </div>
             </div>
           </div>
@@ -948,22 +935,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             title="ورود به گنجینه اشتباهات و مرور هوشمند"
           >
             {/* Right Side: Title & Description */}
-            <div className="flex items-center gap-3 sm:gap-4 text-right">
-              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-white/10 flex items-center justify-center text-xl sm:text-2xl shadow-inner shrink-0 group-hover:scale-110 transition-transform">
-                💎
+            <div className="flex items-center gap-3 sm:gap-4 text-right min-w-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+                <img
+                  src={getAssetUrl('assets/icons/Treasure.webp')}
+                  alt="گنجینه اشتباهات"
+                  className="w-full h-full object-contain drop-shadow-md"
+                  onError={(e) => {
+                    e.currentTarget.src = getFallbackAssetUrl('assets/icons/Treasure.webp');
+                  }}
+                />
               </div>
-              <div className="space-y-0.5">
+              <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 shadow-xs">
+                  <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-400 text-slate-950 shadow-xs shrink-0">
                     مرور هوشمند
                   </span>
-                  <span className="text-xs font-bold text-emerald-200">
+                  <span className="text-xs font-bold text-emerald-200 truncate">
                     {unresolvedMistakesCount > 0
                       ? `${formatNumber(unresolvedMistakesCount, 'persian')} سوال نیازمند تمرین`
                       : 'گنجینه کاملاً پاک'}
                   </span>
                 </div>
-                <h4 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-200 transition-colors">
+                <h4 className="text-sm sm:text-base font-black text-white group-hover:text-emerald-200 transition-colors truncate">
                   گنجینه اشتباهات و یادگیری
                 </h4>
                 <p className="text-[11px] sm:text-xs text-emerald-100/80 font-medium line-clamp-1">
@@ -1045,40 +1039,52 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
         {/* Today's Solved */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-lg text-indigo-600 dark:text-indigo-400">
-              🎯
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
+              <img
+                src={getAssetUrl('assets/icons/Task.webp')}
+                alt="سوالات حل‌شده امروز"
+                className="w-full h-full object-contain drop-shadow-sm"
+                onError={(e) => {
+                  e.currentTarget.src = getFallbackAssetUrl('assets/icons/Task.webp');
+                }}
+              />
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500">سوالات حل‌شده امروز</p>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-slate-500 truncate">سوالات حل‌شده امروز</p>
               <p className="text-base font-black text-slate-900 dark:text-slate-100">
                 {formatNumber(todaySolved, 'persian')} سوال
               </p>
             </div>
           </div>
-          <button
-            type="button"
+          <BackButton
             onClick={() => onNavigate('progress')}
-            className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-          >
-            کارنامه ←
-          </button>
+            title="مشاهده کارنامه"
+            className="w-9 h-9 sm:w-10 sm:h-10"
+          />
         </div>
 
         {/* Today's XP */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-lg text-amber-500">
-              ⭐
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center">
+              <img
+                src={getAssetUrl('assets/icons/Xp.webp')}
+                alt="امتیاز کسب‌شده امروز"
+                className="w-full h-full object-contain drop-shadow-sm"
+                onError={(e) => {
+                  e.currentTarget.src = getFallbackAssetUrl('assets/icons/Xp.webp');
+                }}
+              />
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500">امتیاز کسب‌شده امروز</p>
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-slate-500 truncate">امتیاز کسب‌شده امروز</p>
               <p className="text-base font-black text-amber-500">
                 {formatNumber(todayXp, 'persian')} XP
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-bold text-slate-400">
+          <span className="text-[11px] font-bold text-slate-400 shrink-0">
             {formatNumber(profile.streakDays, 'persian')} روز متوالی
           </span>
         </div>
@@ -1088,31 +1094,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           onClick={() => onNavigate('achievements')}
           className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 border border-slate-200/70 dark:border-slate-800 shadow-xs flex items-center justify-between cursor-pointer hover:border-amber-300 transition-colors group"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
               <img
-                src={getTrophyCupUrl(trophyInfo?.stage || 1)}
-                alt="جام"
-                className="w-5 h-5 object-contain"
+                src={getAssetUrl('assets/icons/Trophy.webp')}
+                alt="نشان‌ها و جام"
+                className="w-full h-full object-contain drop-shadow-sm"
                 onError={(e) => {
-                  const target = e.currentTarget;
-                  if (!target.dataset.fallback) {
-                    target.dataset.fallback = '1';
-                    target.src = getTrophyCupFallbackUrl(trophyInfo?.stage || 1);
-                  }
+                  e.currentTarget.src = getFallbackAssetUrl('assets/icons/Trophy.webp');
                 }}
               />
             </div>
-            <div>
-              <p className="text-[11px] font-bold text-slate-500">نشان‌ها و جام</p>
-              <p className="text-xs font-black text-slate-800 dark:text-slate-100">
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold text-slate-500 truncate">نشان‌ها و جام</p>
+              <p className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">
                 {formatNumber(unlockedBadgesCount, 'persian')} از {formatNumber(totalBadgesCount, 'persian')} نشان
               </p>
             </div>
           </div>
-          <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:underline">
-            تالار افتخارات ←
-          </span>
+          <BackButton
+            onClick={() => onNavigate('achievements')}
+            title="مشاهده تالار افتخارات"
+            className="w-9 h-9 sm:w-10 sm:h-10 group-hover:border-amber-400 group-hover:text-amber-500"
+          />
         </div>
       </div>
 

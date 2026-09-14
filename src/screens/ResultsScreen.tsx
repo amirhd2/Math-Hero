@@ -156,9 +156,15 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
       <ConfettiCanvas active={showConfetti} reducedMotion={settings.reducedMotion} />
 
       {/* FIXED BACKGROUND: Dynamic Character Image */}
-      <div className="fixed inset-0 md:top-16 z-0 pointer-events-none bg-slate-100 dark:bg-slate-950" dir="ltr">
-        {/* Mobile: Top 65%. Desktop: Left 50% */}
-        <div className="absolute top-0 left-0 w-full h-[65vh] lg:w-1/2 lg:h-[calc(100vh-4rem)] flex flex-col justify-end items-center pb-4 lg:pb-0 bg-transparent">
+      <div 
+        className="fixed inset-0 lg:top-16 z-0 pointer-events-none bg-slate-100 dark:bg-slate-950 flex flex-col lg:flex-row overflow-hidden" 
+        dir="ltr"
+        style={{
+          paddingTop: 'max(env(safe-area-inset-top, 0px) + 0.75rem, 3.25rem)',
+        }}
+      >
+        {/* Mobile: Top area strictly below status bar/notch (max ~58vh). Desktop: Left 50% */}
+        <div className="w-full lg:w-1/2 h-[58vh] lg:h-full flex flex-col justify-end items-center px-4 pb-3 lg:pb-6 bg-transparent">
           <img 
             src={characterImage}
             onError={(e) => {
@@ -166,7 +172,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             }}
             loading="eager"
             decoding="async"
-            className="max-h-full max-w-full object-contain drop-shadow-2xl origin-bottom" 
+            className="max-h-full max-w-full object-contain drop-shadow-2xl origin-bottom select-none" 
             alt="Character Feedback" 
           />
         </div>
