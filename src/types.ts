@@ -143,6 +143,33 @@ export interface QuizSession {
     isAdaptive?: boolean;
     isGrindingMasteredTier?: boolean;
   };
+  motivationalSplashCustomMessage?: string;
+  motivationalSplashCustomTitle?: string;
+}
+
+export type NotificationTopicKey =
+  | 'adaptiveTeacher'
+  | 'mistakesAndReview'
+  | 'streakEncouragement'
+  | 'gamificationBadges';
+
+export interface NotificationSettings {
+  enabled: boolean;
+  permissionStatus: 'default' | 'granted' | 'denied' | 'unsupported';
+  preferredTime: string; // e.g. "17:00"
+  quietHoursStart: string; // e.g. "21:00"
+  quietHoursEnd: string; // e.g. "08:00"
+  maxPerDay: number; // e.g. 1 or 2
+  topics: {
+    adaptiveTeacher: boolean;    // یادآور معلم هوشمند و مراحل مهارتی
+    mistakesAndReview: boolean;  // گنجینه اشتباهات و مرورهای طلایی
+    streakEncouragement: boolean;// حفظ زنجیره روزانه بدون احساس گناه
+    gamificationBadges: boolean; // امتیاز، صعود مرحله و نشان‌های نزدیک
+  };
+  lastNotificationDate?: string; // YYYY-MM-DD
+  lastNotificationTimestamp?: number;
+  lastNotificationType?: string;
+  dailyNotificationCount?: number;
 }
 
 export interface UserProfile {
@@ -173,6 +200,9 @@ export interface AppSettings {
   autoFocusAnswer: boolean;
   showQuizCharacter: boolean;
   confirmExitQuiz: boolean;
+
+  // Smart Learning Reminders & Notifications
+  notifications?: NotificationSettings;
 
   // Optional legacy compatibility
   musicEnabled?: boolean;

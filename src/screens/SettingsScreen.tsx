@@ -36,6 +36,7 @@ import { AccordionSection } from '../components/settings/AccordionSection';
 import { ToggleSwitch } from '../components/settings/ToggleSwitch';
 import { RestoreModal } from '../components/settings/RestoreModal';
 import { ResetModal } from '../components/settings/ResetModal';
+import { NotificationSettingsSection } from '../components/settings/NotificationSettingsSection';
 import { CHANGELOG_ENTRIES } from '../utils/i18n';
 
 import { gamificationEngine } from '../gamification/gamificationEngine';
@@ -72,6 +73,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     data_backup: false,
     sound: false,
     quiz_learning: false,
+    notifications: false,
     lang_num: false,
     patterns: false,
     about: false,
@@ -645,6 +647,27 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   </button>
                 </div>
               </div>
+            </AccordionSection>
+
+            {/* SMART LEARNING REMINDERS & NOTIFICATIONS */}
+            <AccordionSection
+              id="accordion-notifications"
+              icon="🔔"
+              title="یادآورها و اعلان‌های هوشمند"
+              subtitle="تنظیم ساعات یادآوری، ساعات سکوت و پیام‌های هوشمند یادگیری"
+              badge={
+                settings.notifications?.enabled
+                  ? 'فعال'
+                  : 'غیرفعال'
+              }
+              isOpen={!!openSections.notifications}
+              onToggle={() => toggleSection('notifications')}
+            >
+              <NotificationSettingsSection
+                settings={settings}
+                onUpdateSettings={onUpdateSettings}
+                onShowToast={(msg) => setToastMessage(msg)}
+              />
             </AccordionSection>
 
             {/* 5. TEST PATTERNS SHORTCUT */}

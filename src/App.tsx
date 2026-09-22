@@ -25,6 +25,10 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { ParentDashboardScreen } from './screens/ParentDashboardScreen';
 import { ParentGateModal } from './components/parent/ParentGateModal';
 import { OfflineIndicator } from './components/pwa/OfflineIndicator';
+import { InAppNotificationBanner } from './components/notifications/InAppNotificationBanner';
+import { SmartNotificationEngine } from './notifications/smartNotificationEngine';
+import { deliverSmartNotification } from './notifications/notificationDelivery';
+import { NotificationActionData } from './notifications/notificationTypes';
 import { IOSSwipeBackContainer } from './components/navigation/IOSSwipeBackContainer';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
 import { TopDesktopNavigation } from './components/navigation/TopDesktopNavigation';
@@ -213,6 +217,92 @@ export default function App() {
     }
   }, [settings.theme]);
 
+  // Listen for notification action triggers (from SW click, in-app banner, or URL params)
+  useEffect(() => {
+    const handleAction = (e: Event) => {
+      const customEv = e as CustomEvent<NotificationActionData>;
+      if (customEv.detail) {
+        handleNotificationAction(customEv.detail);
+      }
+    };
+
+    window.addEventListener('math-hero:notification-action', handleAction);
+
+    const handleSwMessage = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'MATH_HERO_NOTIFICATION_CLICK' && e.data.actionData) {
+        handleNotificationAction(e.data.actionData);
+      }
+    };
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleSwMessage);
+    }
+
+    // Check if app was opened with notification URL query params
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const notifScreen = params.get('notif_screen') as ScreenId;
+      const notifOp = params.get('notif_op') as OperationType;
+      const notifType = params.get('notif_type') as any;
+
+      if (notifScreen || notifType) {
+        window.history.replaceState({}, '', window.location.pathname);
+        handleNotificationAction({
+          type: notifType || 'reengagement_gentle',
+          targetScreen: notifScreen || 'home',
+          operation: notifOp || undefined,
+          splashMessage: 'خوش آمدی قهرمان! آماده‌ای برای فتح چالش؟ 🌟',
+        });
+      }
+    }
+
+    return () => {
+      window.removeEventListener('math-hero:notification-action', handleAction);
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleSwMessage);
+      }
+    };
+  }, []);
+
+  // Periodic Smart Reminder & Notification evaluator
+  useEffect(() => {
+    const checkNotificationOpportunity = async () => {
+      try {
+        const curSettings = await storage.getSettings();
+        if (!curSettings.notifications?.enabled) return;
+
+        const now = new Date();
+        const currentHour = now.getHours();
+        const preferredHour = parseInt((curSettings.notifications.preferredTime || '17:00').split(':')[0], 10) || 17;
+
+        // If current hour has reached preferred time
+        if (currentHour >= preferredHour) {
+          const evaluation = await SmartNotificationEngine.evaluateNotificationOpportunity();
+          if (evaluation.canSend && evaluation.payload) {
+            await deliverSmartNotification(evaluation.payload);
+          }
+        }
+      } catch (err) {
+        console.warn('Periodic notification check failed:', err);
+      }
+    };
+
+    const initialTimer = setTimeout(checkNotificationOpportunity, 15000);
+    const interval = setInterval(checkNotificationOpportunity, 20 * 60 * 1000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkNotificationOpportunity();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const handleUpdateProfile = async (updated: UserProfile) => {
     setProfile(updated);
     await storage.saveProfile(updated);
@@ -288,7 +378,9 @@ export default function App() {
   const handleStartChildQuickOperation = async (
     op: OperationType,
     count: number = 10,
-    mode: QuizMode = 'test'
+    mode: QuizMode = 'test',
+    customSplashTitle?: string,
+    customSplashMessage?: string
   ) => {
     try {
       const plan = await SmartTeacherEngine.getLearningPlan();
@@ -326,6 +418,8 @@ export default function App() {
         isParentOverride: false,
         questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
         currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
+        motivationalSplashCustomTitle: customSplashTitle,
+        motivationalSplashCustomMessage: customSplashMessage,
         adaptiveMetadata: {
           isAdaptive: true,
           operation: op,
@@ -340,7 +434,12 @@ export default function App() {
   };
 
   // Start child combined challenge across operations (defaults to 'test' mode)
-  const handleStartChildCombined = async (count: number = 20, mode: QuizMode = 'test') => {
+  const handleStartChildCombined = async (
+    count: number = 20,
+    mode: QuizMode = 'test',
+    customSplashTitle?: string,
+    customSplashMessage?: string
+  ) => {
     try {
       const plan = await SmartTeacherEngine.getLearningPlan();
       const mistakes = await storage.getMistakes();
@@ -375,6 +474,8 @@ export default function App() {
         isParentOverride: false,
         questions: adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions,
         currentQuestion: (adaptiveQuestions.length > 0 ? adaptiveQuestions : baseSession.questions)[0],
+        motivationalSplashCustomTitle: customSplashTitle,
+        motivationalSplashCustomMessage: customSplashMessage,
         adaptiveMetadata: {
           isAdaptive: true,
           operation: 'mixed',
@@ -384,6 +485,87 @@ export default function App() {
       handleNavigate('quiz_active');
     } catch (err) {
       console.error('Failed to start child combined quiz:', err);
+    }
+  };
+
+  // Handle notification clicks and smart reminders actions
+  const handleNotificationAction = async (actionData: NotificationActionData) => {
+    try {
+      if (actionData.isMistakePractice) {
+        const allMistakes = await storage.getMistakes();
+        const unresolved = allMistakes.filter((m) => !m.resolved);
+        const questionsToUse = unresolved.slice(0, actionData.questionCount || 10).map((m) => m.question);
+
+        if (questionsToUse.length > 0) {
+          const config: QuizConfiguration = {
+            id: `mistake-practice-${Date.now()}`,
+            title: 'تمرین گنجینه اشتباهات',
+            mode: 'practice',
+            isAdaptive: false,
+            selectedOperations: ['mixed'],
+            questionCount: questionsToUse.length,
+            operationSettings: DEFAULT_OPERATION_SETTINGS,
+            distribution: { addition: 25, subtraction: 25, multiplication: 25, division: 25, mixed: 0 },
+            smartReviewEnabled: false,
+          };
+          const baseSession = createQuizSession(config);
+          const session: QuizSession = {
+            ...baseSession,
+            source: 'mistake-practice',
+            questions: questionsToUse,
+            currentQuestion: questionsToUse[0],
+            motivationalSplashCustomTitle: actionData.splashTitle || 'گنجینه اشتباهات',
+            motivationalSplashCustomMessage: actionData.splashMessage || 'بیا این سؤال‌ها رو این بار فتح کنیم! 🗝️✨',
+          };
+          setActiveSession(session);
+          handleNavigate('quiz_active');
+          return;
+        } else {
+          handleNavigate('mistakes');
+          return;
+        }
+      }
+
+      if (actionData.isSmartReview) {
+        const { session } = await createSmartReviewSession();
+        if (session) {
+          session.motivationalSplashCustomTitle = actionData.splashTitle || 'مرور طلایی آقای جغد';
+          session.motivationalSplashCustomMessage = actionData.splashMessage || 'آقای جغد دانا همراه توست! با تمرکز شروع کن 🦉💫';
+          setActiveSession(session);
+          handleNavigate('quiz_active');
+          return;
+        }
+      }
+
+      if (actionData.operation) {
+        await handleStartChildQuickOperation(
+          actionData.operation,
+          actionData.questionCount || 10,
+          actionData.mode || 'practice',
+          actionData.splashTitle,
+          actionData.splashMessage
+        );
+        return;
+      }
+
+      if (actionData.isCombined) {
+        await handleStartChildCombined(
+          actionData.questionCount || 20,
+          actionData.mode || 'test',
+          actionData.splashTitle,
+          actionData.splashMessage
+        );
+        return;
+      }
+
+      if (actionData.targetScreen) {
+        handleNavigate(actionData.targetScreen);
+      }
+    } catch (err) {
+      console.error('Failed to handle notification action:', err);
+      if (actionData.targetScreen) {
+        handleNavigate(actionData.targetScreen);
+      }
     }
   };
 
@@ -718,6 +900,9 @@ export default function App() {
 
       {/* Offline Status Toast */}
       <OfflineIndicator />
+
+      {/* In-App Smart Companion Reminder Banner */}
+      <InAppNotificationBanner />
     </div>
   );
 }

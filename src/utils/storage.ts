@@ -3,10 +3,26 @@
  * Supports profiles, settings, quiz results, mistakes, achievements, and presets.
  */
 
-import { UserProfile, AppSettings, QuizResult, MistakeRecord, Achievement, QuizPreset, TestPattern } from '../types';
+import { UserProfile, AppSettings, QuizResult, MistakeRecord, Achievement, QuizPreset, TestPattern, NotificationSettings } from '../types';
 
 const DB_NAME = 'MathHeroDB';
 const DB_VERSION = 1;
+
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  enabled: false,
+  permissionStatus: 'default',
+  preferredTime: '17:00',
+  quietHoursStart: '21:00',
+  quietHoursEnd: '08:00',
+  maxPerDay: 2,
+  topics: {
+    adaptiveTeacher: true,
+    mistakesAndReview: true,
+    streakEncouragement: true,
+    gamificationBadges: true,
+  },
+  dailyNotificationCount: 0,
+};
 
 export const DEFAULT_PROFILE: UserProfile = {
   id: 'default_user',
@@ -36,6 +52,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoFocusAnswer: true,
   showQuizCharacter: true,
   confirmExitQuiz: true,
+
+  notifications: DEFAULT_NOTIFICATION_SETTINGS,
 
   musicEnabled: false,
   highContrast: false,
@@ -405,7 +423,18 @@ class StorageService {
         });
       });
       if (result) {
-        return { ...DEFAULT_SETTINGS, ...result };
+        return {
+          ...DEFAULT_SETTINGS,
+          ...result,
+          notifications: {
+            ...DEFAULT_NOTIFICATION_SETTINGS,
+            ...(result.notifications || {}),
+            topics: {
+              ...DEFAULT_NOTIFICATION_SETTINGS.topics,
+              ...(result.notifications?.topics || {}),
+            },
+          },
+        };
       }
     } catch {
       // fallback
@@ -414,7 +443,19 @@ class StorageService {
     const local = localStorage.getItem('math_hero_settings');
     if (local) {
       try {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(local) };
+        const parsed = JSON.parse(local);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          notifications: {
+            ...DEFAULT_NOTIFICATION_SETTINGS,
+            ...(parsed.notifications || {}),
+            topics: {
+              ...DEFAULT_NOTIFICATION_SETTINGS.topics,
+              ...(parsed.notifications?.topics || {}),
+            },
+          },
+        };
       } catch {}
     }
     return DEFAULT_SETTINGS;

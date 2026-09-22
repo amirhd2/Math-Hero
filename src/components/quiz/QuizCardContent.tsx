@@ -17,6 +17,16 @@ interface QuizCardContentProps {
   onExit?: () => void;
 }
 
+// All half-body images available in public/assets/characters/boy/half-body/
+const BOY_HALF_BODY_IMAGES: readonly string[] = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 'greeting'
+];
+
+// All half-body images available in public/assets/characters/girl/half-body/
+const GIRL_HALF_BODY_IMAGES: readonly string[] = [
+  '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', 'greeting'
+];
+
 export const QuizCardContent: React.FC<QuizCardContentProps> = ({
   question,
   characterGender = 'boy',
@@ -35,13 +45,8 @@ export const QuizCardContent: React.FC<QuizCardContentProps> = ({
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     const absHash = Math.abs(hash);
-    if (characterGender === 'boy') {
-      const validIds = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
-      return validIds[absHash % validIds.length];
-    } else {
-      const validIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-      return validIds[absHash % validIds.length];
-    }
+    const validIds = characterGender === 'girl' ? GIRL_HALF_BODY_IMAGES : BOY_HALF_BODY_IMAGES;
+    return validIds[absHash % validIds.length];
   }, [question.id, characterGender]);
 
   const getSymbol = () => {

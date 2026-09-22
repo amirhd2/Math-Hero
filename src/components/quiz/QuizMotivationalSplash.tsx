@@ -46,16 +46,22 @@ const OWL_IMAGE_PATHS: string[] = [
 ];
 
 export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
+  session,
   mode,
   totalQuestions,
   onStartQuiz,
   onExit,
 }) => {
-  // Randomly pick one motivational sentence and one owl image on initial mount
+  // Use custom message if provided in session (e.g. from smart notifications), or randomly pick one
   const motivationalText = useMemo(() => {
+    if (session?.motivationalSplashCustomMessage) {
+      return session.motivationalSplashCustomMessage;
+    }
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length);
     return MOTIVATIONAL_MESSAGES[randomIndex];
-  }, []);
+  }, [session?.motivationalSplashCustomMessage]);
+
+  const customTitle = session?.motivationalSplashCustomTitle || 'جمله‌ی انگیزشی برای تو';
 
   const owlImageSrc = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * OWL_IMAGE_PATHS.length);
@@ -118,7 +124,7 @@ export const QuizMotivationalSplash: React.FC<QuizMotivationalSplashProps> = ({
           >
             <div className="flex items-center justify-center lg:justify-start gap-2 text-amber-600 dark:text-amber-400 font-black text-xs sm:text-sm">
               <span className="text-lg">✨</span>
-              <span>جمله‌ی انگیزشی برای تو</span>
+              <span>{customTitle}</span>
             </div>
 
             <h2 className="text-lg sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white leading-relaxed sm:leading-loose">
