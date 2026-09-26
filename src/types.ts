@@ -160,6 +160,7 @@ export interface NotificationSettings {
   quietHoursStart: string; // e.g. "21:00"
   quietHoursEnd: string; // e.g. "08:00"
   maxPerDay: number; // e.g. 1 or 2
+  inactivityDelayHours?: number; // e.g. 2, 3, or 4 hours after user exits (default 3)
   topics: {
     adaptiveTeacher: boolean;    // یادآور معلم هوشمند و مراحل مهارتی
     mistakesAndReview: boolean;  // گنجینه اشتباهات و مرورهای طلایی

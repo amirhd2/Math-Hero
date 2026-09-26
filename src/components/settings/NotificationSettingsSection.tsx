@@ -3,15 +3,22 @@
  * Provides controls for:
  * 1. Master toggle & permission state management
  * 2. Topic-level toggles (Adaptive Teacher, Mistakes & Review, Streaks, Gamification)
- * 3. Schedule, preferred reminder time, and quiet hours
- * 4. Daily limits & live testing button with immediate feedback
+ * 3. Schedule, preferred reminder time, inactivity delay hours, and quiet hours
+ * 4. Dual live testing: Immediate Android system notification & 5-second exit test
+ * 5. Service Worker status indicator and Android battery optimization guide
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppSettings, NotificationSettings, NotificationTopicKey } from '../../types';
 import { ToggleSwitch } from './ToggleSwitch';
-import { getBrowserNotificationPermission, deliverSmartNotification } from '../../notifications/notificationDelivery';
+import {
+  getBrowserNotificationPermission,
+  deliverSmartNotification,
+  checkServiceWorkerStatus,
+  triggerInAppReminder,
+} from '../../notifications/notificationDelivery';
 import { SmartNotificationEngine } from '../../notifications/smartNotificationEngine';
+import { scheduleTestAwayNotification } from '../../notifications/smartNotificationScheduler';
 import { NotificationPermissionModal } from '../notifications/NotificationPermissionModal';
 import { toPersianDigits } from '../../utils/persian';
 
@@ -27,7 +34,19 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
   onShowToast,
 }) => {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
+  const [isTestingImmediate, setIsTestingImmediate] = useState(false);
+  const [isTestingCountdown, setIsTestingCountdown] = useState(false);
+  const [countdownSeconds, setCountdownSeconds] = useState(0);
+  const [swStatus, setSwStatus] = useState<{
+    supported: boolean;
+    registered: boolean;
+    active: boolean;
+    version?: string;
+  }>({
+    supported: true,
+    registered: false,
+    active: false,
+  });
 
   const notif = settings.notifications || {
     enabled: false,
@@ -36,6 +55,7 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
     quietHoursStart: '21:00',
     quietHoursEnd: '08:00',
     maxPerDay: 2,
+    inactivityDelayHours: 3,
     topics: {
       adaptiveTeacher: true,
       mistakesAndReview: true,
@@ -46,6 +66,12 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
   };
 
   const browserPerm = getBrowserNotificationPermission();
+
+  useEffect(() => {
+    checkServiceWorkerStatus().then((status) => {
+      setSwStatus(status);
+    });
+  }, []);
 
   const updateNotifState = (partial: Partial<NotificationSettings>) => {
     const updated: AppSettings = {
@@ -66,7 +92,7 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
     if (enable) {
       if (browserPerm === 'granted') {
         updateNotifState({ enabled: true, permissionStatus: 'granted' });
-        onShowToast('یادآورهای هوشمند فعال شدند');
+        onShowToast('یادآورهای هوشمند فعال شدند 🎉');
       } else {
         setShowPermissionModal(true);
       }
@@ -85,8 +111,9 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
     });
   };
 
-  const handleTestNotification = async () => {
-    setIsTesting(true);
+  // 1. Immediate System Notification Test
+  const handleImmediateSystemTest = async () => {
+    setIsTestingImmediate(true);
     try {
       const evaluation = await SmartNotificationEngine.evaluateNotificationOpportunity({
         isTest: true,
@@ -94,11 +121,15 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
       });
 
       if (evaluation.payload) {
-        const result = await deliverSmartNotification(evaluation.payload);
+        const result = await deliverSmartNotification(evaluation.payload, {
+          forceSystemNotification: true,
+          skipInAppBroadcast: true,
+        });
+
         if (result.channel === 'service_worker' || result.channel === 'native_window') {
-          onShowToast('اعلان آزمایشی روی دستگاه شما نمایش داده شد 🎉');
+          onShowToast('اعلان سیستمی در نوار اعلان‌های اندروید ارسال شد 🔔');
         } else {
-          onShowToast('یادآور آزمایشی در برنامه فعال شد 🦉');
+          onShowToast('سیستم اعلان مرورگر در دسترس نیست یا مسدود است.');
         }
       } else {
         onShowToast(evaluation.messageFa || 'خطا در آماده‌سازی اعلان آزمایشی');
@@ -107,16 +138,52 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
       console.warn('Failed to test notification:', err);
       onShowToast('خطا در ارسال اعلان آزمایشی');
     } finally {
-      setIsTesting(false);
+      setIsTestingImmediate(false);
+    }
+  };
+
+  // 2. 5-Second Away-from-App Test (User can minimize app to see notification in Android drawer)
+  const handleAwayCountdownTest = async () => {
+    if (isTestingCountdown) return;
+    setIsTestingCountdown(true);
+    setCountdownSeconds(5);
+
+    try {
+      await scheduleTestAwayNotification(5);
+      onShowToast('شمارش معکوس ۵ ثانیه‌ای آغاز شد! از برنامه خارج شوید 📱');
+
+      let remaining = 5;
+      const timer = setInterval(() => {
+        remaining -= 1;
+        setCountdownSeconds(remaining);
+        if (remaining <= 0) {
+          clearInterval(timer);
+          setIsTestingCountdown(false);
+        }
+      }, 1000);
+    } catch {
+      setIsTestingCountdown(false);
+      onShowToast('خطا در زمان‌بندی تست');
+    }
+  };
+
+  // 3. In-App Companion Reminder Test
+  const handleInAppBannerTest = async () => {
+    const evaluation = await SmartNotificationEngine.evaluateNotificationOpportunity({
+      isTest: true,
+      forceSend: true,
+    });
+    if (evaluation.payload) {
+      triggerInAppReminder(evaluation.payload);
+      onShowToast('بنر همراه درون‌برنامه ظاهر شد 🦉');
     }
   };
 
   // Status text for badge
   let statusBadgeText = 'غیرفعال';
-
   if (notif.enabled) {
     if (browserPerm === 'granted') {
-      statusBadgeText = 'فعال و مجاز';
+      statusBadgeText = 'فعال و مجاز در سیستم';
     } else if (browserPerm === 'denied') {
       statusBadgeText = 'مرورگر مسدود کرده';
     } else {
@@ -152,12 +219,21 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
 
         {browserPerm === 'denied' && notif.enabled && (
           <div className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800 leading-relaxed">
-            💡 اعلان‌های سیستمی توسط تنظیمات مرورگر مسدود شده‌اند، اما یادآورها درون برنامه به طور کامل به شما نمایش داده می‌شوند. برای دریافت اعلان خارج از برنامه، در تنظیمات مرورگر دسترسی اعلان را مجاز کنید.
+            💡 اعلان‌های سیستمی توسط تنظیمات مرورگر مسدود شده‌اند، اما یادآورها درون برنامه به طور کامل به شما نمایش داده می‌شوند. برای دریافت اعلان خارج از برنامه در نوار اعلان‌های بالای گوشی، در تنظیمات مرورگر یا اطلاعات برنامه اندروید، دسترسی Notifications را مجاز کنید.
           </div>
         )}
+
+        {/* Service Worker Status Pill */}
+        <div className="flex items-center justify-between text-[11px] pt-1 border-t border-indigo-100 dark:border-indigo-900/30">
+          <span className="text-slate-500 dark:text-slate-400">وضعیت موتور اعلان اندروید (Service Worker):</span>
+          <span className={`font-bold flex items-center gap-1 ${swStatus.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+            <span className={`w-2 h-2 rounded-full ${swStatus.active ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            {swStatus.active ? 'فعال و آماده دریافت در پس‌زمینه' : 'در حال بارگذاری'}
+          </span>
+        </div>
       </div>
 
-      {/* 2. Topic Toggles (Active when notifications enabled) */}
+      {/* 2. Topic Toggles */}
       <div className={`space-y-3 transition-opacity ${notif.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
         <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
           موضوعات و اهداف یادآوری
@@ -208,18 +284,18 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
         </div>
       </div>
 
-      {/* 3. Schedule, Preferred Time, and Quiet Hours */}
+      {/* 3. Schedule, Inactivity Delay, and Quiet Hours */}
       <div className={`space-y-4 pt-2 transition-opacity ${notif.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
         <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-          زمان‌بندی و ساعات سکوت
+          زمان‌بندی، دوری از برنامه و ساعات سکوت
         </h4>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Preferred Reminder Time */}
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
               <span>⏰</span>
-              <span>ساعت پیشنهادی تمرین</span>
+              <span>ساعت مطالعه انتخابی</span>
             </label>
             <select
               value={notif.preferredTime || '17:00'}
@@ -232,6 +308,24 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
               <option value="18:00">۱۸:۰۰ (غروب)</option>
               <option value="19:00">۱۹:۰۰ (ابتدای شب)</option>
               <option value="20:00">۲۰:۰۰ (شب)</option>
+            </select>
+          </div>
+
+          {/* Inactivity Delay */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+              <span>⏳</span>
+              <span>فاصله پس از عدم فعالیت</span>
+            </label>
+            <select
+              value={notif.inactivityDelayHours || 3}
+              onChange={(e) => updateNotifState({ inactivityDelayHours: Number(e.target.value) })}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value={2}>۲ ساعت پس از خروج</option>
+              <option value={3}>۳ ساعت پس از خروج (پیش‌فرض)</option>
+              <option value={4}>۴ ساعت پس از خروج</option>
+              <option value={5}>۵ ساعت پس از خروج</option>
             </select>
           </div>
 
@@ -265,28 +359,72 @@ export const NotificationSettingsSection: React.FC<NotificationSettingsSectionPr
             </span>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-            در بازه شب تا صبح هیچ‌گونه اعلانی ارسال نخواهد شد تا آرامش کودک حفظ شود.
+            در ساعات شب تا صبح هیچ‌گونه اعلانی ارسال نخواهد شد تا آرامش کودک حفظ شود.
           </p>
         </div>
       </div>
 
-      {/* 4. Live Test Notification Button */}
-      <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
-        <button
-          type="button"
-          onClick={handleTestNotification}
-          disabled={isTesting}
-          className="w-full sm:flex-1 py-3 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-98 text-indigo-600 dark:text-indigo-300 font-bold text-xs sm:text-sm border border-slate-300/80 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-        >
-          {isTesting ? (
-            <span>در حال ارسال تست...</span>
-          ) : (
-            <>
-              <span>🔔</span>
-              <span>ارسال اعلان آزمایشی (تست زنده)</span>
-            </>
-          )}
-        </button>
+      {/* 4. Dedicated Live Test Suite */}
+      <div className="pt-2 space-y-3">
+        <h4 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+          ابزارهای تست و اعتبارسنجی زنده
+        </h4>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Test 1: Immediate System Notification */}
+          <button
+            type="button"
+            onClick={handleImmediateSystemTest}
+            disabled={isTestingImmediate}
+            className="p-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 active:scale-98"
+          >
+            <span>📱</span>
+            <span>{isTestingImmediate ? 'در حال ارسال...' : 'ارسال فوری اعلان سیستمی اندروید'}</span>
+          </button>
+
+          {/* Test 2: 5-Second Exit Test */}
+          <button
+            type="button"
+            onClick={handleAwayCountdownTest}
+            disabled={isTestingCountdown}
+            className="p-3.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-70 active:scale-98"
+          >
+            <span>⏱️</span>
+            <span>
+              {isTestingCountdown
+                ? `خارج شوید! اعلان تا ${toPersianDigits(countdownSeconds)} ثانیه دیگر...`
+                : 'تست خروج از برنامه (ارسال پس از ۵ ثانیه)'}
+            </span>
+          </button>
+        </div>
+
+        {/* Test 3: In-App Companion Banner */}
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleInAppBannerTest}
+            className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            <span>🦉</span>
+            <span>مشاهده تست بنر همراه داخل برنامه</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 5. Android Optimization Guide Card */}
+      <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
+        <div className="font-black text-xs text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+          <span>💡</span>
+          <span>راهنمای ویژه گوشی‌های اندرویدی (سامسونگ، شیائومی و هواوی):</span>
+        </div>
+        <p className="leading-relaxed">
+          برای اینکه اندروید پس از بستن برنامه، سرویس یادآوری را متوقف نکند:
+        </p>
+        <ul className="list-disc list-inside space-y-1 text-slate-500 dark:text-slate-400 pr-1">
+          <li>برنامه را از طریق مرورگر به عنوان وب‌اپلیکیشن (Install App / Add to Home screen) نصب نمایید.</li>
+          <li>در بخش اطلاعات برنامه (App Info &gt; Battery)، بهینه‌سازی باتری را روی «بدون محدودیت» (Unrestricted) بگذارید.</li>
+          <li>از بخش اعلان‌ها (App Info &gt; Notifications)، اطمینان حاصل کنید دسترسی اعلانات فعال است.</li>
+        </ul>
       </div>
     </div>
   );

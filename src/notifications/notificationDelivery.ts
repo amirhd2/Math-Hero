@@ -1,10 +1,10 @@
 /**
  * Delivery Service for Math Hero Smart Reminders & Notifications.
  * Supports:
- * 1. PWA Service Worker background notifications (registration.showNotification)
- * 2. Fallback window.Notification
- * 3. In-App Interactive Companion Reminder Banner (100% reliable inside iframes,
- *    sandboxes, and browsers without push permission).
+ * 1. Android PWA Service Worker system notifications (registration.showNotification)
+ * 2. Background scheduling for user absence & inactivity
+ * 3. Fallback window.Notification
+ * 4. In-App Interactive Companion Reminder Banner (shown when user is actively inside the app)
  */
 
 import { SmartNotificationPayload, NotificationActionData } from './notificationTypes';
@@ -12,6 +12,24 @@ import { storage } from '../utils/storage';
 import { SmartNotificationEngine } from './smartNotificationEngine';
 
 export type BrowserPermissionStatus = 'granted' | 'denied' | 'default' | 'unsupported';
+
+/**
+ * Resolves a URL to an absolute URL based on the current origin.
+ * Essential for Android Chrome PWA to load notification icons correctly.
+ */
+export function resolveAbsoluteUrl(urlPath?: string): string | undefined {
+  if (!urlPath) return undefined;
+  if (typeof window === 'undefined') return urlPath;
+  if (urlPath.startsWith('http://') || urlPath.startsWith('https://')) {
+    return urlPath;
+  }
+  try {
+    const clean = urlPath.startsWith('./') ? urlPath.slice(2) : urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
+    return new URL(clean, window.location.origin).href;
+  } catch {
+    return urlPath;
+  }
+}
 
 /**
  * Checks current browser notification permission safely.
@@ -94,20 +112,114 @@ export function dispatchNotificationAction(actionData: NotificationActionData): 
 }
 
 /**
+ * Sends a message to the active Service Worker with timeout.
+ */
+export async function sendServiceWorkerMessage(message: any, timeoutMs: number = 2000): Promise<any> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    return null;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const worker = registration.active || navigator.serviceWorker.controller;
+    if (!worker) return null;
+
+    return new Promise((resolve) => {
+      const messageChannel = new MessageChannel();
+      const timer = setTimeout(() => {
+        resolve(null);
+      }, timeoutMs);
+
+      messageChannel.port1.onmessage = (event) => {
+        clearTimeout(timer);
+        resolve(event.data);
+      };
+
+      worker.postMessage(message, [messageChannel.port2]);
+    });
+  } catch (err) {
+    console.warn('[Notifications] Error sending message to ServiceWorker:', err);
+    return null;
+  }
+}
+
+/**
+ * Checks if the Service Worker is currently active and ready to handle notifications.
+ */
+export async function checkServiceWorkerStatus(): Promise<{
+  supported: boolean;
+  registered: boolean;
+  active: boolean;
+  controller: boolean;
+  version?: string;
+}> {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    return { supported: false, registered: false, active: false, controller: false };
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      return { supported: true, registered: false, active: false, controller: false };
+    }
+
+    const isController = Boolean(navigator.serviceWorker.controller);
+    const isActive = Boolean(reg.active);
+
+    let version: string | undefined;
+    try {
+      const pong = await sendServiceWorkerMessage({ type: 'PING' }, 800);
+      if (pong && pong.type === 'PONG') {
+        version = pong.version;
+      }
+    } catch {}
+
+    return {
+      supported: true,
+      registered: true,
+      active: isActive,
+      controller: isController,
+      version,
+    };
+  } catch {
+    return { supported: true, registered: false, active: false, controller: false };
+  }
+}
+
+/**
  * Delivers a Smart Notification using the best available platform mechanism.
+ * User requirement:
+ * - When user is actively inside the app (document.visibilityState === 'visible') and not forced:
+ *   Deliver in-app companion banner with owl.
+ * - When user is away from app (document.visibilityState !== 'visible') or forceSystemNotification is true:
+ *   Deliver Android system notification in notification tray!
  */
 export async function deliverSmartNotification(
   payload: SmartNotificationPayload,
-  options?: { skipInAppBroadcast?: boolean }
+  options?: {
+    skipInAppBroadcast?: boolean;
+    forceSystemNotification?: boolean;
+  }
 ): Promise<{ success: boolean; channel: 'service_worker' | 'native_window' | 'in_app_only'; error?: string }> {
-  // Always trigger the in-app interactive companion reminder unless explicitly skipped
-  if (!options?.skipInAppBroadcast) {
-    triggerInAppReminder(payload);
+  const isAppVisible = typeof document !== 'undefined' && document.visibilityState === 'visible';
+  const forceSystem = options?.forceSystemNotification === true;
+
+  // 1. If user is currently looking at the app, show the in-app interactive companion banner
+  if (isAppVisible && !forceSystem) {
+    if (!options?.skipInAppBroadcast) {
+      triggerInAppReminder(payload);
+    }
+    await SmartNotificationEngine.recordNotificationSent(payload);
+    return { success: true, channel: 'in_app_only' };
   }
 
-  // Check if system notifications can be delivered
+  // 2. User is away from app or forced system notification test
   const permission = getBrowserNotificationPermission();
   if (permission !== 'granted') {
+    // If system notifications are not permitted, fall back to in-app reminder
+    if (!options?.skipInAppBroadcast) {
+      triggerInAppReminder(payload);
+    }
     return {
       success: true,
       channel: 'in_app_only',
@@ -115,27 +227,45 @@ export async function deliverSmartNotification(
     };
   }
 
-  const notificationOptions: NotificationOptions & { vibrate?: number[] } = {
+  // Build fully-qualified options for Android system notifications
+  const iconUrl = resolveAbsoluteUrl(payload.icon || '/assets/icons/android-chrome-192x192.png');
+  const badgeUrl = resolveAbsoluteUrl(payload.badge || '/assets/icons/android-chrome-192x192.png');
+
+  const notificationOptions: NotificationOptions & { vibrate?: number[]; renotify?: boolean } = {
     body: payload.body,
-    icon: payload.icon || '/assets/characters/owl/Ready.webp',
-    badge: payload.badge || '/assets/icons/android-chrome-192x192.png',
+    icon: iconUrl,
+    badge: badgeUrl,
     tag: payload.tag || 'math-hero-smart-reminder',
+    renotify: true,
     data: payload.actionData,
     dir: 'rtl',
     lang: 'fa',
     vibrate: [200, 100, 200],
   };
 
-  // 1. Try Service Worker showNotification first (PWA / background standard)
+  // Primary: Try Service Worker showNotification (Required for Android PWA background & shade)
   if ('serviceWorker' in navigator) {
     try {
       const swPromise = navigator.serviceWorker.ready;
-      // Add 1200ms safety timeout so we never hang if SW is installing or dev mode
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200));
+      const timeoutPromise = new Promise<ServiceWorkerRegistration | null>((resolve) =>
+        setTimeout(() => resolve(null), 1500)
+      );
       const reg = await Promise.race([swPromise, timeoutPromise]);
 
       if (reg && 'showNotification' in reg) {
         await reg.showNotification(payload.title, notificationOptions);
+        await SmartNotificationEngine.recordNotificationSent(payload);
+        return { success: true, channel: 'service_worker' };
+      }
+
+      // Try postMessage to Service Worker if reg was slow
+      const worker = navigator.serviceWorker.controller;
+      if (worker) {
+        worker.postMessage({
+          type: 'SHOW_NOTIFICATION',
+          title: payload.title,
+          options: notificationOptions,
+        });
         await SmartNotificationEngine.recordNotificationSent(payload);
         return { success: true, channel: 'service_worker' };
       }
@@ -144,7 +274,7 @@ export async function deliverSmartNotification(
     }
   }
 
-  // 2. Fallback to standard window.Notification
+  // Secondary: Fallback to standard window.Notification
   if ('Notification' in window) {
     try {
       const n = new window.Notification(payload.title, notificationOptions);
@@ -160,13 +290,20 @@ export async function deliverSmartNotification(
       return { success: true, channel: 'native_window' };
     } catch (notifErr: any) {
       console.warn('[Notifications] Native window Notification failed:', notifErr);
+      if (!options?.skipInAppBroadcast) {
+        triggerInAppReminder(payload);
+      }
       return {
         success: true,
         channel: 'in_app_only',
-        error: notifErr?.message || 'Native notification blocked in iframe/sandbox',
+        error: notifErr?.message || 'Native notification blocked',
       };
     }
   }
 
+  // Fallback to in-app
+  if (!options?.skipInAppBroadcast) {
+    triggerInAppReminder(payload);
+  }
   return { success: true, channel: 'in_app_only' };
 }

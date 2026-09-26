@@ -28,6 +28,7 @@ import { OfflineIndicator } from './components/pwa/OfflineIndicator';
 import { InAppNotificationBanner } from './components/notifications/InAppNotificationBanner';
 import { SmartNotificationEngine } from './notifications/smartNotificationEngine';
 import { deliverSmartNotification } from './notifications/notificationDelivery';
+import { initSmartNotificationScheduler } from './notifications/smartNotificationScheduler';
 import { NotificationActionData } from './notifications/notificationTypes';
 import { IOSSwipeBackContainer } from './components/navigation/IOSSwipeBackContainer';
 import { BottomNavigation } from './components/navigation/BottomNavigation';
@@ -263,10 +264,16 @@ export default function App() {
     };
   }, []);
 
-  // Periodic Smart Reminder & Notification evaluator
+  // Smart Reminder & Away-from-app Notification Scheduler
   useEffect(() => {
-    const checkNotificationOpportunity = async () => {
+    // 1. Initialize background away-from-app scheduler (handles exit, background sleep, and return)
+    const cleanupScheduler = initSmartNotificationScheduler();
+
+    // 2. Periodic gentle check for in-app companion reminders during long active sessions
+    const checkActiveInAppOpportunity = async () => {
       try {
+        if (document.visibilityState !== 'visible') return;
+
         const curSettings = await storage.getSettings();
         if (!curSettings.notifications?.enabled) return;
 
@@ -274,7 +281,7 @@ export default function App() {
         const currentHour = now.getHours();
         const preferredHour = parseInt((curSettings.notifications.preferredTime || '17:00').split(':')[0], 10) || 17;
 
-        // If current hour has reached preferred time
+        // If child is studying during or past their preferred study hour
         if (currentHour >= preferredHour) {
           const evaluation = await SmartNotificationEngine.evaluateNotificationOpportunity();
           if (evaluation.canSend && evaluation.payload) {
@@ -282,24 +289,18 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.warn('Periodic notification check failed:', err);
+        console.warn('In-app companion reminder check failed:', err);
       }
     };
 
-    const initialTimer = setTimeout(checkNotificationOpportunity, 15000);
-    const interval = setInterval(checkNotificationOpportunity, 20 * 60 * 1000);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkNotificationOpportunity();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Delay check until child has been active for at least 3 minutes, not immediately upon launch
+    const initialDelayTimer = setTimeout(checkActiveInAppOpportunity, 3 * 60 * 1000);
+    const periodicInterval = setInterval(checkActiveInAppOpportunity, 25 * 60 * 1000);
 
     return () => {
-      clearTimeout(initialTimer);
-      clearInterval(interval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      cleanupScheduler();
+      clearTimeout(initialDelayTimer);
+      clearInterval(periodicInterval);
     };
   }, []);
 
